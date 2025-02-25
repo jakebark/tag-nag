@@ -1,4 +1,5 @@
-# tag-nag
+# tag nag
 
-todo
-- default provider + locals
+Validate AWS tags in terraform.
+
+Designed to be part of pre-deployment checks, ensuring compliance with your tagging strategy. 
