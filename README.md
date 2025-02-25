@@ -21,7 +21,9 @@ docker run --rm -v $(pwd):/workspace jakebark/tag-nag --tags "Owner,Environment"
 ```bash
 tag-nag <file/directory> --tags "<tagKey1>,<tagKey2>"
 
-tag-nag foo.tf --tags "bar"
-tag-nag ./foo --tags "bar","baz"
+tag-nag foo.tf --tags "Owner" # run against a file
+tag-nag ./bar --tags "Owner","Environment" # run against a directory
+
+-c # case-insensitive 
 
 ```
