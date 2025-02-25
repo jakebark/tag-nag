@@ -1,4 +1,4 @@
-module tag_nag
+module github.com/jakebark/tag-nag
 
 go 1.22.4
 

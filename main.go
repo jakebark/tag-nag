@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"tag_nag/internal/inputs"
-	"tag_nag/internal/terraform"
+	"github.com/jakebark/tag-nag/internal/inputs"
+	"github.com/jakebark/tag-nag/internal/terraform"
 )
 
 func main() {

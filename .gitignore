@@ -6,6 +6,7 @@
 
 *.test
 **/test/*
+todo.md
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
