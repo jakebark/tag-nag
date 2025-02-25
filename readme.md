@@ -9,6 +9,13 @@ Designed to be part of pre-deployment checks, ensuring compliance with your tagg
 go install github.com/jakebark/tag-nag@latest
 ```
 
+### Docker
+```bash
+docker pull jakebark/tag-nag:latest
+docker run --rm -v $(pwd):/workspace jakebark/tag-nag --tags "Owner,Environment" /workspace
+
+```
+
 ## Commands
 
 ```bash
