@@ -4,26 +4,31 @@ import (
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/zclconf/go-cty/cty"
 )
 
 func findTags(block *hclsyntax.Block, caseInsensitive bool) (map[string]bool, error) {
-	tags := make(map[string]bool)
 	if attr, ok := block.Body.Attributes["tags"]; ok {
-		expr := attr.Expr
-		value, diags := expr.Value(nil)
+		value, diags := attr.Expr.Value(nil)
 		if diags.HasErrors() {
 			return nil, diags.Errs()[0]
 		}
 		if value.Type().IsObjectType() {
-			for key := range value.AsValueMap() {
-				if caseInsensitive {
-					key = strings.ToLower(key)
-				}
-				tags[key] = true
-			}
+			return extractTagKeys(value.AsValueMap(), caseInsensitive), nil
 		}
 	}
-	return tags, nil
+	return make(map[string]bool), nil
+}
+
+func extractTagKeys(tagMap map[string]cty.Value, caseInsensitive bool) map[string]bool {
+	tags := make(map[string]bool)
+	for key := range tagMap {
+		if caseInsensitive {
+			key = strings.ToLower(key)
+		}
+		tags[key] = true
+	}
+	return tags
 }
 
 func normalizeTagMap(tagMap map[string]bool, caseInsensitive bool) map[string]bool {
