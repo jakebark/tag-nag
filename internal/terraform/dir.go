@@ -28,7 +28,7 @@ func ScanDirectory(dirPath string, requiredTags []string, caseInsensitive bool) 
 	}
 }
 
-func checkFile(filePath string, requiredTags []string, defaultTagsByProvider map[string]map[string]bool, caseInsensitive bool) {
+func checkFile(filePath string, requiredTags []string, defaultTags map[string]map[string]bool, caseInsensitive bool) {
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
@@ -47,7 +47,7 @@ func checkFile(filePath string, requiredTags []string, defaultTagsByProvider map
 
 	// feed all into checkResources to check invidivual resources
 	// violations = a resource missing requiredTags
-	violations := checkResources(syntaxBody, requiredTags, defaultTagsByProvider, caseInsensitive)
+	violations := checkResources(syntaxBody, requiredTags, defaultTags, caseInsensitive)
 	if len(violations) > 0 {
 		fmt.Printf("\nNon-compliant resources in %s\n", filePath)
 		for _, v := range violations {
