@@ -43,7 +43,6 @@ func checkTerraformFile(filePath string, requiredTags []string, defaultTagsByPro
 
 	violations := checkResources(syntaxBody, requiredTags, defaultTagsByProvider, caseInsensitive)
 	if len(violations) > 0 {
-		// Find the earliest violation line to use in the header.
 		headerLine := violations[0].line
 		for _, v := range violations {
 			if v.line < headerLine {
