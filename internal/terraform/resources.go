@@ -101,4 +101,3 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 	}
 	return defaultProvider
 }
-
