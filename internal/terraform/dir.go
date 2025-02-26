@@ -52,7 +52,7 @@ func checkFile(filePath string, requiredTags []string, defaultTagsByProvider map
 		fmt.Printf("\nNon-compliant resources in %s\n", filePath)
 		for _, v := range violations {
 			fmt.Printf("  %s \"%s\" (line %d)\n", v.resourceType, v.resourceName, v.line)
-			fmt.Printf("  ❌ Missing tags: %s\n", strings.Join(v.missingTags, ", "))
+			fmt.Printf("  🏷️ Missing tags: %s\n", strings.Join(v.missingTags, ", "))
 		}
 	}
 }
