@@ -18,7 +18,7 @@ func ScanDirectory(dirPath string, requiredTags []string, caseInsensitive bool) 
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && strings.HasSuffix(path, ".tf") { // if .tf file, assess with checkTerraformFile
+		if !info.IsDir() && strings.HasSuffix(path, ".tf") { // if .tf file, assess with checkFile
 			checkFile(path, requiredTags, defaultTags, caseInsensitive)
 		}
 		return nil

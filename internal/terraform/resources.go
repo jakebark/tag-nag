@@ -14,25 +14,25 @@ type Violation struct {
 	missingTags  []string
 }
 
-func checkResources(body *hclsyntax.Body, requiredTags []string, defaultTagsByProvider map[string]map[string]bool, caseInsensitive bool) []Violation {
+func checkResources(body *hclsyntax.Body, requiredTags []string, defaultTags map[string]map[string]bool, caseInsensitive bool) []Violation {
 	var violations []Violation
 
 	for _, block := range body.Blocks {
-		if block.Type != "resource" || len(block.Labels) < 2 {
+		if block.Type != "resource" || len(block.Labels) < 2 { // skip anything without 2 labels eg "aws_s3_bucket" and "this"
 			continue
 		}
 
-		resourceType := block.Labels[0]
-		resourceName := block.Labels[1]
+		resourceType := block.Labels[0] // aws_s3_bucket
+		resourceName := block.Labels[1] // this
 
 		// only AWS resources
 		if !strings.HasPrefix(resourceType, "aws_") {
 			continue
 		}
 
-		// determine provider
+		// default tags magic
 		providerID := getResourceProvider(block, caseInsensitive)
-		providerDefaults := defaultTagsByProvider[providerID]
+		providerDefaults := defaultTags[providerID]
 		if providerDefaults == nil {
 			providerDefaults = make(map[string]bool)
 		}
