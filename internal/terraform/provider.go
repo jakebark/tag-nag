@@ -1,7 +1,6 @@
 package terraform
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,52 +9,6 @@ import (
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
-
-func checkForDefaultTags(dirPath string, caseInsensitive bool) map[string]map[string]bool {
-	result := make(map[string]map[string]bool)
-	localsAndVars := extractLocalsAndVariables(dirPath)
-
-	_ = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() || !strings.HasSuffix(path, ".tf") {
-			return nil
-		}
-
-		parser := hclparse.NewParser()
-		file, diags := parser.ParseHCLFile(path)
-		if diags.HasErrors() {
-			return nil
-		}
-
-		syntaxBody, ok := file.Body.(*hclsyntax.Body)
-		if !ok {
-			return nil
-		}
-
-		for _, block := range syntaxBody.Blocks {
-			if block.Type == "provider" && len(block.Labels) > 0 {
-				providerID := getProviderID(block, caseInsensitive)
-
-				tags := extractDefaultTagsBlock(block, localsAndVars, caseInsensitive)
-
-				if tags != nil {
-					result[providerID] = tags
-				}
-			}
-		}
-		return nil
-	})
-
-	if len(result) > 0 {
-		fmt.Printf("🔍 Found default tags: %v\n", result)
-	} else {
-		fmt.Println("⚠️  No default tags found")
-	}
-
-	return result
-}
 
 func getProviderID(block *hclsyntax.Block, caseInsensitive bool) string {
 	providerName := block.Labels[0]
@@ -82,11 +35,20 @@ func getProviderID(block *hclsyntax.Block, caseInsensitive bool) string {
 func extractDefaultTagsBlock(block *hclsyntax.Block, localsAndVars map[string]map[string]bool, caseInsensitive bool) map[string]bool {
 	for _, subBlock := range block.Body.Blocks {
 		if subBlock.Type == "default_tags" {
+
 			tags, _ := findTags(subBlock, caseInsensitive)
+			if tags == nil {
+				tags = make(map[string]bool)
+			}
 
 			if attr, exists := subBlock.Body.Attributes["tags"]; exists {
-				tags = resolveTagReferences(attr, localsAndVars)
+				resolvedTags := resolveTagReferences(attr, localsAndVars)
+
+				for k, v := range resolvedTags {
+					tags[k] = v
+				}
 			}
+
 			return tags
 		}
 	}

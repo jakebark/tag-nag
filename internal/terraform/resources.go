@@ -14,7 +14,7 @@ type Violation struct {
 	missingTags  []string
 }
 
-func checkResources(body *hclsyntax.Body, requiredTags []string, defaultTags map[string]map[string]bool, caseInsensitive bool) []Violation {
+func checkResources(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	var violations []Violation
 
 	for _, block := range body.Blocks {
@@ -32,7 +32,7 @@ func checkResources(body *hclsyntax.Body, requiredTags []string, defaultTags map
 
 		// default tags magic
 		providerID := getResourceProvider(block, caseInsensitive)
-		providerDefaults := defaultTags[providerID]
+		providerDefaults := defaultTags.ProviderTags[providerID]
 		if providerDefaults == nil {
 			providerDefaults = make(map[string]bool)
 		}

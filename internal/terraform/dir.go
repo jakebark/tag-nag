@@ -10,25 +10,34 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
+type DefaultTags struct {
+	ProviderTags  map[string]map[string]bool
+	LocalsAndVars map[string]map[string]bool
+}
+
 // check file(s) and presence of default tags
 func ScanDirectory(dirPath string, requiredTags []string, caseInsensitive bool) {
-	defaultTags := checkForDefaultTags(dirPath, caseInsensitive)
+	defaultTags := DefaultTags{
+		ProviderTags:  make(map[string]map[string]bool),
+		LocalsAndVars: extractLocalsAndVariables(dirPath),
+	}
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if !info.IsDir() && strings.HasSuffix(path, ".tf") { // if .tf file, assess with checkFile
-			checkFile(path, requiredTags, defaultTags, caseInsensitive)
+			checkFile(path, requiredTags, &defaultTags, caseInsensitive)
 		}
 		return nil
 	})
 	if err != nil {
 		fmt.Println("Error scanning directory:", err)
 	}
+
 }
 
-func checkFile(filePath string, requiredTags []string, defaultTags map[string]map[string]bool, caseInsensitive bool) {
+func checkFile(filePath string, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) {
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
@@ -43,6 +52,25 @@ func checkFile(filePath string, requiredTags []string, defaultTags map[string]ma
 	if !ok {
 		fmt.Printf("Parsing failed for %s\n", filePath)
 		return
+	}
+
+	for _, block := range syntaxBody.Blocks {
+		if block.Type == "provider" && len(block.Labels) > 0 {
+			providerID := getProviderID(block, caseInsensitive)
+
+			tags := extractDefaultTagsBlock(block, defaultTags.LocalsAndVars, caseInsensitive)
+
+			if len(tags) > 0 { // ✅ Only print if the provider has default tags
+				fmt.Printf("🔍 Found default tags for provider %s: %v\n", providerID, tags)
+			}
+
+			if tags != nil {
+				if defaultTags.ProviderTags == nil {
+					defaultTags.ProviderTags = make(map[string]map[string]bool)
+				}
+				defaultTags.ProviderTags[providerID] = tags
+			}
+		}
 	}
 
 	// feed all into checkResources to check invidivual resources
