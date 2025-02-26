@@ -11,14 +11,14 @@ import (
 )
 
 func ScanDirectory(dirPath string, requiredTags []string, caseInsensitive bool) {
-	defaultTagsByProvider := findDefaultTagsByProvider(dirPath, caseInsensitive)
+	defaultTags := checkForDefaultTags(dirPath, caseInsensitive)
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if !info.IsDir() && strings.HasSuffix(path, ".tf") {
-			checkTerraformFile(path, requiredTags, defaultTagsByProvider, caseInsensitive)
+			checkTerraformFile(path, requiredTags, defaultTags, caseInsensitive)
 		}
 		return nil
 	})

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
-func findDefaultTagsByProvider(dirPath string, caseInsensitive bool) map[string]map[string]bool {
+func checkForDefaultTags(dirPath string, caseInsensitive bool) map[string]map[string]bool {
 	result := make(map[string]map[string]bool)
 	localsAndVars := extractLocalsAndVariables(dirPath)
 
