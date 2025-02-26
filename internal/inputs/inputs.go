@@ -30,12 +30,12 @@ func ParseFlags() UserInput {
 
 	return UserInput{
 		Directory:       pflag.Arg(0),
-		RequiredTags:    cleanTags(tags),
+		RequiredTags:    sliceAndTrim(tags),
 		CaseInsensitive: caseInsensitive,
 	}
 }
 
-func cleanTags(input string) []string {
+func sliceAndTrim(input string) []string {
 	tags := strings.Split(input, ",")
 	for i := range tags {
 		tags[i] = strings.TrimSpace(tags[i])
