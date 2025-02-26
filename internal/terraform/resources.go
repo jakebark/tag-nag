@@ -65,7 +65,6 @@ func checkResources(body *hclsyntax.Body, requiredTags []string, defaultTagsByPr
 	return violations
 }
 
-// checks for a "provider" attribute; if absent, returns "aws" as default.
 func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 	if attr, ok := block.Body.Attributes["provider"]; ok {
 
@@ -102,3 +101,4 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 	}
 	return defaultProvider
 }
+

@@ -1,12 +1,8 @@
 package terraform
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
-	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
@@ -30,62 +26,6 @@ func findTags(block *hclsyntax.Block, caseInsensitive bool) (map[string]bool, er
 	return tags, nil
 }
 
-func findDefaultTagsByProvider(dirPath string, caseInsensitive bool) map[string]map[string]bool {
-	result := make(map[string]map[string]bool)
-	filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() && strings.HasSuffix(path, ".tf") {
-			parser := hclparse.NewParser()
-			file, diags := parser.ParseHCLFile(path)
-			if diags.HasErrors() {
-				return nil
-			}
-			syntaxBody, ok := file.Body.(*hclsyntax.Body)
-			if !ok {
-				return nil
-			}
-			for _, block := range syntaxBody.Blocks {
-				if block.Type == "provider" && len(block.Labels) > 0 {
-					providerName := block.Labels[0]
-					alias := ""
-					if attr, ok := block.Body.Attributes["alias"]; ok {
-						val, diags := attr.Expr.Value(nil)
-						if !diags.HasErrors() {
-							alias = val.AsString()
-						}
-					}
-					var providerID string
-					if alias != "" {
-						providerID = providerName + "." + alias
-					} else {
-						providerID = providerName
-					}
-					if caseInsensitive {
-						providerID = strings.ToLower(providerID)
-					}
-					// Look for a default_tags block inside this provider block.
-					for _, subBlock := range block.Body.Blocks {
-						if subBlock.Type == "default_tags" {
-							tags, _ := findTags(subBlock, caseInsensitive)
-							result[providerID] = tags
-						}
-					}
-				}
-			}
-		}
-		return nil
-	})
-	if len(result) > 0 {
-		fmt.Printf("🔍 Found default tags: %v\n", result)
-	} else {
-		fmt.Println("⚠️  No default tags found")
-	}
-	return result
-}
-
-// return a new map with lowercased keys if caseInsensitive is enabled.
 func normalizeTagMap(tagMap map[string]bool, caseInsensitive bool) map[string]bool {
 	if !caseInsensitive {
 		return tagMap
@@ -97,7 +37,6 @@ func normalizeTagMap(tagMap map[string]bool, caseInsensitive bool) map[string]bo
 	return normalized
 }
 
-// return the required tags (with original case) not found in effectiveTags
 func filterMissingTags(requiredTags []string, effectiveTags map[string]bool, caseInsensitive bool) []string {
 	missing := []string{}
 	for _, tag := range requiredTags {
