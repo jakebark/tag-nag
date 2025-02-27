@@ -38,7 +38,6 @@ func getProviderID(block *hclsyntax.Block, caseInsensitive bool) string {
 func checkDefaultTags(block *hclsyntax.Block, localsAndVars map[string]map[string]bool, caseInsensitive bool) map[string]bool {
 	for _, subBlock := range block.Body.Blocks {
 		if subBlock.Type == "default_tags" {
-
 			tags, _ := findTags(subBlock, caseInsensitive)
 			if tags == nil {
 				tags = make(map[string]bool)
@@ -46,7 +45,6 @@ func checkDefaultTags(block *hclsyntax.Block, localsAndVars map[string]map[strin
 
 			if attr, exists := subBlock.Body.Attributes["tags"]; exists {
 				resolvedTags := resolveTagReferences(attr, localsAndVars)
-
 				for k, v := range resolvedTags {
 					tags[k] = v
 				}
@@ -55,6 +53,7 @@ func checkDefaultTags(block *hclsyntax.Block, localsAndVars map[string]map[strin
 			return tags
 		}
 	}
+
 	return nil
 }
 
