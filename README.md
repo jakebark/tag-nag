@@ -18,12 +18,13 @@ docker run --rm -v $(pwd):/workspace jakebark/tag-nag --tags "Owner,Environment"
 
 ## Commands
 
+Tag nag will search a file or directory for tag keys. 
+
 ```bash
-tag-nag <file/directory> --tags "<tagKey1>,<tagKey2>"
+tag-nag <file/directory> --tags "<tagKey1>,<tagKeyN>"
+-c # case-insensitive 
 
 tag-nag foo.tf --tags "Owner" # run against a file
 tag-nag ./bar --tags "Owner","Environment" # run against a directory
-
--c # case-insensitive 
 
 ```
