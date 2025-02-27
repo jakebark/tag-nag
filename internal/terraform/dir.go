@@ -54,13 +54,14 @@ func checkFile(filePath string, requiredTags []string, defaultTags *DefaultTags,
 		return
 	}
 
+	// check for provider and analyze default tags
 	for _, block := range syntaxBody.Blocks {
 		if block.Type == "provider" && len(block.Labels) > 0 {
 			providerID := getProviderID(block, caseInsensitive)
 
 			tags := extractDefaultTagsBlock(block, defaultTags.LocalsAndVars, caseInsensitive)
 
-			if len(tags) > 0 { // ✅ Only print if the provider has default tags
+			if len(tags) > 0 {
 				fmt.Printf("🔍 Found default tags for provider %s: %v\n", providerID, tags)
 			}
 

@@ -32,7 +32,7 @@ func getProviderID(block *hclsyntax.Block, caseInsensitive bool) string {
 	return providerID
 }
 
-func extractDefaultTagsBlock(block *hclsyntax.Block, localsAndVars map[string]map[string]bool, caseInsensitive bool) map[string]bool {
+func checkDefaultTags(block *hclsyntax.Block, localsAndVars map[string]map[string]bool, caseInsensitive bool) map[string]bool {
 	for _, subBlock := range block.Body.Blocks {
 		if subBlock.Type == "default_tags" {
 
