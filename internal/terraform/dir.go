@@ -19,7 +19,7 @@ type DefaultTags struct {
 func ScanDirectory(dirPath string, requiredTags []string, caseInsensitive bool) {
 	defaultTags := DefaultTags{
 		ProviderTags:  make(map[string]map[string]bool),
-		LocalsAndVars: extractLocalsAndVariables(dirPath),
+		LocalsAndVars: checkVariables(dirPath),
 	}
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
@@ -59,7 +59,7 @@ func checkFile(filePath string, requiredTags []string, defaultTags *DefaultTags,
 		if block.Type == "provider" && len(block.Labels) > 0 {
 			providerID := getProviderID(block, caseInsensitive)
 
-			tags := extractDefaultTagsBlock(block, defaultTags.LocalsAndVars, caseInsensitive)
+			tags := checkDefaultTags(block, defaultTags.LocalsAndVars, caseInsensitive)
 
 			if len(tags) > 0 {
 				fmt.Printf("🔍 Found default tags for provider %s: %v\n", providerID, tags)

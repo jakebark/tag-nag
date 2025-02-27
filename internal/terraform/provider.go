@@ -75,7 +75,7 @@ func resolveTagReferences(attr *hclsyntax.Attribute, localsAndVars map[string]ma
 	return nil
 }
 
-func extractLocalsAndVariables(dirPath string) map[string]map[string]bool {
+func checkVariables(dirPath string) map[string]map[string]bool {
 	localsAndVars := make(map[string]map[string]bool)
 
 	_ = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
