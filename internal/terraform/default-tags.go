@@ -47,7 +47,7 @@ func checkDefaultTags(block *hclsyntax.Block, localsAndVars map[string]map[strin
 
 			// if tags are a var/local
 			if attr, exists := subBlock.Body.Attributes["tags"]; exists {
-				resolvedTags := resolveTagReferences(attr, localsAndVars)
+				resolvedTags := resolveDefaultTagReferences(attr, localsAndVars)
 				for k, v := range resolvedTags {
 					tags[k] = v
 				}
@@ -58,8 +58,8 @@ func checkDefaultTags(block *hclsyntax.Block, localsAndVars map[string]map[strin
 	return nil
 }
 
-func resolveTagReferences(attr *hclsyntax.Attribute, localsAndVars map[string]map[string]bool) map[string]bool {
-	if traversalExpr, ok := attr.Expr.(*hclsyntax.ScopeTraversalExpr); ok {
+func resolveDefaultTagReferences(attr *hclsyntax.Attribute, localsAndVars map[string]map[string]bool) map[string]bool {
+	if traversalExpr, ok := attr.Expr.(*hclsyntax.ScopeTraversalExpr); ok { // ScopeTraveersalExpr = value is a reference, not direct map
 		traversedParts := []string{}
 		for _, step := range traversalExpr.Traversal {
 			switch t := step.(type) {
