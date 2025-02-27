@@ -8,7 +8,7 @@ Designed to be part of pre-deployment checks, ensuring compliance with your tagg
 ```bash
 go install github.com/jakebark/tag-nag@latest
 ```
-You may need to set [GOPATH](https://go.dev/wiki/SettingGOPATH)
+You may need to set [GOPATH](https://go.dev/wiki/SettingGOPATH).
 
 ### Docker
 ```bash
