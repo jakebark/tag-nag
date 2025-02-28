@@ -24,25 +24,20 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultT
 		resourceType := block.Labels[0] // aws_s3_bucket
 		resourceName := block.Labels[1] // this
 
-		// only AWS resources
 		if !strings.HasPrefix(resourceType, "aws_") {
 			continue
 		}
 
-		// default tags magic
 		providerID := getResourceProvider(block, caseInsensitive)
-		providerDefaults := defaultTags.ProviderTags[providerID]
-		if providerDefaults == nil {
-			providerDefaults = make(map[string]bool)
+		providerDefaultTags := defaultTags.ProviderTags[providerID]
+		if providerDefaultTags == nil {
+			providerDefaultTags = make(map[string]bool)
 		}
 
-		// resource tags
 		resourceTags := findTags(block, caseInsensitive)
 
-		// merge defaultand resource tags
-		effectiveTags := mergeTags(providerDefaults, resourceTags)
+		effectiveTags := mergeTags(providerDefaultTags, resourceTags)
 
-		// determine which tags are missing
 		missingTags := filterMissingTags(requiredTags, effectiveTags, caseInsensitive)
 		if len(missingTags) > 0 {
 			violations = append(violations, Violation{
@@ -70,8 +65,7 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 			return s
 		}
 
-		// prover is not a literal string ("aws.west")
-		// hcl views as hierachical
+		// provider is not a literal string ("aws.west")
 		s := extractTraversalString(attr.Expr, caseInsensitive)
 		if s != "" {
 			return s

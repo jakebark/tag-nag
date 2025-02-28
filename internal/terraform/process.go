@@ -15,7 +15,6 @@ type DefaultTags struct {
 	ReferencedTags map[string]map[string]bool
 }
 
-// check file(s) and presence of default tags
 func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) {
 	defaultTags := DefaultTags{
 		ProviderTags:   make(map[string]map[string]bool),
@@ -26,7 +25,7 @@ func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive boo
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && strings.HasSuffix(path, ".tf") { // if .tf file, assess with checkFile
+		if !info.IsDir() && strings.HasSuffix(path, ".tf") {
 			processFile(path, requiredTags, &defaultTags, caseInsensitive)
 		}
 		return nil
@@ -71,8 +70,8 @@ func processFile(filePath string, requiredTags []string, defaultTags *DefaultTag
 func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseInsensitive bool) {
 	for _, block := range body.Blocks {
 		if block.Type == "provider" && len(block.Labels) > 0 {
-			providerID := getProviderID(block, caseInsensitive)                             // providerID combines provider name and alias ("aws.west") to align with resource provider arg
-			tags := checkForDefaultTags(block, defaultTags.ReferencedTags, caseInsensitive) // check provider for default_tags, return map of tags
+			providerID := getProviderID(block, caseInsensitive)
+			tags := checkForDefaultTags(block, defaultTags.ReferencedTags, caseInsensitive)
 
 			if len(tags) > 0 {
 				var keys []string
