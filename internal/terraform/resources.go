@@ -61,6 +61,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultT
 func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 	if attr, ok := block.Body.Attributes["provider"]; ok {
 
+		// provider is a literal string ("aws")
 		val, diags := attr.Expr.Value(nil)
 		if !diags.HasErrors() {
 			s := val.AsString()
@@ -70,6 +71,8 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 			return s
 		}
 
+		// prover is not a literal string ("aws.west")
+		// hcl views as hierachical
 		s := extractTraversalString(attr.Expr, caseInsensitive)
 		if s != "" {
 			return s
@@ -77,6 +80,7 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 
 	}
 
+	// no explicit provider, return default provider
 	defaultProvider := "aws"
 	if caseInsensitive {
 		defaultProvider = strings.ToLower(defaultProvider)
