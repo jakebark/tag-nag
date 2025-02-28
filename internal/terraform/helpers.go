@@ -39,30 +39,6 @@ func mergeTags(tagMaps ...map[string]bool) map[string]bool {
 	return merged
 }
 
-func filterMissingTags(requiredTags []string, effectiveTags map[string]bool, caseInsensitive bool) []string {
-	missing := []string{}
-	for _, tag := range requiredTags {
-		found := false
-		for existing := range effectiveTags {
-			if caseInsensitive {
-				if strings.EqualFold(existing, tag) {
-					found = true
-					break
-				}
-			} else {
-				if existing == tag {
-					found = true
-					break
-				}
-			}
-		}
-		if !found {
-			missing = append(missing, tag)
-		}
-	}
-	return missing
-}
-
 func getTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (map[string]bool, error) {
 	val, diags := attr.Expr.Value(nil)
 	if diags.HasErrors() || !val.Type().IsObjectType() {

@@ -94,3 +94,27 @@ func findTags(block *hclsyntax.Block, caseInsensitive bool) (map[string]bool, er
 	}
 	return make(map[string]bool), nil
 }
+
+func filterMissingTags(requiredTags []string, effectiveTags map[string]bool, caseInsensitive bool) []string {
+	missing := []string{}
+	for _, tag := range requiredTags {
+		found := false
+		for existing := range effectiveTags {
+			if caseInsensitive {
+				if strings.EqualFold(existing, tag) {
+					found = true
+					break
+				}
+			} else {
+				if existing == tag {
+					found = true
+					break
+				}
+			}
+		}
+		if !found {
+			missing = append(missing, tag)
+		}
+	}
+	return missing
+}
