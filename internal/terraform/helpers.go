@@ -14,6 +14,15 @@ func extractTraversalString(expr hcl.Expression, caseInsensitive bool) string {
 		return ""
 	}
 	tokens := []string{}
+
+	// converts hcl qualified name into a literal string
+	// eg local.tags to ... local.tags
+	// hcl sees it as hierachical components, eg:
+	// TraversalExpr{
+	// Traversal: [
+	//    TraverseRoot{Name: "local"},
+	//    TraverseAttr{Name: "tags"}
+	// ]}
 	for _, step := range ste.Traversal {
 		switch t := step.(type) {
 		case hcl.TraverseRoot:
@@ -41,10 +50,13 @@ func mergeTags(tagMaps ...map[string]bool) map[string]bool {
 
 func getTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (map[string]bool, error) {
 	val, diags := attr.Expr.Value(nil)
+	// check for errors in tags
 	if diags.HasErrors() || !val.Type().IsObjectType() {
 		return nil, fmt.Errorf("failed to extract tag map")
 	}
+
 	tags := make(map[string]bool)
+	// convert hcl to go map
 	for key := range val.AsValueMap() {
 		if caseInsensitive {
 			key = strings.ToLower(key)
