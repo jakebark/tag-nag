@@ -13,7 +13,7 @@ type Violation struct {
 	missingTags  []string
 }
 
-func checkResources(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	var violations []Violation
 
 	for _, block := range body.Blocks {

@@ -53,7 +53,7 @@ func processFile(filePath string, requiredTags []string, defaultTags *DefaultTag
 		return
 	}
 
-	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
+	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive) // kick off func to update defaultTags struct (defaultTags.ProviderTags)
 	violations := processResourceBlocks(syntaxBody, requiredTags, defaultTags, caseInsensitive)
 
 	if len(violations) > 0 {
@@ -68,8 +68,9 @@ func processFile(filePath string, requiredTags []string, defaultTags *DefaultTag
 func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseInsensitive bool) {
 	for _, block := range body.Blocks {
 		if block.Type == "provider" && len(block.Labels) > 0 {
-			providerID := getProviderID(block, caseInsensitive)
-			tags := checkforDefaultTags(block, defaultTags.LocalsAndVars, caseInsensitive)
+			providerID := getProviderID(block, caseInsensitive)                            // providerID combines provider name and alias ("aws.west") to align with resource provider arg
+			tags := checkforDefaultTags(block, defaultTags.LocalsAndVars, caseInsensitive) // check provider for default_tags, return map of tags
+
 			if len(tags) > 0 {
 				fmt.Printf("🔍 Found default tags for provider %s: %v\n", providerID, tags)
 			}
@@ -81,5 +82,5 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 }
 
 func processResourceBlocks(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
-	return checkResources(body, requiredTags, defaultTags, caseInsensitive)
+	return checkResourcesForTags(body, requiredTags, defaultTags, caseInsensitive)
 }
