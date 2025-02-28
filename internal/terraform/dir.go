@@ -34,7 +34,6 @@ func ScanDirectory(dirPath string, requiredTags []string, caseInsensitive bool) 
 	if err != nil {
 		fmt.Println("Error scanning directory:", err)
 	}
-
 }
 
 func checkFile(filePath string, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) {
@@ -54,29 +53,9 @@ func checkFile(filePath string, requiredTags []string, defaultTags *DefaultTags,
 		return
 	}
 
-	// check for provider and analyze default tags
-	for _, block := range syntaxBody.Blocks {
-		if block.Type == "provider" && len(block.Labels) > 0 {
-			providerID := getProviderID(block, caseInsensitive)
+	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
+	violations := processResourceBlocks(syntaxBody, requiredTags, defaultTags, caseInsensitive)
 
-			tags := checkDefaultTags(block, defaultTags.LocalsAndVars, caseInsensitive)
-
-			if len(tags) > 0 {
-				fmt.Printf("🔍 Found default tags for provider %s: %v\n", providerID, tags)
-			}
-
-			if tags != nil {
-				if defaultTags.ProviderTags == nil {
-					defaultTags.ProviderTags = make(map[string]map[string]bool)
-				}
-				defaultTags.ProviderTags[providerID] = tags
-			}
-		}
-	}
-
-	// feed all into checkResources to check invidivual resources
-	// violations = a resource missing requiredTags
-	violations := checkResources(syntaxBody, requiredTags, defaultTags, caseInsensitive)
 	if len(violations) > 0 {
 		fmt.Printf("\nNon-compliant resources in %s\n", filePath)
 		for _, v := range violations {
@@ -84,4 +63,27 @@ func checkFile(filePath string, requiredTags []string, defaultTags *DefaultTags,
 			fmt.Printf("  🏷️ Missing tags: %s\n", strings.Join(v.missingTags, ", "))
 		}
 	}
+}
+
+// split out checkFile
+// process default tags
+func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseInsensitive bool) {
+	for _, block := range body.Blocks {
+		if block.Type == "provider" && len(block.Labels) > 0 {
+			providerID := getProviderID(block, caseInsensitive)
+			tags := checkDefaultTags(block, defaultTags.LocalsAndVars, caseInsensitive)
+			if len(tags) > 0 {
+				fmt.Printf("🔍 Found default tags for provider %s: %v\n", providerID, tags)
+			}
+			if tags != nil {
+				defaultTags.ProviderTags[providerID] = tags
+			}
+		}
+	}
+}
+
+// split out
+// check resource blocks
+func processResourceBlocks(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+	return checkResources(body, requiredTags, defaultTags, caseInsensitive)
 }
