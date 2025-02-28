@@ -47,7 +47,7 @@ func checkDefaultTags(block *hclsyntax.Block, localsAndVars map[string]map[strin
 
 				}
 				// merge resolved tags from locals/vars.
-				resolvedTags := resolveDefaultTagReferences(attr, localsAndVars)
+				resolvedTags := resolveDefaultTagReferences(attr, localsAndVars, caseInsensitive)
 				tags = mergeTags(tags, resolvedTags)
 			} else {
 				tags = make(map[string]bool)
@@ -58,29 +58,7 @@ func checkDefaultTags(block *hclsyntax.Block, localsAndVars map[string]map[strin
 	return nil
 }
 
-func resolveDefaultTagReferences(attr *hclsyntax.Attribute, localsAndVars map[string]map[string]bool) map[string]bool {
-	traversalExpr, ok := attr.Expr.(*hclsyntax.ScopeTraversalExpr) // ScopeTraversalExpr == value is a reference, not a direct map
-	if !ok {
-		return nil
-	}
-
-	// converts tags = local.tags to ... local.tags
-	// sounds dumb, but hcl sees it as hierachical components, eg:
-	// TraversalExpr{
-	// Traversal: [
-	//    TraverseRoot{Name: "local"},
-	//    TraverseAttr{Name: "tags"}
-	// ]}
-	refParts := make([]string, len(traversalExpr.Traversal))
-	for i, step := range traversalExpr.Traversal {
-		switch t := step.(type) {
-		case hcl.TraverseRoot:
-			refParts[i] = t.Name
-		case hcl.TraverseAttr:
-			refParts[i] = t.Name
-		}
-	}
-	tagRef := strings.Join(refParts, ".")
-
+func resolveDefaultTagReferences(attr *hclsyntax.Attribute, localsAndVars map[string]map[string]bool, caseInsensitive bool) map[string]bool {
+	tagRef := extractTraversalString(attr.Expr, caseInsensitive)
 	return localsAndVars[tagRef]
 }

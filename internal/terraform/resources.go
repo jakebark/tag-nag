@@ -71,22 +71,11 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 			return s
 		}
 
-		if ste, ok := attr.Expr.(*hclsyntax.ScopeTraversalExpr); ok {
-			tokens := []string{}
-			for _, step := range ste.Traversal {
-				switch t := step.(type) {
-				case hcl.TraverseRoot:
-					tokens = append(tokens, t.Name)
-				case hcl.TraverseAttr:
-					tokens = append(tokens, t.Name)
-				}
-			}
-			s := strings.Join(tokens, ".")
-			if caseInsensitive {
-				s = strings.ToLower(s)
-			}
+		s := extractTraversalString(attr.Expr, caseInsensitive)
+		if s != "" {
 			return s
 		}
+
 	}
 
 	defaultProvider := "aws"
