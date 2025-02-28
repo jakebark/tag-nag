@@ -75,7 +75,12 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 			tags := checkforDefaultTags(block, defaultTags.References, caseInsensitive) // check provider for default_tags, return map of tags
 
 			if len(tags) > 0 {
-				fmt.Printf("🔍 Found default tags for provider %s: %v\n", providerID, tags)
+				var keys []string
+				for key := range tags {
+					keys = append(keys, key) // remove bool element of tag map
+				}
+				fmt.Printf("🔍 Found default tags for provider %s: %v\n", providerID, keys)
+
 			}
 			if tags != nil {
 				defaultTags.ProviderTags[providerID] = tags
