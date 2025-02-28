@@ -1,6 +1,7 @@
 package terraform
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
@@ -60,4 +61,19 @@ func filterMissingTags(requiredTags []string, effectiveTags map[string]bool, cas
 		}
 	}
 	return missing
+}
+
+func getTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (map[string]bool, error) {
+	val, diags := attr.Expr.Value(nil)
+	if diags.HasErrors() || !val.Type().IsObjectType() {
+		return nil, fmt.Errorf("failed to extract tag map")
+	}
+	tags := make(map[string]bool)
+	for key := range val.AsValueMap() {
+		if caseInsensitive {
+			key = strings.ToLower(key)
+		}
+		tags[key] = true
+	}
+	return tags, nil
 }

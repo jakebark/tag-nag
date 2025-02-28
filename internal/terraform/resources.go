@@ -87,3 +87,10 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 	}
 	return defaultProvider
 }
+
+func findTags(block *hclsyntax.Block, caseInsensitive bool) (map[string]bool, error) {
+	if attr, ok := block.Body.Attributes["tags"]; ok {
+		return getTagMap(attr, caseInsensitive)
+	}
+	return make(map[string]bool), nil
+}
