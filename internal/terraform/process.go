@@ -53,7 +53,10 @@ func processFile(filePath string, requiredTags []string, defaultTags *DefaultTag
 		return
 	}
 
-	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive) // kick off func to update defaultTags struct (defaultTags.ProviderTags)
+	// these are the two main parts of the code
+	// processProviderBlocks and its sub-functions will check all providers and then update the defaultTags struct (defaultTags.ProviderTags)
+	// processResourceBlocks and its sub-functions will return a list of violations (non-compliant resources)
+	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
 	violations := processResourceBlocks(syntaxBody, requiredTags, defaultTags, caseInsensitive)
 
 	if len(violations) > 0 {
