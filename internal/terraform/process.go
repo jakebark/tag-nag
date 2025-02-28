@@ -65,13 +65,11 @@ func processFile(filePath string, requiredTags []string, defaultTags *DefaultTag
 	}
 }
 
-// split out checkFile
-// process default tags
 func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseInsensitive bool) {
 	for _, block := range body.Blocks {
 		if block.Type == "provider" && len(block.Labels) > 0 {
 			providerID := getProviderID(block, caseInsensitive)
-			tags := checkDefaultTags(block, defaultTags.LocalsAndVars, caseInsensitive)
+			tags := checkforDefaultTags(block, defaultTags.LocalsAndVars, caseInsensitive)
 			if len(tags) > 0 {
 				fmt.Printf("🔍 Found default tags for provider %s: %v\n", providerID, tags)
 			}
@@ -82,8 +80,6 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 	}
 }
 
-// split out
-// check resource blocks
 func processResourceBlocks(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	return checkResources(body, requiredTags, defaultTags, caseInsensitive)
 }

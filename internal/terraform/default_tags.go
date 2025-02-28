@@ -34,7 +34,7 @@ func normalizeProviderID(providerName, alias string, caseInsensitive bool) strin
 	return providerID
 }
 
-func checkDefaultTags(block *hclsyntax.Block, localsAndVars map[string]map[string]bool, caseInsensitive bool) map[string]bool {
+func checkforDefaultTags(block *hclsyntax.Block, localsAndVars map[string]map[string]bool, caseInsensitive bool) map[string]bool {
 	for _, subBlock := range block.Body.Blocks {
 		if subBlock.Type == "default_tags" {
 			var tags map[string]bool
