@@ -16,7 +16,7 @@ type DefaultTags struct {
 }
 
 // check file(s) and presence of default tags
-func ScanDirectory(dirPath string, requiredTags []string, caseInsensitive bool) {
+func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) {
 	defaultTags := DefaultTags{
 		ProviderTags:  make(map[string]map[string]bool),
 		LocalsAndVars: checkVariables(dirPath),
@@ -27,7 +27,7 @@ func ScanDirectory(dirPath string, requiredTags []string, caseInsensitive bool) 
 			return err
 		}
 		if !info.IsDir() && strings.HasSuffix(path, ".tf") { // if .tf file, assess with checkFile
-			checkFile(path, requiredTags, &defaultTags, caseInsensitive)
+			processFile(path, requiredTags, &defaultTags, caseInsensitive)
 		}
 		return nil
 	})
@@ -36,7 +36,7 @@ func ScanDirectory(dirPath string, requiredTags []string, caseInsensitive bool) 
 	}
 }
 
-func checkFile(filePath string, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) {
+func processFile(filePath string, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) {
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
 

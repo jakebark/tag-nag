@@ -10,5 +10,5 @@ func main() {
 	userInput := inputs.ParseFlags()
 	fmt.Printf("🔍 Scanning: %s\n", userInput.Directory)
 
-	terraform.ScanDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive)
+	terraform.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive)
 }
