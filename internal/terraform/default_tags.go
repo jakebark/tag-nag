@@ -18,7 +18,10 @@ func getProviderID(block *hclsyntax.Block, caseInsensitive bool) string {
 			alias = val.AsString()
 		}
 	}
+	return normalizeProviderID(providerName, alias, caseInsensitive)
+}
 
+func normalizeProviderID(providerName, alias string, caseInsensitive bool) string {
 	// providerID combines provider name and alias ("aws.west") to align with resource provider arg
 	providerID := providerName
 	if alias != "" {
@@ -35,19 +38,19 @@ func getProviderID(block *hclsyntax.Block, caseInsensitive bool) string {
 func checkDefaultTags(block *hclsyntax.Block, localsAndVars map[string]map[string]bool, caseInsensitive bool) map[string]bool {
 	for _, subBlock := range block.Body.Blocks {
 		if subBlock.Type == "default_tags" {
-			tags, _ := findTags(subBlock, caseInsensitive) // call findTags to extract default_tags
-
-			// if findTags fails, initialize as an empty map to prevent error
-			if tags == nil {
-				tags = make(map[string]bool)
-			}
-
-			// if tags are a var/local
+			var tags map[string]bool
 			if attr, exists := subBlock.Body.Attributes["tags"]; exists {
-				resolvedTags := resolveDefaultTagReferences(attr, localsAndVars)
-				for k, v := range resolvedTags {
-					tags[k] = v
+				var err error
+				tags, err = getTagMap(attr, caseInsensitive)
+				if err != nil {
+					tags = make(map[string]bool)
+
 				}
+				// merge resolved tags from locals/vars.
+				resolvedTags := resolveDefaultTagReferences(attr, localsAndVars)
+				tags = mergeTags(tags, resolvedTags)
+			} else {
+				tags = make(map[string]bool)
 			}
 			return tags
 		}

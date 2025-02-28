@@ -38,17 +38,11 @@ func checkResources(body *hclsyntax.Body, requiredTags []string, defaultTags *De
 		}
 
 		// resource tags
-		resourceTags, _ := findTags(block, caseInsensitive)
-		normalizedResourceTags := normalizeTagMap(resourceTags, caseInsensitive)
-
-		// union of provider defaults and resource tags
-		effectiveTags := make(map[string]bool)
-		for k, v := range providerDefaults {
-			effectiveTags[k] = v
+		resourceTags, err := findTags(block, caseInsensitive)
+		if err != nil {
+			resourceTags = make(map[string]bool)
 		}
-		for k, v := range normalizedResourceTags {
-			effectiveTags[k] = v
-		}
+		effectiveTags := mergeTags(providerDefaults, resourceTags)
 
 		// determine which tags are missing
 		missingTags := filterMissingTags(requiredTags, effectiveTags, caseInsensitive)
@@ -100,4 +94,28 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 		defaultProvider = strings.ToLower(defaultProvider)
 	}
 	return defaultProvider
+}
+
+func filterMissingTags(requiredTags []string, effectiveTags map[string]bool, caseInsensitive bool) []string {
+	missing := []string{}
+	for _, tag := range requiredTags {
+		found := false
+		for existing := range effectiveTags {
+			if caseInsensitive {
+				if strings.EqualFold(existing, tag) {
+					found = true
+					break
+				}
+			} else {
+				if existing == tag {
+					found = true
+					break
+				}
+			}
+		}
+		if !found {
+			missing = append(missing, tag)
+		}
+	}
+	return missing
 }
