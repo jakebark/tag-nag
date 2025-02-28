@@ -11,15 +11,15 @@ import (
 )
 
 type DefaultTags struct {
-	ProviderTags  map[string]map[string]bool
-	LocalsAndVars map[string]map[string]bool
+	ProviderTags map[string]map[string]bool
+	References   map[string]map[string]bool
 }
 
 // check file(s) and presence of default tags
 func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) {
 	defaultTags := DefaultTags{
-		ProviderTags:  make(map[string]map[string]bool),
-		LocalsAndVars: checkVariables(dirPath),
+		ProviderTags: make(map[string]map[string]bool),
+		References:   checkReferences(dirPath),
 	}
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
@@ -68,8 +68,8 @@ func processFile(filePath string, requiredTags []string, defaultTags *DefaultTag
 func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseInsensitive bool) {
 	for _, block := range body.Blocks {
 		if block.Type == "provider" && len(block.Labels) > 0 {
-			providerID := getProviderID(block, caseInsensitive)                            // providerID combines provider name and alias ("aws.west") to align with resource provider arg
-			tags := checkforDefaultTags(block, defaultTags.LocalsAndVars, caseInsensitive) // check provider for default_tags, return map of tags
+			providerID := getProviderID(block, caseInsensitive)                         // providerID combines provider name and alias ("aws.west") to align with resource provider arg
+			tags := checkforDefaultTags(block, defaultTags.References, caseInsensitive) // check provider for default_tags, return map of tags
 
 			if len(tags) > 0 {
 				fmt.Printf("🔍 Found default tags for provider %s: %v\n", providerID, tags)

@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
-func checkVariables(dirPath string) map[string]map[string]bool {
-	localsAndVars := make(map[string]map[string]bool)
+func checkReferences(dirPath string) map[string]map[string]bool {
+	refs := make(map[string]map[string]bool)
 
 	_ = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() || !strings.HasSuffix(path, ".tf") {
@@ -30,30 +30,30 @@ func checkVariables(dirPath string) map[string]map[string]bool {
 
 		for _, block := range syntaxBody.Blocks {
 			if block.Type == "locals" {
-				extractLocals(block, localsAndVars)
+				extractLocals(block, refs)
 			} else if block.Type == "variable" {
-				extractVariables(block, localsAndVars)
+				extractVariables(block, refs)
 			}
 		}
 		return nil
 	})
 
-	return localsAndVars
+	return refs
 }
 
-func extractLocals(block *hclsyntax.Block, localsAndVars map[string]map[string]bool) {
+func extractLocals(block *hclsyntax.Block, refs map[string]map[string]bool) {
 	for name, attr := range block.Body.Attributes {
 		if tags, err := getTagMap(attr, false); err == nil {
-			localsAndVars["local."+name] = tags
+			refs["local."+name] = tags
 		}
 	}
 }
 
-func extractVariables(block *hclsyntax.Block, localsAndVars map[string]map[string]bool) {
+func extractVariables(block *hclsyntax.Block, refs map[string]map[string]bool) {
 	if len(block.Labels) > 0 {
 		if attr, ok := block.Body.Attributes["default"]; ok {
 			if tags, err := getTagMap(attr, false); err == nil {
-				localsAndVars["var."+block.Labels[0]] = tags
+				refs["var."+block.Labels[0]] = tags
 			}
 		}
 	}
