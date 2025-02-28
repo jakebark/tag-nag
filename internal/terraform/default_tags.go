@@ -21,10 +21,9 @@ func getProviderID(block *hclsyntax.Block, caseInsensitive bool) string {
 }
 
 func normalizeProviderID(providerName, alias string, caseInsensitive bool) string {
-	// providerID combines provider name and alias ("aws.west") to align with resource provider arg
 	providerID := providerName
 	if alias != "" {
-		providerID += "." + alias
+		providerID += "." + alias // combines provider name and alias ("aws.west") to align with resource provider arg
 	}
 
 	if caseInsensitive {
@@ -40,11 +39,7 @@ func checkForDefaultTags(block *hclsyntax.Block, referencedTags map[string]map[s
 			// tags sub-block always exists, dont need to "if exists"
 			attr := subBlock.Body.Attributes["tags"]
 
-			// get tags
-			tags, err := getTagMap(attr, caseInsensitive)
-			if err != nil {
-				tags = make(map[string]bool)
-			}
+			tags := extractTags(attr, caseInsensitive)
 
 			// merge literal tags (above) with referenced tags (locals, vars)
 			resolved := resolveDefaultTagReferences(attr, referencedTags, caseInsensitive)

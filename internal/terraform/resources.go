@@ -24,26 +24,20 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultT
 		resourceType := block.Labels[0] // aws_s3_bucket
 		resourceName := block.Labels[1] // this
 
-		// only AWS resources
 		if !strings.HasPrefix(resourceType, "aws_") {
 			continue
 		}
 
-		// default tags magic
 		providerID := getResourceProvider(block, caseInsensitive)
-		providerDefaults := defaultTags.ProviderTags[providerID]
-		if providerDefaults == nil {
-			providerDefaults = make(map[string]bool)
+		providerDefaultTags := defaultTags.ProviderTags[providerID]
+		if providerDefaultTags == nil {
+			providerDefaultTags = make(map[string]bool)
 		}
 
-		// resource tags
-		resourceTags, err := findTags(block, caseInsensitive)
-		if err != nil {
-			resourceTags = make(map[string]bool)
-		}
-		effectiveTags := mergeTags(providerDefaults, resourceTags)
+		resourceTags := findTags(block, caseInsensitive)
 
-		// determine which tags are missing
+		effectiveTags := mergeTags(providerDefaultTags, resourceTags)
+
 		missingTags := filterMissingTags(requiredTags, effectiveTags, caseInsensitive)
 		if len(missingTags) > 0 {
 			violations = append(violations, Violation{
@@ -71,8 +65,7 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 			return s
 		}
 
-		// prover is not a literal string ("aws.west")
-		// hcl views as hierachical
+		// provider is not a literal string ("aws.west")
 		s := extractTraversalString(attr.Expr, caseInsensitive)
 		if s != "" {
 			return s
@@ -88,11 +81,11 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 	return defaultProvider
 }
 
-func findTags(block *hclsyntax.Block, caseInsensitive bool) (map[string]bool, error) {
+func findTags(block *hclsyntax.Block, caseInsensitive bool) map[string]bool {
 	if attr, ok := block.Body.Attributes["tags"]; ok {
-		return getTagMap(attr, caseInsensitive)
+		return extractTags(attr, caseInsensitive)
 	}
-	return make(map[string]bool), nil
+	return make(map[string]bool)
 }
 
 func filterMissingTags(requiredTags []string, effectiveTags map[string]bool, caseInsensitive bool) []string {
