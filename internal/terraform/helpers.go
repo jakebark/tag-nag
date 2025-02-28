@@ -48,7 +48,16 @@ func mergeTags(tagMaps ...map[string]bool) map[string]bool {
 	return merged
 }
 
-func getTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (map[string]bool, error) {
+func extractTags(attr *hclsyntax.Attribute, caseInsensitive bool) map[string]bool {
+	tags, err := extractTagMap(attr, caseInsensitive)
+	if err != nil {
+		// todo error logging
+		return make(map[string]bool)
+	}
+	return tags
+}
+
+func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (map[string]bool, error) {
 	val, diags := attr.Expr.Value(nil)
 	// check for errors in tags
 	if diags.HasErrors() || !val.Type().IsObjectType() {

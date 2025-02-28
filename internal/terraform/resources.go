@@ -37,10 +37,9 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultT
 		}
 
 		// resource tags
-		resourceTags, err := findTags(block, caseInsensitive)
-		if err != nil {
-			resourceTags = make(map[string]bool)
-		}
+		resourceTags := findTags(block, caseInsensitive)
+
+		// merge defaultand resource tags
 		effectiveTags := mergeTags(providerDefaults, resourceTags)
 
 		// determine which tags are missing
@@ -88,11 +87,11 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 	return defaultProvider
 }
 
-func findTags(block *hclsyntax.Block, caseInsensitive bool) (map[string]bool, error) {
+func findTags(block *hclsyntax.Block, caseInsensitive bool) map[string]bool {
 	if attr, ok := block.Body.Attributes["tags"]; ok {
-		return getTagMap(attr, caseInsensitive)
+		return extractTags(attr, caseInsensitive)
 	}
-	return make(map[string]bool), nil
+	return make(map[string]bool)
 }
 
 func filterMissingTags(requiredTags []string, effectiveTags map[string]bool, caseInsensitive bool) []string {
