@@ -34,30 +34,28 @@ func normalizeProviderID(providerName, alias string, caseInsensitive bool) strin
 	return providerID
 }
 
-func checkforDefaultTags(block *hclsyntax.Block, localsAndVars map[string]map[string]bool, caseInsensitive bool) map[string]bool {
+func checkForDefaultTags(block *hclsyntax.Block, referencedTags map[string]map[string]bool, caseInsensitive bool) map[string]bool {
 	for _, subBlock := range block.Body.Blocks {
 		if subBlock.Type == "default_tags" {
-			var tags map[string]bool
-			if attr, exists := subBlock.Body.Attributes["tags"]; exists {
-				var err error
-				tags, err = getTagMap(attr, caseInsensitive)
-				if err != nil {
-					tags = make(map[string]bool)
+			// tags sub-block always exists, dont need to "if exists"
+			attr := subBlock.Body.Attributes["tags"]
 
-				}
-				// merge resolved tags from locals/vars.
-				resolvedTags := resolveDefaultTagReferences(attr, localsAndVars, caseInsensitive)
-				tags = mergeTags(tags, resolvedTags)
-			} else {
+			// get tags
+			tags, err := getTagMap(attr, caseInsensitive)
+			if err != nil {
 				tags = make(map[string]bool)
 			}
+
+			// merge literal tags (above) with referenced tags (locals, vars)
+			resolved := resolveDefaultTagReferences(attr, referencedTags, caseInsensitive)
+			tags = mergeTags(tags, resolved)
+
 			return tags
 		}
 	}
 	return nil
 }
-
-func resolveDefaultTagReferences(attr *hclsyntax.Attribute, localsAndVars map[string]map[string]bool, caseInsensitive bool) map[string]bool {
+func resolveDefaultTagReferences(attr *hclsyntax.Attribute, referencedTags map[string]map[string]bool, caseInsensitive bool) map[string]bool {
 	tagRef := extractTraversalString(attr.Expr, caseInsensitive)
-	return localsAndVars[tagRef]
+	return referencedTags[tagRef]
 }
