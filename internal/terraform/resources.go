@@ -34,7 +34,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultT
 			providerDefaultTags = make(map[string]bool)
 		}
 
-		resourceTags := findTags(block, caseInsensitive)
+		resourceTags := findTags(block, defaultTags.ReferencedTags, caseInsensitive)
 
 		effectiveTags := mergeTags(providerDefaultTags, resourceTags)
 
@@ -81,9 +81,21 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 	return defaultProvider
 }
 
-func findTags(block *hclsyntax.Block, caseInsensitive bool) map[string]bool {
+func findTags(block *hclsyntax.Block, referencedTags map[string]map[string]bool, caseInsensitive bool) map[string]bool {
 	if attr, ok := block.Body.Attributes["tags"]; ok {
-		return extractTags(attr, caseInsensitive)
+		// literal tags
+		tags := extractTags(attr, caseInsensitive)
+		if len(tags) > 0 {
+			return tags
+		}
+
+		// referenced tags
+		refKey := extractTraversalString(attr.Expr, caseInsensitive)
+		if refKey != "" {
+			if resolved, ok := referencedTags[refKey]; ok {
+				return resolved
+			}
+		}
 	}
 	return make(map[string]bool)
 }
