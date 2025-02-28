@@ -1,8 +1,7 @@
 package inputs
 
 import (
-	"fmt"
-	"os"
+	"log"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -23,31 +22,23 @@ func ParseFlags() UserInput {
 	pflag.Parse()
 
 	if pflag.NArg() < 1 {
-		fmt.Println("Error: Please specify a directory or file to scan.")
-		os.Exit(1)
+		log.Fatal("Error: Please specify a directory or file to scan.")
 	}
-	dir := pflag.Arg(0)
-
 	if tags == "" {
-		fmt.Println("Error: Please specify required tags using --tags")
-		os.Exit(1)
+		log.Fatal("Error: Please specify required tags using --tags")
 	}
-
-	requiredTags := cleanTagsInput(tags, ",")
 
 	return UserInput{
-		Directory:       dir,
-		RequiredTags:    requiredTags,
+		Directory:       pflag.Arg(0),
+		RequiredTags:    sliceAndTrim(tags),
 		CaseInsensitive: caseInsensitive,
 	}
 }
 
-func cleanTagsInput(s, sep string) []string {
-	parts := strings.Split(s, sep)
-	var trimmed []string
-	for _, part := range parts {
-		trimmed = append(trimmed, strings.TrimSpace(part))
+func sliceAndTrim(input string) []string {
+	tags := strings.Split(input, ",")
+	for i := range tags {
+		tags[i] = strings.TrimSpace(tags[i])
 	}
-	return trimmed
+	return tags
 }
-
