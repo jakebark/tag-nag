@@ -14,8 +14,7 @@ type UserInput struct {
 	CaseInsensitive bool
 }
 
-// ParseFlags parses CLI flags and arguments
-// It returns a struct containing the parsed values
+// ParseFlags returns pased CLI flags and arguments
 func ParseFlags() UserInput {
 	var caseInsensitive bool
 	var tags string
