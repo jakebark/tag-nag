@@ -36,7 +36,6 @@ func normalizeProviderID(providerName, alias string, caseInsensitive bool) strin
 func checkForDefaultTags(block *hclsyntax.Block, referencedTags map[string]map[string]bool, caseInsensitive bool) map[string]bool {
 	for _, subBlock := range block.Body.Blocks {
 		if subBlock.Type == "default_tags" {
-			// tags sub-block always exists, dont need to "if exists"
 			attr := subBlock.Body.Attributes["tags"]
 
 			tags := extractTags(attr, caseInsensitive)

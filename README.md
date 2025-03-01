@@ -23,9 +23,14 @@ Tag nag will search a file or directory for tag keys.
 
 ```bash
 tag-nag <file/directory> --tags "<tagKey1>,<tagKeyN>"
--c # case-insensitive 
 
-tag-nag foo.tf --tags "Owner" # run against a file
-tag-nag ./bar --tags "Owner","Environment" # run against a directory
+tag-nag main.tf --tags "Owner" # run against a file
+tag-nag ./my_project --tags "Owner","Environment" # run against a directory
 
 ```
+
+Optional flags: 
+```bash
+-c # case-insensitive 
+```
+
