@@ -7,12 +7,18 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// UserInput holds the user CLI inputs
 type UserInput struct {
-	Directory       string
-	RequiredTags    []string
+	// Directory is the path or file
+	Directory string
+	// RequiredTags is the required tag keys to search for
+	RequiredTags []string
+	// CaseInsensitive toggles case sensitivity
 	CaseInsensitive bool
 }
 
+// ParseFlags parses CLI flags and arguments
+// It returns a struct containing the parsed values
 func ParseFlags() UserInput {
 	var caseInsensitive bool
 	var tags string
@@ -35,6 +41,7 @@ func ParseFlags() UserInput {
 	}
 }
 
+// sliceAndTrim removes whitespace and converts the CLI string input to a slice
 func sliceAndTrim(input string) []string {
 	tags := strings.Split(input, ",")
 	for i := range tags {

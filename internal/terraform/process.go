@@ -10,11 +10,15 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
+// DefaultTags hold the default_tag values
 type DefaultTags struct {
-	ProviderTags   map[string]map[string]bool
+	// ProviderTags are literal tags on the provider
+	ProviderTags map[string]map[string]bool
+	// Referenced Tags are referenced tags on the provider (locals/vars)
 	ReferencedTags map[string]map[string]bool
 }
 
+// ProcessDirectory identifies all terraform files in directory
 func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) {
 	defaultTags := DefaultTags{
 		ProviderTags:   make(map[string]map[string]bool),
@@ -35,26 +39,24 @@ func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive boo
 	}
 }
 
+// processFile parses terraform files.
+// It checks all providers and updates the defaultTags struct (processProviderBlocks).
+// Then it returns a list of violations with (processResourceBlocks)
 func processFile(filePath string, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) {
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
-	//we dont  parse invalid tf
 	if diagnostics.HasErrors() {
 		fmt.Printf("Error parsing %s: %v\n", filePath, diagnostics)
 		return
 	}
 
-	// convert file into  stuctured hclsyntax.body
 	syntaxBody, ok := file.Body.(*hclsyntax.Body)
 	if !ok {
 		fmt.Printf("Parsing failed for %s\n", filePath)
 		return
 	}
 
-	// main split in the code
-	// processProviderBlocks and its sub-functions will check all providers and then update the defaultTags struct (defaultTags.ProviderTags)
-	// processResourceBlocks and its sub-functions will return a list of violations (non-compliant resources)
 	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
 	violations := processResourceBlocks(syntaxBody, requiredTags, defaultTags, caseInsensitive)
 
@@ -67,6 +69,7 @@ func processFile(filePath string, requiredTags []string, defaultTags *DefaultTag
 	}
 }
 
+// processProviderBlocks extracts any default_tags from providers
 func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseInsensitive bool) {
 	for _, block := range body.Blocks {
 		if block.Type == "provider" && len(block.Labels) > 0 {
@@ -88,6 +91,7 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 	}
 }
 
+// processResourceBlocks initiates chekcing a resource for tags
 func processResourceBlocks(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	return checkResourcesForTags(body, requiredTags, defaultTags, caseInsensitive)
 }

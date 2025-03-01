@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
+// checkReferencedTags looks for locals and vars in the directory, then returns a map of them
 func checkReferencedTags(dirPath string) map[string]map[string]bool {
 	referencedTags := make(map[string]map[string]bool)
 
@@ -41,6 +42,7 @@ func checkReferencedTags(dirPath string) map[string]map[string]bool {
 	return referencedTags
 }
 
+// extractLocals extracts hcl tag maps from locals (using extractTags) and appends them to the defaultTags struct (defaultTags.referencedTags)
 func extractLocals(block *hclsyntax.Block, referencedTags map[string]map[string]bool) {
 	for name, attr := range block.Body.Attributes {
 		tags := extractTags(attr, false)
@@ -48,6 +50,7 @@ func extractLocals(block *hclsyntax.Block, referencedTags map[string]map[string]
 	}
 }
 
+// extractVariables extracts hcl tag maps from vars (using extractTags) and appends them to the defaultTags struct (defaultTags.referencedTags)
 func extractVariables(block *hclsyntax.Block, referencedTags map[string]map[string]bool) {
 	if len(block.Labels) > 0 {
 		if attr, ok := block.Body.Attributes["default"]; ok {
