@@ -37,7 +37,7 @@ func normalizeProviderID(providerName, alias string, caseInsensitive bool) strin
 
 // checkForDefaultTags returns the default_tags on a provider block.
 // It extracts any literal tags (with extractTags) and merges them with any referenced tags
-func checkForDefaultTags(block *hclsyntax.Block, referencedTags map[string]map[string]bool, caseInsensitive bool) map[string]bool {
+func checkForDefaultTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensitive bool) TagMap {
 	for _, subBlock := range block.Body.Blocks {
 		if subBlock.Type == "default_tags" {
 			attr := subBlock.Body.Attributes["tags"]
@@ -55,7 +55,7 @@ func checkForDefaultTags(block *hclsyntax.Block, referencedTags map[string]map[s
 }
 
 // resolveDefaultTagReferences looks up referencedTags (locals/vars)
-func resolveDefaultTagReferences(attr *hclsyntax.Attribute, referencedTags map[string]map[string]bool, caseInsensitive bool) map[string]bool {
+func resolveDefaultTagReferences(attr *hclsyntax.Attribute, referencedTags TagReferences, caseInsensitive bool) TagMap {
 	tagRef := extractTraversalString(attr.Expr, caseInsensitive)
 	return referencedTags[tagRef]
 }
