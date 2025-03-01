@@ -31,7 +31,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultT
 		}
 
 		providerID := getResourceProvider(block, caseInsensitive)
-		providerDefaultTags := defaultTags.ProviderTags[providerID]
+		providerDefaultTags := defaultTags.LiteralTags[providerID]
 		if providerDefaultTags == nil {
 			providerDefaultTags = make(map[string]bool)
 		}

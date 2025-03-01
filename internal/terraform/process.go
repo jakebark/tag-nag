@@ -12,16 +12,14 @@ import (
 
 // DefaultTags hold the default_tag values
 type DefaultTags struct {
-	// ProviderTags are literal tags on the provider
-	ProviderTags map[string]map[string]bool
-	// Referenced Tags are referenced tags on the provider (locals/vars)
+	LiteralTags    map[string]map[string]bool
 	ReferencedTags map[string]map[string]bool
 }
 
 // ProcessDirectory identifies all terraform files in directory
 func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) {
 	defaultTags := DefaultTags{
-		ProviderTags:   make(map[string]map[string]bool),
+		LiteralTags:    make(map[string]map[string]bool),
 		ReferencedTags: checkReferencedTags(dirPath),
 	}
 
@@ -85,7 +83,7 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 
 			}
 			if tags != nil {
-				defaultTags.ProviderTags[providerID] = tags
+				defaultTags.LiteralTags[providerID] = tags
 			}
 		}
 	}

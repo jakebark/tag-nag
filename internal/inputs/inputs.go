@@ -9,11 +9,8 @@ import (
 
 // UserInput holds the user CLI inputs
 type UserInput struct {
-	// Directory is the path or file
-	Directory string
-	// RequiredTags is the required tag keys to search for
-	RequiredTags []string
-	// CaseInsensitive toggles case sensitivity
+	Directory       string
+	RequiredTags    []string
 	CaseInsensitive bool
 }
 
