@@ -33,4 +33,6 @@ Optional flags:
 ```bash
 -c # case-insensitive 
 ```
+## Related Resources
 
+- [pkg.go.dev/github.com/jakebark/tag-nag](https://pkg.go.dev/github.com/jakebark/tag-nag)
