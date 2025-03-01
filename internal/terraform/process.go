@@ -10,16 +10,10 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
-// DefaultTags hold the default_tag values
-type DefaultTags struct {
-	LiteralTags    map[string]map[string]bool
-	ReferencedTags map[string]map[string]bool
-}
-
 // ProcessDirectory identifies all terraform files in directory
 func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) {
 	defaultTags := DefaultTags{
-		LiteralTags:    make(map[string]map[string]bool),
+		LiteralTags:    make(TagReferences),
 		ReferencedTags: checkReferencedTags(dirPath),
 	}
 

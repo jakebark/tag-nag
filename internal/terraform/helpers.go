@@ -43,7 +43,7 @@ func mergeTags(tagMaps ...map[string]bool) map[string]bool {
 }
 
 // extractTags handles errors in extracting tags from hcl
-func extractTags(attr *hclsyntax.Attribute, caseInsensitive bool) map[string]bool {
+func extractTags(attr *hclsyntax.Attribute, caseInsensitive bool) TagMap {
 	tags, err := extractTagMap(attr, caseInsensitive)
 	if err != nil {
 		// todo error logging
@@ -53,7 +53,7 @@ func extractTags(attr *hclsyntax.Attribute, caseInsensitive bool) map[string]boo
 }
 
 // extractTagMap extracts the hcl tag map to a go map
-func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (map[string]bool, error) {
+func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (TagMap, error) {
 	val, diags := attr.Expr.Value(nil)
 
 	if diags.HasErrors() || !val.Type().IsObjectType() {

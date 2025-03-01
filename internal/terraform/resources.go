@@ -6,14 +6,6 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
-// Violation is a non-compliant tag
-type Violation struct {
-	resourceType string
-	resourceName string
-	line         int
-	missingTags  []string
-}
-
 // checkResourcesForTags inspects resource blocks and returns violations
 func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	var violations []Violation
@@ -31,14 +23,14 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultT
 		}
 
 		providerID := getResourceProvider(block, caseInsensitive)
-		providerDefaultTags := defaultTags.LiteralTags[providerID]
-		if providerDefaultTags == nil {
-			providerDefaultTags = make(map[string]bool)
+		providerLiteralTags := defaultTags.LiteralTags[providerID]
+		if providerLiteralTags == nil {
+			providerLiteralTags = make(map[string]bool)
 		}
 
 		resourceTags := findTags(block, defaultTags.ReferencedTags, caseInsensitive)
 
-		effectiveTags := mergeTags(providerDefaultTags, resourceTags)
+		effectiveTags := mergeTags(providerLiteralTags, resourceTags)
 
 		missingTags := filterMissingTags(requiredTags, effectiveTags, caseInsensitive)
 		if len(missingTags) > 0 {
@@ -85,7 +77,7 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 }
 
 // findTags returns tag map from a resource block (with extractTags), if it has tags
-func findTags(block *hclsyntax.Block, referencedTags map[string]map[string]bool, caseInsensitive bool) map[string]bool {
+func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensitive bool) TagMap {
 	if attr, ok := block.Body.Attributes["tags"]; ok {
 		// literal tags
 		tags := extractTags(attr, caseInsensitive)
@@ -101,7 +93,7 @@ func findTags(block *hclsyntax.Block, referencedTags map[string]map[string]bool,
 			}
 		}
 	}
-	return make(map[string]bool)
+	return make(TagMap)
 }
 
 // filterMissingTags compares the literal tags against the required tags

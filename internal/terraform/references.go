@@ -10,8 +10,8 @@ import (
 )
 
 // checkReferencedTags looks for locals and vars in the directory, then returns a map of them
-func checkReferencedTags(dirPath string) map[string]map[string]bool {
-	referencedTags := make(map[string]map[string]bool)
+func checkReferencedTags(dirPath string) TagReferences {
+	referencedTags := make(TagReferences)
 
 	_ = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() || !strings.HasSuffix(path, ".tf") {
@@ -43,7 +43,7 @@ func checkReferencedTags(dirPath string) map[string]map[string]bool {
 }
 
 // extractLocals extracts hcl tag maps from locals (using extractTags) and appends them to the defaultTags struct (defaultTags.referencedTags)
-func extractLocals(block *hclsyntax.Block, referencedTags map[string]map[string]bool) {
+func extractLocals(block *hclsyntax.Block, referencedTags TagReferences) {
 	for name, attr := range block.Body.Attributes {
 		tags := extractTags(attr, false)
 		referencedTags["local."+name] = tags
@@ -51,7 +51,7 @@ func extractLocals(block *hclsyntax.Block, referencedTags map[string]map[string]
 }
 
 // extractVariables extracts hcl tag maps from vars (using extractTags) and appends them to the defaultTags struct (defaultTags.referencedTags)
-func extractVariables(block *hclsyntax.Block, referencedTags map[string]map[string]bool) {
+func extractVariables(block *hclsyntax.Block, referencedTags TagReferences) {
 	if len(block.Labels) > 0 {
 		if attr, ok := block.Body.Attributes["default"]; ok {
 			tags := extractTags(attr, false)
