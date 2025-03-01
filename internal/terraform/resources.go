@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
+// Violation is a non-compliant tag
 type Violation struct {
 	resourceType string
 	resourceName string
@@ -13,6 +14,7 @@ type Violation struct {
 	missingTags  []string
 }
 
+// checkResourcesForTags inspects resource blocks and returns violations
 func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	var violations []Violation
 
@@ -52,6 +54,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultT
 	return violations
 }
 
+// getResourceProvider determines the provider for a resource block
 func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 	if attr, ok := block.Body.Attributes["provider"]; ok {
 
@@ -81,6 +84,7 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 	return defaultProvider
 }
 
+// findTags returns tag map from a resource block (with extractTags), if it has tags
 func findTags(block *hclsyntax.Block, referencedTags map[string]map[string]bool, caseInsensitive bool) map[string]bool {
 	if attr, ok := block.Body.Attributes["tags"]; ok {
 		// literal tags
@@ -100,6 +104,7 @@ func findTags(block *hclsyntax.Block, referencedTags map[string]map[string]bool,
 	return make(map[string]bool)
 }
 
+// filterMissingTags compares the literal tags against the required tags
 func filterMissingTags(requiredTags []string, effectiveTags map[string]bool, caseInsensitive bool) []string {
 	missing := []string{}
 	for _, tag := range requiredTags {
