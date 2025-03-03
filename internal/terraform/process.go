@@ -11,7 +11,8 @@ import (
 )
 
 // ProcessDirectory identifies all terraform files in directory
-func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) {
+func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) int {
+	var totalViolations int
 	defaultTags := DefaultTags{
 		LiteralTags:    make(TagReferences),
 		ReferencedTags: checkReferencedTags(dirPath),
@@ -22,43 +23,46 @@ func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive boo
 			return err
 		}
 		if !info.IsDir() && strings.HasSuffix(path, ".tf") {
-			processFile(path, requiredTags, &defaultTags, caseInsensitive)
+			violations := processFile(path, requiredTags, &defaultTags, caseInsensitive)
+			totalViolations += len(violations)
 		}
 		return nil
 	})
 	if err != nil {
 		fmt.Println("Error scanning directory:", err)
 	}
+
+	return totalViolations
 }
 
 // processFile parses terraform files.
 // It checks all providers and updates the defaultTags struct (processProviderBlocks).
 // Then it returns a list of violations with (processResourceBlocks)
-func processFile(filePath string, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) {
+func processFile(filePath string, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
 	if diagnostics.HasErrors() {
 		fmt.Printf("Error parsing %s: %v\n", filePath, diagnostics)
-		return
+		return nil
 	}
 
 	syntaxBody, ok := file.Body.(*hclsyntax.Body)
 	if !ok {
 		fmt.Printf("Parsing failed for %s\n", filePath)
-		return
+		return nil
 	}
 
 	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
 	violations := processResourceBlocks(syntaxBody, requiredTags, defaultTags, caseInsensitive)
 
 	if len(violations) > 0 {
-		fmt.Printf("\nNon-compliant resources in %s\n", filePath)
+		fmt.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
-			fmt.Printf("  %s \"%s\" (line %d)\n", v.resourceType, v.resourceName, v.line)
-			fmt.Printf("  🏷️ Missing tags: %s\n", strings.Join(v.missingTags, ", "))
+			fmt.Printf("  %s \"%s\" (line %d), 🏷️ Missing tags: %s\n", v.resourceType, v.resourceName, v.line, strings.Join(v.missingTags, ", "))
 		}
 	}
+	return violations
 }
 
 // processProviderBlocks extracts any default_tags from providers
@@ -73,7 +77,7 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 				for key := range tags {
 					keys = append(keys, key) // remove bool element of tag map
 				}
-				fmt.Printf("🔍 Found default tags for provider %s: %v\n", providerID, keys)
+				fmt.Printf("Found default tags for provider %s: %v\n", providerID, keys)
 
 			}
 			if tags != nil {
