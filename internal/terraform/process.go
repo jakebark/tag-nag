@@ -59,7 +59,7 @@ func processFile(filePath string, requiredTags []string, defaultTags *DefaultTag
 	if len(violations) > 0 {
 		fmt.Printf("\nNon-compliant resources in %s\n", filePath)
 		for _, v := range violations {
-			fmt.Printf("  %s \"%s\" (line %d): 🏷️ Missing tags: %s\n", v.resourceType, v.resourceName, v.line, strings.Join(v.missingTags, ", "))
+			fmt.Printf("  %s \"%s\" (line %d), 🏷️ Missing tags: %s\n", v.resourceType, v.resourceName, v.line, strings.Join(v.missingTags, ", "))
 		}
 	}
 	return violations
