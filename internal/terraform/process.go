@@ -11,7 +11,8 @@ import (
 )
 
 // ProcessDirectory identifies all terraform files in directory
-func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) {
+func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) int {
+	var totalViolations int
 	defaultTags := DefaultTags{
 		LiteralTags:    make(TagReferences),
 		ReferencedTags: checkReferencedTags(dirPath),
@@ -22,31 +23,34 @@ func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive boo
 			return err
 		}
 		if !info.IsDir() && strings.HasSuffix(path, ".tf") {
-			processFile(path, requiredTags, &defaultTags, caseInsensitive)
+			violations := processFile(path, requiredTags, &defaultTags, caseInsensitive)
+			totalViolations += len(violations)
 		}
 		return nil
 	})
 	if err != nil {
 		fmt.Println("Error scanning directory:", err)
 	}
+
+	return totalViolations
 }
 
 // processFile parses terraform files.
 // It checks all providers and updates the defaultTags struct (processProviderBlocks).
 // Then it returns a list of violations with (processResourceBlocks)
-func processFile(filePath string, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) {
+func processFile(filePath string, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
 	if diagnostics.HasErrors() {
 		fmt.Printf("Error parsing %s: %v\n", filePath, diagnostics)
-		return
+		return nil
 	}
 
 	syntaxBody, ok := file.Body.(*hclsyntax.Body)
 	if !ok {
 		fmt.Printf("Parsing failed for %s\n", filePath)
-		return
+		return nil
 	}
 
 	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
@@ -59,6 +63,7 @@ func processFile(filePath string, requiredTags []string, defaultTags *DefaultTag
 			fmt.Printf("  🏷️ Missing tags: %s\n", strings.Join(v.missingTags, ", "))
 		}
 	}
+	return violations
 }
 
 // processProviderBlocks extracts any default_tags from providers
