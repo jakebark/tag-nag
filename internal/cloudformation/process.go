@@ -10,13 +10,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type Violation struct {
-	ResourceName string
-	ResourceType string
-	Line         int
-	MissingTags  []string
-}
-
 func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) int {
 	totalViolations := 0
 
@@ -97,7 +90,6 @@ func processFile(filePath string, requiredTags []string, caseInsensitive bool) (
 			continue
 		}
 
-		// Check for missing required tags.
 		missing := filterMissingTags(requiredTags, tags, caseInsensitive)
 		if len(missing) > 0 {
 			violations = append(violations, Violation{
