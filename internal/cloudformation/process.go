@@ -2,7 +2,6 @@ package cloudformation
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -38,7 +37,7 @@ func isCloudFormationFile(path string) bool {
 }
 
 func processFile(filePath string, requiredTags []string, caseInsensitive bool) ([]Violation, error) {
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -192,4 +191,3 @@ func filterMissingTags(required []string, resourceTags map[string]string, caseIn
 	}
 	return missing
 }
-
