@@ -9,14 +9,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// ProcessDirectory identifies all cfn files in the directory
 func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) int {
-	totalViolations := 0
+	var totalViolations int
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && isCloudFormationFile(path) {
+		if !info.IsDir() && (strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".json")) {
 			violations, err := processFile(path, requiredTags, caseInsensitive)
 			if err != nil {
 				fmt.Printf("Error processing file %s: %v\n", path, err)
@@ -108,23 +109,6 @@ func processFile(filePath string, requiredTags []string, caseInsensitive bool) (
 	}
 
 	return violations, nil
-}
-
-func findMapNode(node *yaml.Node, key string) *yaml.Node {
-	if node.Kind == yaml.DocumentNode && len(node.Content) > 0 {
-		node = node.Content[0]
-	}
-	if node.Kind != yaml.MappingNode {
-		return nil
-	}
-	for i := 0; i < len(node.Content); i += 2 {
-		k := node.Content[i]
-		v := node.Content[i+1]
-		if k.Value == key {
-			return v
-		}
-	}
-	return nil
 }
 
 func extractTagsFromProperties(properties map[string]interface{}, caseInsensitive bool) (map[string]string, error) {
