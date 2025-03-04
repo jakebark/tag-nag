@@ -59,5 +59,5 @@ func processFile(filePath string, requiredTags []string, caseInsensitive bool) (
 
 // processResourceBlocks initiates checking a resource for tags
 func processResourceBlocks(resourcesMapping map[string]*yaml.Node, requiredTags []string, caseInsensitive bool) []Violation {
-	return getResourceViolations(resourcesMapping, requiredTags, caseInsensitive)
+	return checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive)
 }

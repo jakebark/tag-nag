@@ -7,22 +7,24 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func getResourceViolations(resourcesMapping map[string]*yaml.Node, requiredTags []string, caseInsensitive bool) []Violation {
+// getResourceViolations inspects resource blocks and returns violations
+func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags []string, caseInsensitive bool) []Violation {
 	var violations []Violation
-	for resourceName, resourceValNode := range resourcesMapping {
-		resourceMapping := mapNodes(resourceValNode)
+	for resourceName, resourceNode := range resourcesMapping { // resourceNode == yaml node for resource
+		resourceMapping := mapNodes(resourceNode)
+
 		typeNode, ok := resourceMapping["Type"]
 		if !ok || !strings.HasPrefix(typeNode.Value, "AWS::") {
 			continue
 		}
 		resourceType := typeNode.Value
 
-		properties := make(map[string]interface{})
+		properties := make(map[string]interface{}) // tags are part of the properties  node
 		if propsNode, ok := resourceMapping["Properties"]; ok {
 			_ = propsNode.Decode(&properties)
 		}
 
-		tags, err := extractTagsFromProperties(properties, caseInsensitive)
+		tags, err := extractTagMap(properties, caseInsensitive)
 		if err != nil {
 			fmt.Printf("Error extracting tags from resource %s: %v\n", resourceName, err)
 			continue
@@ -33,7 +35,7 @@ func getResourceViolations(resourcesMapping map[string]*yaml.Node, requiredTags 
 			violations = append(violations, Violation{
 				ResourceName: resourceName,
 				ResourceType: resourceType,
-				Line:         resourceValNode.Line,
+				Line:         resourceNode.Line,
 				MissingTags:  missing,
 			})
 		}
@@ -41,14 +43,15 @@ func getResourceViolations(resourcesMapping map[string]*yaml.Node, requiredTags 
 	return violations
 }
 
-func extractTagsFromProperties(properties map[string]interface{}, caseInsensitive bool) (map[string]string, error) {
+// extractTagMap extracts a yaml/json map to a go map
+func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (map[string]string, error) {
 	tagsMap := make(map[string]string)
-	rawTags, exists := properties["Tags"]
+	literalTags, exists := properties["Tags"]
 	if !exists {
 		return tagsMap, nil
 	}
 
-	tagsList, ok := rawTags.([]interface{})
+	tagsList, ok := literalTags.([]interface{})
 	if !ok {
 		return tagsMap, fmt.Errorf("Tags format is invalid")
 	}
