@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+// mapNodes converts a yaml mapping node into a go map
 func mapNodes(node *yaml.Node) map[string]*yaml.Node {
 	m := make(map[string]*yaml.Node)
 	if node == nil || node.Kind != yaml.MappingNode {
@@ -36,6 +37,7 @@ func findMapNode(node *yaml.Node, key string) *yaml.Node {
 	return nil
 }
 
+// parseYAML unmarshal yaml and return a pointer to the root of the node
 func parseYAML(filePath string) (*yaml.Node, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
