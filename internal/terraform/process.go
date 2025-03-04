@@ -77,7 +77,7 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 				for key := range tags {
 					keys = append(keys, key) // remove bool element of tag map
 				}
-				fmt.Printf("Found default tags for provider %s: %v\n", providerID, keys)
+				fmt.Printf("Found Terraform default tags for provider %s: %v\n", providerID, keys)
 
 			}
 			if tags != nil {
@@ -87,7 +87,7 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 	}
 }
 
-// processResourceBlocks initiates chekcing a resource for tags
+// processResourceBlocks initiates checking a resource for tags
 func processResourceBlocks(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	return checkResourcesForTags(body, requiredTags, defaultTags, caseInsensitive)
 }

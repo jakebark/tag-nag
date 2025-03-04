@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// ProcessDirectory identifies all cfn files in the directory
+// ProcessDirectory parses cfn files and returns the total amount of violations found
 func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) int {
 	var totalViolations int
 
@@ -32,69 +32,20 @@ func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive boo
 	return totalViolations
 }
 
+// processFile parses cloudformation files and returns any violations
 func processFile(filePath string, requiredTags []string, caseInsensitive bool) ([]Violation, error) {
-	data, err := os.ReadFile(filePath)
+	root, err := parseYAML(filePath)
 	if err != nil {
 		return nil, err
 	}
 
-	var root yaml.Node
-	if err := yaml.Unmarshal(data, &root); err != nil {
-		return nil, err
+	// search root node for resources node
+	resourcesMapping := mapNodes(findMapNode(root, "Resources"))
+	if resourcesMapping == nil {
+		return []Violation{}, nil
 	}
 
-	if root.Kind == yaml.DocumentNode && len(root.Content) > 0 {
-		root = *root.Content[0]
-	}
-
-	var violations []Violation
-
-	resourcesNode := findMapNode(&root, "Resources")
-	if resourcesNode == nil {
-		return violations, nil
-	}
-
-	for i := 0; i < len(resourcesNode.Content); i += 2 {
-		resourceNameNode := resourcesNode.Content[i]
-		resourceValueNode := resourcesNode.Content[i+1]
-		resourceName := resourceNameNode.Value
-
-		typeNode := findMapNode(resourceValueNode, "Type")
-		if typeNode == nil {
-			continue
-		}
-		resourceType := typeNode.Value
-
-		if !strings.HasPrefix(resourceType, "AWS::") {
-			continue
-		}
-
-		propertiesNode := findMapNode(resourceValueNode, "Properties")
-		var properties map[string]interface{}
-		if propertiesNode != nil {
-			if err := propertiesNode.Decode(&properties); err != nil {
-				properties = make(map[string]interface{})
-			}
-		} else {
-			properties = make(map[string]interface{})
-		}
-
-		tags, err := extractTagsFromProperties(properties, caseInsensitive)
-		if err != nil {
-			fmt.Printf("Error extracting tags from resource %s: %v\n", resourceName, err)
-			continue
-		}
-
-		missing := filterMissingTags(requiredTags, tags, caseInsensitive)
-		if len(missing) > 0 {
-			violations = append(violations, Violation{
-				ResourceName: resourceName,
-				ResourceType: resourceType,
-				Line:         resourceNameNode.Line,
-				MissingTags:  missing,
-			})
-		}
-	}
+	violations := processResourceBlocks(resourcesMapping, requiredTags, caseInsensitive)
 
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
@@ -106,67 +57,7 @@ func processFile(filePath string, requiredTags []string, caseInsensitive bool) (
 	return violations, nil
 }
 
-func extractTagsFromProperties(properties map[string]interface{}, caseInsensitive bool) (map[string]string, error) {
-	tagsMap := make(map[string]string)
-	rawTags, exists := properties["Tags"]
-	if !exists {
-		return tagsMap, nil
-	}
-
-	tagsList, ok := rawTags.([]interface{})
-	if !ok {
-		return tagsMap, fmt.Errorf("Tags format is invalid")
-	}
-
-	for _, tagInterface := range tagsList {
-		tagEntry, ok := tagInterface.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		key, ok := tagEntry["Key"].(string)
-		if !ok {
-			continue
-		}
-		var value string
-		if valStr, ok := tagEntry["Value"].(string); ok {
-			value = valStr
-		} else {
-			if refMap, ok := tagEntry["Value"].(map[string]interface{}); ok {
-				if ref, exists := refMap["Ref"]; exists {
-					if refStr, ok := ref.(string); ok {
-						value = fmt.Sprintf("!Ref %s", refStr)
-					}
-				}
-			}
-		}
-		if caseInsensitive {
-			key = strings.ToLower(key)
-		}
-		tagsMap[key] = value
-	}
-	return tagsMap, nil
-}
-
-func filterMissingTags(required []string, resourceTags map[string]string, caseInsensitive bool) []string {
-	var missing []string
-	for _, req := range required {
-		found := false
-		for tagKey := range resourceTags {
-			if caseInsensitive {
-				if strings.EqualFold(tagKey, req) {
-					found = true
-					break
-				}
-			} else {
-				if tagKey == req {
-					found = true
-					break
-				}
-			}
-		}
-		if !found {
-			missing = append(missing, req)
-		}
-	}
-	return missing
+// processResourceBlocks initiates checking a resource for tags
+func processResourceBlocks(resourcesMapping map[string]*yaml.Node, requiredTags []string, caseInsensitive bool) []Violation {
+	return getResourceViolations(resourcesMapping, requiredTags, caseInsensitive)
 }

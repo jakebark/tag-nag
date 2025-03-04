@@ -1,8 +1,8 @@
 # tag nag
 
-Validate AWS tags in terraform.
+Validate AWS tags in Terraform and CloudFormation.  
 
-Designed to be part of pre-deployment checks, ensuring compliance with your tagging strategy. 
+Designed to run in a pipeline or as part of pre-deployment checks.  
 
 ## Installation
 ```bash

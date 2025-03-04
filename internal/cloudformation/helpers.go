@@ -2,7 +2,21 @@ package cloudformation
 
 import (
 	"gopkg.in/yaml.v3"
+	"os"
 )
+
+func mapNodes(node *yaml.Node) map[string]*yaml.Node {
+	m := make(map[string]*yaml.Node)
+	if node == nil || node.Kind != yaml.MappingNode {
+		return m
+	}
+	for i := 0; i < len(node.Content); i += 2 {
+		keyNode := node.Content[i]
+		valueNode := node.Content[i+1]
+		m[keyNode.Value] = valueNode
+	}
+	return m
+}
 
 // findMapNode parses a yaml block and returns the value, when given the key
 func findMapNode(node *yaml.Node, key string) *yaml.Node {
@@ -20,4 +34,21 @@ func findMapNode(node *yaml.Node, key string) *yaml.Node {
 		}
 	}
 	return nil
+}
+
+func parseYAML(filePath string) (*yaml.Node, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	var root yaml.Node
+	if err := yaml.Unmarshal(data, &root); err != nil {
+		return nil, err
+	}
+
+	if root.Kind == yaml.DocumentNode && len(root.Content) > 0 {
+		root = *root.Content[0]
+	}
+	return &root, nil
 }
