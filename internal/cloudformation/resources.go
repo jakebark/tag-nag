@@ -53,7 +53,7 @@ func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (map
 
 	tagsList, ok := literalTags.([]interface{})
 	if !ok {
-		return tagsMap, fmt.Errorf("Tags format is invalid")
+		return tagsMap, fmt.Errorf("Tags format is invalid") // tags are not in a list
 	}
 
 	for _, tagInterface := range tagsList {
@@ -65,14 +65,14 @@ func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (map
 		if !ok {
 			continue
 		}
-		var value string
+		var tagValue string
 		if valStr, ok := tagEntry["Value"].(string); ok {
-			value = valStr
+			tagValue = valStr
 		} else {
 			if refMap, ok := tagEntry["Value"].(map[string]interface{}); ok {
 				if ref, exists := refMap["Ref"]; exists {
 					if refStr, ok := ref.(string); ok {
-						value = fmt.Sprintf("!Ref %s", refStr)
+						tagValue = fmt.Sprintf("!Ref %s", refStr)
 					}
 				}
 			}
@@ -80,7 +80,7 @@ func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (map
 		if caseInsensitive {
 			key = strings.ToLower(key)
 		}
-		tagsMap[key] = value
+		tagsMap[key] = tagValue
 	}
 	return tagsMap, nil
 }
