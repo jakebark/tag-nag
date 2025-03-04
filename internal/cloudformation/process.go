@@ -99,7 +99,7 @@ func processFile(filePath string, requiredTags []string, caseInsensitive bool) (
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
-			fmt.Printf("  %d: %s \"%s\", 🏷️ Missing tags: %v\n", v.Line, v.ResourceType, v.ResourceName, v.MissingTags)
+			fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %v\n", v.Line, v.ResourceType, v.ResourceName, v.MissingTags)
 		}
 	}
 
