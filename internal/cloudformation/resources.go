@@ -85,6 +85,7 @@ func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (map
 	return tagsMap, nil
 }
 
+// filterMissingTags compares the literal tags against the required tags
 func filterMissingTags(required []string, resourceTags map[string]string, caseInsensitive bool) []string {
 	var missing []string
 	for _, req := range required {
