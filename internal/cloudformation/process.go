@@ -32,11 +32,6 @@ func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive boo
 	return totalViolations
 }
 
-func isCloudFormationFile(path string) bool {
-	ext := strings.ToLower(filepath.Ext(path))
-	return ext == ".yaml" || ext == ".yml" || ext == ".json"
-}
-
 func processFile(filePath string, requiredTags []string, caseInsensitive bool) ([]Violation, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
@@ -104,7 +99,7 @@ func processFile(filePath string, requiredTags []string, caseInsensitive bool) (
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
-			fmt.Printf("  %s \"%s\" (line %d), 🏷️ Missing tags: %v\n", v.ResourceType, v.ResourceName, v.Line, v.MissingTags)
+			fmt.Printf("  %d: %s \"%s\", 🏷️ Missing tags: %v\n", v.Line, v.ResourceType, v.ResourceName, v.MissingTags)
 		}
 	}
 
