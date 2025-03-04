@@ -59,7 +59,7 @@ func processFile(filePath string, requiredTags []string, defaultTags *DefaultTag
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
-			fmt.Printf("  %s \"%s\" (line %d), 🏷️ Missing tags: %s\n", v.resourceType, v.resourceName, v.line, strings.Join(v.missingTags, ", "))
+			fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
 		}
 	}
 	return violations
@@ -77,7 +77,7 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 				for key := range tags {
 					keys = append(keys, key) // remove bool element of tag map
 				}
-				fmt.Printf("Found default tags for provider %s: %v\n", providerID, keys)
+				fmt.Printf("Found Terraform default tags for provider %s: %v\n", providerID, keys)
 
 			}
 			if tags != nil {
@@ -87,7 +87,7 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 	}
 }
 
-// processResourceBlocks initiates chekcing a resource for tags
+// processResourceBlocks initiates checking a resource for tags
 func processResourceBlocks(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	return checkResourcesForTags(body, requiredTags, defaultTags, caseInsensitive)
 }
