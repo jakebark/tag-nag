@@ -1,5 +1,7 @@
 # tag nag
 
+<img src="./img/demo.gif" width="650">
+
 Validate AWS tags in Terraform and CloudFormation.  
 
 Designed to run in a pipeline or as part of pre-deployment checks.  
