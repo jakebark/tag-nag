@@ -10,7 +10,7 @@ import (
 )
 
 // ProcessDirectory parses cfn files and returns the total amount of violations found
-func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) int {
+func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsensitive bool) int {
 	var totalViolations int
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
@@ -33,7 +33,7 @@ func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive boo
 }
 
 // processFile parses cloudformation files and returns any violations
-func processFile(filePath string, requiredTags []string, caseInsensitive bool) ([]Violation, error) {
+func processFile(filePath string, requiredTags map[string]string, caseInsensitive bool) ([]Violation, error) {
 	root, err := parseYAML(filePath)
 	if err != nil {
 		return nil, err
@@ -58,6 +58,6 @@ func processFile(filePath string, requiredTags []string, caseInsensitive bool) (
 }
 
 // processResourceBlocks initiates checking a resource for tags
-func processResourceBlocks(resourcesMapping map[string]*yaml.Node, requiredTags []string, caseInsensitive bool) []Violation {
+func processResourceBlocks(resourcesMapping map[string]*yaml.Node, requiredTags TagMap, caseInsensitive bool) []Violation {
 	return checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive)
 }

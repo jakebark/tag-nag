@@ -1,13 +1,14 @@
 package terraform
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
 // checkResourcesForTags inspects resource blocks and returns violations
-func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	var violations []Violation
 
 	for _, block := range body.Blocks {
@@ -25,7 +26,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultT
 		providerID := getResourceProvider(block, caseInsensitive)
 		providerLiteralTags := defaultTags.LiteralTags[providerID]
 		if providerLiteralTags == nil {
-			providerLiteralTags = make(map[string]bool)
+			providerLiteralTags = make(TagMap)
 		}
 
 		resourceTags := findTags(block, defaultTags.ReferencedTags, caseInsensitive)
@@ -96,26 +97,38 @@ func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensit
 	return make(TagMap)
 }
 
-// filterMissingTags compares the literal tags against the required tags
-func filterMissingTags(requiredTags []string, effectiveTags map[string]bool, caseInsensitive bool) []string {
-	missing := []string{}
-	for _, tag := range requiredTags {
+func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitive bool) []string {
+	var missing []string
+	for reqKey, reqVal := range requiredTags {
 		found := false
-		for existing := range effectiveTags {
+		for key, value := range effectiveTags {
 			if caseInsensitive {
-				if strings.EqualFold(existing, tag) {
-					found = true
-					break
+				if !strings.EqualFold(key, reqKey) {
+					continue
 				}
+				if reqVal != "" && !strings.EqualFold(value, reqVal) {
+					continue
+				}
+				found = true
+				break
 			} else {
-				if existing == tag {
-					found = true
-					break
+				if key != reqKey {
+					continue
 				}
+				if reqVal != "" && value != reqVal {
+					continue
+				}
+				found = true
+				break
 			}
 		}
 		if !found {
-			missing = append(missing, tag)
+			// If a value is specified, include it in the missing output.
+			if reqVal != "" {
+				missing = append(missing, fmt.Sprintf("%s:%s", reqKey, reqVal))
+			} else {
+				missing = append(missing, reqKey)
+			}
 		}
 	}
 	return missing

@@ -11,7 +11,7 @@ import (
 )
 
 // ProcessDirectory identifies all terraform files in directory
-func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive bool) int {
+func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsensitive bool) int {
 	var totalViolations int
 	defaultTags := DefaultTags{
 		LiteralTags:    make(TagReferences),
@@ -38,7 +38,7 @@ func ProcessDirectory(dirPath string, requiredTags []string, caseInsensitive boo
 // processFile parses terraform files.
 // It checks all providers and updates the defaultTags struct (processProviderBlocks).
 // Then it returns a list of violations with (processResourceBlocks)
-func processFile(filePath string, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
@@ -77,7 +77,7 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 				for key := range tags {
 					keys = append(keys, key) // remove bool element of tag map
 				}
-				fmt.Printf("Found Terraform default tags for provider %s: %v\n", providerID, keys)
+				fmt.Printf("Found Terraform default tags for provider %s: [%v]\n", providerID, strings.Join(keys, ", "))
 
 			}
 			if tags != nil {
@@ -88,6 +88,6 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 }
 
 // processResourceBlocks initiates checking a resource for tags
-func processResourceBlocks(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+func processResourceBlocks(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	return checkResourcesForTags(body, requiredTags, defaultTags, caseInsensitive)
 }

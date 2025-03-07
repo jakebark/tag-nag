@@ -32,8 +32,8 @@ func extractTraversalString(expr hcl.Expression, caseInsensitive bool) string {
 }
 
 // mergeTags combines multiple tag maps
-func mergeTags(tagMaps ...map[string]bool) map[string]bool {
-	merged := make(map[string]bool)
+func mergeTags(tagMaps ...TagMap) TagMap {
+	merged := make(TagMap)
 	for _, m := range tagMaps {
 		for k, v := range m {
 			merged[k] = v
@@ -47,7 +47,7 @@ func extractTags(attr *hclsyntax.Attribute, caseInsensitive bool) TagMap {
 	tags, err := extractTagMap(attr, caseInsensitive)
 	if err != nil {
 		// todo error logging
-		return make(map[string]bool)
+		return make(TagMap)
 	}
 	return tags
 }
@@ -60,12 +60,12 @@ func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (TagMap, err
 		return nil, fmt.Errorf("failed to extract tag map")
 	}
 
-	tags := make(map[string]bool)
-	for key := range val.AsValueMap() {
+	tags := make(TagMap)
+	for key, value := range val.AsValueMap() {
 		if caseInsensitive {
 			key = strings.ToLower(key)
 		}
-		tags[key] = true
+		tags[key] = value.AsString()
 	}
 	return tags, nil
 }

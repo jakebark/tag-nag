@@ -7,3 +7,6 @@ type Violation struct {
 	Line         int
 	MissingTags  []string
 }
+
+// TagMap maps tag keys to values
+type TagMap map[string]string

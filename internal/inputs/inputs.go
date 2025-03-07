@@ -7,10 +7,11 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// UserInput holds the user CLI inputs
+type TagMap map[string]string
+
 type UserInput struct {
 	Directory       string
-	RequiredTags    []string
+	RequiredTags    TagMap
 	CaseInsensitive bool
 }
 
@@ -32,16 +33,26 @@ func ParseFlags() UserInput {
 
 	return UserInput{
 		Directory:       pflag.Arg(0),
-		RequiredTags:    sliceAndTrim(tags),
+		RequiredTags:    parseTags(tags),
 		CaseInsensitive: caseInsensitive,
 	}
 }
 
-// sliceAndTrim removes whitespace and converts the CLI string input to a slice
-func sliceAndTrim(input string) []string {
-	tags := strings.Split(input, ",")
-	for i := range tags {
-		tags[i] = strings.TrimSpace(tags[i])
+func parseTags(input string) TagMap {
+	tagMap := make(map[string]string)
+	pairs := strings.Split(input, ",")
+	for _, pair := range pairs { // split on ,
+		trimmed := strings.TrimSpace(pair)
+		if trimmed == "" {
+			continue
+		}
+		kv := strings.SplitN(trimmed, "=", 2) // split on =
+		key := strings.TrimSpace(kv[0])
+		var value string
+		if len(kv) > 1 {
+			value = strings.TrimSpace(kv[1])
+		}
+		tagMap[key] = value
 	}
-	return tags
+	return tagMap
 }
