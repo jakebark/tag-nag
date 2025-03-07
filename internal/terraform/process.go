@@ -11,7 +11,7 @@ import (
 )
 
 // ProcessDirectory identifies all terraform files in directory
-func ProcessDirectory(dirPath string, requiredTags TagMap, caseInsensitive bool) int {
+func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsensitive bool) int {
 	var totalViolations int
 	defaultTags := DefaultTags{
 		LiteralTags:    make(TagReferences),
@@ -77,7 +77,7 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 				for key := range tags {
 					keys = append(keys, key) // remove bool element of tag map
 				}
-				fmt.Printf("Found Terraform default tags for provider %s: %v\n", providerID, keys)
+				fmt.Printf("Found Terraform default tags for provider %s: [%v]\n", providerID, strings.Join(keys, ", "))
 
 			}
 			if tags != nil {
