@@ -8,7 +8,7 @@ import (
 )
 
 // getResourceViolations inspects resource blocks and returns violations
-func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags []string, caseInsensitive bool) []Violation {
+func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags TagMap, caseInsensitive bool) []Violation {
 	var violations []Violation
 	for resourceName, resourceNode := range resourcesMapping { // resourceNode == yaml node for resource
 		resourceMapping := mapNodes(resourceNode)
@@ -44,7 +44,7 @@ func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags 
 }
 
 // extractTagMap extracts a yaml/json map to a go map
-func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (map[string]string, error) {
+func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (TagMap, error) {
 	tagsMap := make(map[string]string)
 	literalTags, exists := properties["Tags"]
 	if !exists {
