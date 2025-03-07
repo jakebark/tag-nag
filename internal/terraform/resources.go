@@ -96,26 +96,33 @@ func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensit
 	return make(TagMap)
 }
 
-// filterMissingTags compares the literal tags against the required tags
-func filterMissingTags(requiredTags []string, effectiveTags map[string]bool, caseInsensitive bool) []string {
-	missing := []string{}
-	for _, tag := range requiredTags {
+func filterMissingTags(requiredTags map[string]string, effectiveTags map[string]string, caseInsensitive bool) []string {
+	var missing []string
+	for reqKey, reqVal := range requiredTags {
 		found := false
-		for existing := range effectiveTags {
+		for key, value := range effectiveTags {
 			if caseInsensitive {
-				if strings.EqualFold(existing, tag) {
-					found = true
-					break
+				if !strings.EqualFold(key, reqKey) {
+					continue
 				}
+				if reqVal != "" && !strings.EqualFold(value, reqVal) {
+					continue
+				}
+				found = true
+				break
 			} else {
-				if existing == tag {
-					found = true
-					break
+				if key != reqKey {
+					continue
 				}
+				if reqVal != "" && value != reqVal {
+					continue
+				}
+				found = true
+				break
 			}
 		}
 		if !found {
-			missing = append(missing, tag)
+			missing = append(missing, reqKey)
 		}
 	}
 	return missing

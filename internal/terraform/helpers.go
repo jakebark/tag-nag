@@ -32,8 +32,8 @@ func extractTraversalString(expr hcl.Expression, caseInsensitive bool) string {
 }
 
 // mergeTags combines multiple tag maps
-func mergeTags(tagMaps ...map[string]bool) map[string]bool {
-	merged := make(map[string]bool)
+func mergeTags(tagMaps ...TagMap) TagMap {
+	merged := make(TagMap)
 	for _, m := range tagMaps {
 		for k, v := range m {
 			merged[k] = v
