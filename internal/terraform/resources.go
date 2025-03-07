@@ -96,7 +96,7 @@ func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensit
 	return make(TagMap)
 }
 
-func filterMissingTags(requiredTags map[string]string, effectiveTags map[string]string, caseInsensitive bool) []string {
+func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitive bool) []string {
 	var missing []string
 	for reqKey, reqVal := range requiredTags {
 		found := false

@@ -85,26 +85,33 @@ func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (map
 	return tagsMap, nil
 }
 
-// filterMissingTags compares the literal tags against the required tags
-func filterMissingTags(required []string, resourceTags map[string]string, caseInsensitive bool) []string {
+func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitive bool) []string {
 	var missing []string
-	for _, req := range required {
+	for reqKey, reqVal := range requiredTags {
 		found := false
-		for tagKey := range resourceTags {
+		for key, value := range effectiveTags {
 			if caseInsensitive {
-				if strings.EqualFold(tagKey, req) {
-					found = true
-					break
+				if !strings.EqualFold(key, reqKey) {
+					continue
 				}
+				if reqVal != "" && !strings.EqualFold(value, reqVal) {
+					continue
+				}
+				found = true
+				break
 			} else {
-				if tagKey == req {
-					found = true
-					break
+				if key != reqKey {
+					continue
 				}
+				if reqVal != "" && value != reqVal {
+					continue
+				}
+				found = true
+				break
 			}
 		}
 		if !found {
-			missing = append(missing, req)
+			missing = append(missing, reqKey)
 		}
 	}
 	return missing
