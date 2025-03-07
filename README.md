@@ -1,4 +1,4 @@
-# tag nag
+# tag:nag
 
 <img src="./img/demo.gif" width="650">
 
