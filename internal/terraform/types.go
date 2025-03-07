@@ -15,7 +15,7 @@ type Violation struct {
 }
 
 // TagMap maps tag names to a bool
-type TagMap map[string]bool
+type TagMap map[string]string
 
 // TagReferences maps a reference identifier to a tag map ("local.tags")
 type TagReferences map[string]TagMap
