@@ -31,6 +31,16 @@ tag-nag ./my_project --tags "Owner","Environment" # run against a directory
 
 ```
 
+Search for tag keys *and* values:
+
+```bash
+tag-nag <file/directory> --tags "<tagKey1>=<tagValue1>"
+
+tag-nag main.tf --tags "Owner=Jake" 
+tag-nag main.tf --tags "Owner=Jake","Environment" # mixed search possible
+
+```
+
 Optional flags: 
 ```bash
 -c # case-insensitive 
