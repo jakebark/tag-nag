@@ -7,7 +7,7 @@ import (
 )
 
 // checkResourcesForTags inspects resource blocks and returns violations
-func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	var violations []Violation
 
 	for _, block := range body.Blocks {
@@ -25,7 +25,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags []string, defaultT
 		providerID := getResourceProvider(block, caseInsensitive)
 		providerLiteralTags := defaultTags.LiteralTags[providerID]
 		if providerLiteralTags == nil {
-			providerLiteralTags = make(map[string]bool)
+			providerLiteralTags = make(TagMap)
 		}
 
 		resourceTags := findTags(block, defaultTags.ReferencedTags, caseInsensitive)
