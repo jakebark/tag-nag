@@ -111,7 +111,12 @@ func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 			}
 		}
 		if !found {
-			missing = append(missing, reqKey)
+			// If a value is specified, include it in the missing output.
+			if reqVal != "" {
+				missing = append(missing, fmt.Sprintf("%s:%s", reqKey, reqVal))
+			} else {
+				missing = append(missing, reqKey)
+			}
 		}
 	}
 	return missing
