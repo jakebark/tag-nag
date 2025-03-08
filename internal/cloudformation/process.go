@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// ProcessDirectory parses cfn files and returns the total amount of violations found
+// ProcessDirectory walks all cfn files in a directory, then returns violations
 func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsensitive bool) int {
 	var totalViolations int
 
@@ -32,7 +32,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 	return totalViolations
 }
 
-// processFile parses cloudformation files and returns any violations
+// processFile parses files and maps the cfn nodes
 func processFile(filePath string, requiredTags map[string]string, caseInsensitive bool) ([]Violation, error) {
 	root, err := parseYAML(filePath)
 	if err != nil {

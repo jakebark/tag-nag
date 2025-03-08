@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
-// ProcessDirectory identifies all terraform files in directory
+// ProcessDirectory walks all terraform files in directory
 func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsensitive bool) int {
 	var totalViolations int
 	defaultTags := DefaultTags{
@@ -35,9 +35,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 	return totalViolations
 }
 
-// processFile parses terraform files.
-// It checks all providers and updates the defaultTags struct (processProviderBlocks).
-// Then it returns a list of violations with (processResourceBlocks)
+// processFile parses all providers and updates the defaultTags struct (processProviderBlocks), then return violations with (processResourceBlocks)
 func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
