@@ -48,6 +48,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 	return totalViolations
 }
 
+// processProvider parses files looking for providers
 func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive bool) {
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
@@ -61,6 +62,7 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
 }
 
+// processFile parses files looking for resources
 func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
