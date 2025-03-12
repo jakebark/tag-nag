@@ -23,7 +23,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 			return err
 		}
 		if !info.IsDir() && strings.HasSuffix(path, ".tf") {
-			processProviderFile(path, &defaultTags, caseInsensitive)
+			processProvider(path, &defaultTags, caseInsensitive)
 		}
 		return nil
 	})
@@ -48,6 +48,19 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 	return totalViolations
 }
 
+func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive bool) {
+	parser := hclparse.NewParser()
+	file, diagnostics := parser.ParseHCLFile(filePath)
+	if diagnostics.HasErrors() {
+		return
+	}
+	syntaxBody, ok := file.Body.(*hclsyntax.Body)
+	if !ok {
+		return
+	}
+	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
+}
+
 func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
@@ -70,43 +83,6 @@ func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags,
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
 			fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
-		}
-	}
-	return violations
-}
-
-func processProviderFile(filePath string, defaultTags *DefaultTags, caseInsensitive bool) {
-	parser := hclparse.NewParser()
-	file, diagnostics := parser.ParseHCLFile(filePath)
-	if diagnostics.HasErrors() {
-		return
-	}
-	syntaxBody, ok := file.Body.(*hclsyntax.Body)
-	if !ok {
-		return
-	}
-	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
-}
-
-func processResourceFile(filePath string, requiredTags map[string]string, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
-	parser := hclparse.NewParser()
-	file, diagnostics := parser.ParseHCLFile(filePath)
-	if diagnostics.HasErrors() {
-		fmt.Printf("Error parsing %s: %v\n", filePath, diagnostics)
-		return nil
-	}
-	syntaxBody, ok := file.Body.(*hclsyntax.Body)
-	if !ok {
-		fmt.Printf("Parsing failed for %s\n", filePath)
-		return nil
-	}
-
-	violations := processResourceBlocks(syntaxBody, requiredTags, defaultTags, caseInsensitive)
-	if len(violations) > 0 {
-		fmt.Printf("\nViolation(s) in %s\n", filePath)
-		for _, v := range violations {
-			fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n",
-				v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
 		}
 	}
 	return violations
