@@ -52,7 +52,9 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive bool) {
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
+
 	if diagnostics.HasErrors() {
+		fmt.Printf("Error parsing %s: %v\n", filePath, diagnostics)
 		return
 	}
 	syntaxBody, ok := file.Body.(*hclsyntax.Body)
