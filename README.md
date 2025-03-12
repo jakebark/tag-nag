@@ -1,3 +1,7 @@
+<div align="center">
+<img alt="tag:nag" height="280" src="./img/tag:nag.png" />
+</div>
+
 # tag:nag
 
 <img src="./img/demo.gif" width="650">
