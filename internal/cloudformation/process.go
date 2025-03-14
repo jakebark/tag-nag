@@ -71,14 +71,14 @@ func processFile(filePath string, requiredTags map[string]string, caseInsensitiv
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
-			fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %v\n", v.Line, v.ResourceType, v.ResourceName, strings.Join(v.MissingTags, ", "))
+			fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %v\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
 		}
 	}
 
 	if len(skipped) > 0 {
 		fmt.Printf("\nResource skip(s) in %s:\n", filePath)
 		for _, v := range skipped {
-			fmt.Printf("  %d: %s \"%s\"\n", v.Line, v.ResourceType, v.ResourceName)
+			fmt.Printf("  %d: %s \"%s\"\n", v.line, v.resourceType, v.resourceName)
 		}
 	}
 

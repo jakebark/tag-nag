@@ -33,10 +33,10 @@ func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags 
 		missing := filterMissingTags(requiredTags, tags, caseInsensitive)
 		if len(missing) > 0 {
 			violations = append(violations, Violation{
-				ResourceName: resourceName,
-				ResourceType: resourceType,
-				Line:         resourceNode.Line,
-				MissingTags:  missing,
+				resourceName: resourceName,
+				resourceType: resourceType,
+				line:         resourceNode.Line,
+				missingTags:  missing,
 			})
 		}
 	}
