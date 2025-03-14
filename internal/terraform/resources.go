@@ -133,3 +133,18 @@ func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 	}
 	return missing
 }
+
+func skipResources(violations []Violation, fileText string) (filtered, skipped []Violation) {
+	lines := strings.Split(fileText, "\n")
+	for _, v := range violations {
+		if v.line < len(lines) {
+			ignoreLine := strings.TrimSpace(lines[v.line])
+			if strings.HasPrefix(ignoreLine, "#tag:nag ignore") || strings.HasPrefix(ignoreLine, "//tag:nag ignore") {
+				skipped = append(skipped, v)
+				continue
+			}
+		}
+		filtered = append(filtered, v)
+	}
+	return
+}

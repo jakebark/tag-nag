@@ -94,6 +94,8 @@ func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags,
 
 	// processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
 	violations := processResourceBlocks(syntaxBody, requiredTags, defaultTags, caseInsensitive)
+	var skipped []Violation
+	violations, skipped = skipResources(violations, fileText)
 
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
@@ -101,6 +103,14 @@ func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags,
 			fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
 		}
 	}
+
+	if len(skipped) > 0 {
+		fmt.Printf("\nResource skip(s) in %s:\n", filePath)
+		for _, v := range skipped {
+			fmt.Printf("  %d: %s \"%s\"\n", v.line, v.resourceType, v.resourceName)
+		}
+	}
+
 	return violations
 }
 
