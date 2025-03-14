@@ -66,6 +66,18 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 
 // processFile parses files looking for resources
 func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Printf("Error reading file %s: %v\n", filePath, err)
+		return nil
+	}
+	fileText := string(data)
+
+	if strings.Contains(fileText, "#tag:nag ignore-all") || strings.Contains(fileText, "//tag:nag ignore-all") {
+		fmt.Printf("Skipping  %s\n", filePath)
+		return nil
+	}
+
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
