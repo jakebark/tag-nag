@@ -139,7 +139,7 @@ func skipResources(violations []Violation, fileText string) (filtered, skipped [
 	for _, v := range violations {
 		if v.line < len(lines) {
 			ignoreLine := strings.TrimSpace(lines[v.line])
-			if strings.HasPrefix(ignoreLine, "#tag:nag ignore") || strings.HasPrefix(ignoreLine, "//tag:nag ignore") {
+			if ignoreRegex.MatchString(ignoreLine) {
 				skipped = append(skipped, v)
 				continue
 			}

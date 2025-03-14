@@ -4,10 +4,16 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+)
+
+var (
+	ignoreAllRegex = regexp.MustCompile(`(?m)^(#|//)tag:nag ignore-all\b`)
+	ignoreRegex    = regexp.MustCompile(`(?m)^(#|//)tag:nag ignore\b`)
 )
 
 // ProcessDirectory walks all terraform files in directory
@@ -73,7 +79,7 @@ func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags,
 	}
 	fileText := string(data)
 
-	if strings.Contains(fileText, "#tag:nag ignore-all") || strings.Contains(fileText, "//tag:nag ignore-all") {
+	if ignoreAllRegex.MatchString(fileText) {
 		fmt.Printf("Skipping  %s\n", filePath)
 		return nil
 	}
