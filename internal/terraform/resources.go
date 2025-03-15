@@ -8,11 +8,22 @@ import (
 )
 
 // checkResourcesForTags inspects resource blocks and returns violations
-func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool, fileText string) []Violation {
 	var violations []Violation
 
 	for _, block := range body.Blocks {
 		if block.Type != "resource" || len(block.Labels) < 2 { // skip anything without 2 labels eg "aws_s3_bucket" and "this"
+			continue
+		}
+
+		if checkResourceForSkip(block, fileText) {
+			violations = append(violations, Violation{
+				resourceName: block.Labels[1],
+				resourceType:/* extract resource type here, if needed */ "",
+				line:        block.DefRange().Start.Line,
+				missingTags: nil,
+				skip:        true,
+			})
 			continue
 		}
 
@@ -40,6 +51,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTag
 				resourceName: resourceName,
 				line:         block.DefRange().Start.Line,
 				missingTags:  missingTags,
+				skip:         false,
 			})
 		}
 	}
@@ -134,17 +146,12 @@ func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 	return missing
 }
 
-func skipResources(violations []Violation, fileText string) (filtered, skipped []Violation) {
+func checkResourceForSkip(block *hclsyntax.Block, fileText string) bool {
+	start := block.DefRange().Start.Line
 	lines := strings.Split(fileText, "\n")
-	for _, v := range violations {
-		if v.line < len(lines) {
-			ignoreLine := strings.TrimSpace(lines[v.line])
-			if ignoreRegex.MatchString(ignoreLine) {
-				skipped = append(skipped, v)
-				continue
-			}
-		}
-		filtered = append(filtered, v)
+	if start < len(lines) {
+		lineToCheck := strings.TrimSpace(lines[start])
+		return ignoreRegex.MatchString(lineToCheck)
 	}
-	return
+	return false
 }

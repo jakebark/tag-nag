@@ -99,21 +99,16 @@ func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags,
 	}
 
 	// processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
-	violations := processResourceBlocks(syntaxBody, requiredTags, defaultTags, caseInsensitive)
-	var skipped []Violation
-	violations, skipped = skipResources(violations, fileText)
+	violations := processResourceBlocks(syntaxBody, requiredTags, defaultTags, caseInsensitive, fileText)
 
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
-			fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
-		}
-	}
-
-	if len(skipped) > 0 {
-		fmt.Printf("\nResource skip(s) in %s:\n", filePath)
-		for _, v := range skipped {
-			fmt.Printf("  %d: %s \"%s\"\n", v.line, v.resourceType, v.resourceName)
+			if v.skip {
+				fmt.Printf("  %d: %s \"%s\" (skipped)\n", v.line, v.resourceType, v.resourceName)
+			} else {
+				fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
+			}
 		}
 	}
 
@@ -143,6 +138,6 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 }
 
 // processResourceBlocks initiates checking a resource for tags
-func processResourceBlocks(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
-	return checkResourcesForTags(body, requiredTags, defaultTags, caseInsensitive)
+func processResourceBlocks(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool, fileText string) []Violation {
+	return checkResourcesForTags(body, requiredTags, defaultTags, caseInsensitive, fileText)
 }
