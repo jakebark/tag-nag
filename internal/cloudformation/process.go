@@ -63,7 +63,7 @@ func processFile(filePath string, requiredTags map[string]string, caseInsensitiv
 		return []Violation{}, nil
 	}
 
-	violations := processResourceBlocks(resourcesMapping, requiredTags, caseInsensitive)
+	violations := processResourceBlocks(root, requiredTags, caseInsensitive)
 
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
@@ -80,6 +80,6 @@ func processFile(filePath string, requiredTags map[string]string, caseInsensitiv
 }
 
 // processResourceBlocks initiates checking a resource for tags
-func processResourceBlocks(resourcesMapping map[string]*yaml.Node, requiredTags TagMap, caseInsensitive bool) []Violation {
-	return checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive)
+func processResourceBlocks(root *yaml.Node, requiredTags TagMap, caseInsensitive bool) []Violation {
+	return checkResourcesforTags(root, requiredTags, caseInsensitive)
 }
