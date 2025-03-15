@@ -8,11 +8,34 @@ import (
 )
 
 // checkResourcesforTags inspects resource blocks and returns violations
-func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags TagMap, caseInsensitive bool) []Violation {
+func checkResourcesforTags(root *yaml.Node, requiredTags TagMap, caseInsensitive bool) []Violation {
 	var violations []Violation
-	for resourceName, resourceNode := range resourcesMapping { // resourceNode == yaml node for resource
-		resourceMapping := mapNodes(resourceNode)
+	resourcesNode := findMapNode(root, "Resources")
 
+	if resourcesNode == nil {
+		return violations
+	}
+	// Iterate over keys and values.
+	for i := 0; i < len(resourcesNode.Content); i += 2 {
+		resourceKeyNode := resourcesNode.Content[i]
+		resourceValNode := resourcesNode.Content[i+1]
+		resourceName := resourceKeyNode.Value
+
+		// Check YAML node comments for ignore directive.
+		if (resourceKeyNode.HeadComment != "" && strings.Contains(resourceKeyNode.HeadComment, "tag:nag ignore")) ||
+			(resourceKeyNode.LineComment != "" && strings.Contains(resourceKeyNode.LineComment, "tag:nag ignore")) {
+			// Mark this resource as skipped.
+			violations = append(violations, Violation{
+				resourceName: resourceName,
+				resourceType: "", // You might fill this later.
+				line:         resourceKeyNode.Line,
+				missingTags:  nil,
+				skip:         true,
+			})
+			continue
+		}
+
+		resourceMapping := mapNodes(resourceValNode)
 		typeNode, ok := resourceMapping["Type"]
 		if !ok || !strings.HasPrefix(typeNode.Value, "AWS::") {
 			continue
@@ -35,8 +58,9 @@ func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags 
 			violations = append(violations, Violation{
 				resourceName: resourceName,
 				resourceType: resourceType,
-				line:         resourceNode.Line,
+				line:         resourceKeyNode.Line,
 				missingTags:  missing,
+				skip:         false,
 			})
 		}
 	}
@@ -120,19 +144,4 @@ func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 		}
 	}
 	return missing
-}
-
-func skipResources(violations []Violation, fileText string) (filtered, skipped []Violation) {
-	lines := strings.Split(fileText, "\n")
-	for _, v := range violations {
-		if v.line < len(lines) {
-			ignoreLine := strings.TrimSpace(lines[v.line])
-			if ignoreRegex.MatchString(ignoreLine) {
-				skipped = append(skipped, v)
-				continue
-			}
-		}
-		filtered = append(filtered, v)
-	}
-	return
 }
