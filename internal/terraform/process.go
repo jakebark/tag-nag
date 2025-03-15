@@ -17,7 +17,7 @@ var (
 )
 
 // ProcessDirectory walks all terraform files in directory
-func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsensitive bool) int {
+func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsensitive bool, showSkips bool) int {
 	var totalViolations int
 	defaultTags := DefaultTags{
 		LiteralTags:    make(TagReferences),
@@ -44,7 +44,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 			return err
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".tf." {
-			violations := processFile(path, requiredTags, &defaultTags, caseInsensitive)
+			violations := processFile(path, requiredTags, &defaultTags, caseInsensitive, showSkips)
 			totalViolations += len(violations)
 		}
 		return nil
@@ -73,7 +73,7 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 }
 
 // processFile parses files looking for resources
-func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool, showSkips bool) []Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading file %s: %v\n", filePath, err)
@@ -82,7 +82,9 @@ func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags,
 	fileText := string(data)
 
 	if ignoreAllRegex.MatchString(fileText) {
-		fmt.Printf("Skipping  %s\n", filePath)
+		if showSkips {
+			fmt.Printf("Skipping  %s\n", filePath)
+		}
 		return nil
 	}
 

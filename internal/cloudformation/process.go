@@ -16,7 +16,7 @@ var (
 )
 
 // ProcessDirectory walks all cfn files in a directory, then returns violations
-func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsensitive bool) int {
+func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsensitive bool, showSkips bool) int {
 	var totalViolations int
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
@@ -24,7 +24,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 			return err
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".json" {
-			violations, err := processFile(path, requiredTags, caseInsensitive)
+			violations, err := processFile(path, requiredTags, caseInsensitive, showSkips)
 			if err != nil {
 				fmt.Printf("Error processing file %s: %v\n", path, err)
 			}
@@ -39,7 +39,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 }
 
 // processFile parses files and maps the cfn nodes
-func processFile(filePath string, requiredTags map[string]string, caseInsensitive bool) ([]Violation, error) {
+func processFile(filePath string, requiredTags map[string]string, caseInsensitive bool, showSkips bool) ([]Violation, error) {
 
 	data, err := os.ReadFile(filePath)
 	if err != nil {
@@ -48,7 +48,9 @@ func processFile(filePath string, requiredTags map[string]string, caseInsensitiv
 	fileText := string(data)
 
 	if ignoreAllRegex.MatchString(fileText) {
-		fmt.Printf("Skipping %s\n", filePath)
+		if showSkips {
+			fmt.Printf("Skipping %s\n", filePath)
+		}
 		return nil, nil
 	}
 
