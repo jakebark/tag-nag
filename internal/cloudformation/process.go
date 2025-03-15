@@ -41,16 +41,16 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 // processFile parses files and maps the cfn nodes
 func processFile(filePath string, requiredTags map[string]string, caseInsensitive bool) ([]Violation, error) {
 
-	// data, err := os.ReadFile(filePath)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// fileText := string(data)
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+	fileText := string(data)
 
-	// if ignoreAllRegex.MatchString(fileText) {
-	// 	fmt.Printf("Skipping %s\n", filePath)
-	// 	return nil, nil
-	// }
+	if ignoreAllRegex.MatchString(fileText) {
+		fmt.Printf("Skipping %s\n", filePath)
+		return nil, nil
+	}
 
 	root, err := parseYAML(filePath)
 	if err != nil {
