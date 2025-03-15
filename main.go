@@ -13,8 +13,8 @@ func main() {
 	userInput := inputs.ParseFlags()
 	fmt.Printf("Scanning: %s\n", userInput.Directory)
 
-	tfViolations := terraform.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive)
-	cfnViolations := cloudformation.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive)
+	tfViolations := terraform.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive, userInput.ShowSkips)
+	cfnViolations := cloudformation.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive, userInput.ShowSkips)
 
 	violations := tfViolations + cfnViolations
 
