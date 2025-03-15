@@ -24,6 +24,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 		ReferencedTags: checkReferencedTags(dirPath),
 	}
 
+	// first pass to find provider
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -37,6 +38,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 		fmt.Println("Error finding provider:", err)
 	}
 
+	// second pass for resources
 	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
