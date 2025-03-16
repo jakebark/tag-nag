@@ -48,6 +48,7 @@ tag-nag main.tf --tags "Owner=Jake","Environment" # mixed search possible
 Optional flags: 
 ```bash
 -c # case-insensitive 
+-d # dry-run (doesnt trigger exit code 1)
 ```
 ## Related Resources
 
