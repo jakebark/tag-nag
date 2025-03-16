@@ -13,14 +13,17 @@ type UserInput struct {
 	Directory       string
 	RequiredTags    TagMap
 	CaseInsensitive bool
+	DryRun          bool
 }
 
 // ParseFlags returns pased CLI flags and arguments
 func ParseFlags() UserInput {
 	var caseInsensitive bool
+	var dryRun bool
 	var tags string
 
 	pflag.BoolVarP(&caseInsensitive, "case-insensitive", "c", false, "Make tag checks non-case-sensitive")
+	pflag.BoolVarP(&dryRun, "dry-run", "d", false, "Dry run tag:nag without triggering exit(1) code")
 	pflag.StringVar(&tags, "tags", "", "Comma-separated list of required tag keys (e.g., 'Environment,Owner')")
 	pflag.Parse()
 
@@ -35,6 +38,7 @@ func ParseFlags() UserInput {
 		Directory:       pflag.Arg(0),
 		RequiredTags:    parseTags(tags),
 		CaseInsensitive: caseInsensitive,
+		DryRun:          dryRun,
 	}
 }
 

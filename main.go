@@ -18,7 +18,10 @@ func main() {
 
 	violations := tfViolations + cfnViolations
 
-	if violations > 0 {
+	if violations > 0 && userInput.DryRun {
+		fmt.Printf("\033[32mFound %d tag violation(s)\033[0m\n", violations)
+		os.Exit(0)
+	} else if violations > 0 {
 		fmt.Printf("\033[31mFound %d tag violation(s)\033[0m\n", violations)
 		os.Exit(1)
 	}
