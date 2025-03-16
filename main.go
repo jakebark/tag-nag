@@ -11,7 +11,12 @@ import (
 
 func main() {
 	userInput := inputs.ParseFlags()
-	fmt.Printf("Scanning: %s\n", userInput.Directory)
+
+	if userInput.DryRun {
+		fmt.Printf("Dry-run: %s\n", userInput.Directory)
+	} else {
+		fmt.Printf("Scanning: %s\n", userInput.Directory)
+	}
 
 	tfViolations := terraform.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive)
 	cfnViolations := cloudformation.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive)
@@ -24,7 +29,9 @@ func main() {
 	} else if violations > 0 {
 		fmt.Printf("\033[31mFound %d tag violation(s)\033[0m\n", violations)
 		os.Exit(1)
+	} else {
+		fmt.Println("No tag violations found")
+		os.Exit(0)
 	}
-	fmt.Println("No tag violations found")
 
 }
