@@ -62,7 +62,7 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 		}
 
 		// provider is not a literal string ("aws.west")
-		s := extractTraversalString(attr.Expr, caseInsensitive)
+		s := traversalToString(attr.Expr, caseInsensitive)
 		if s != "" {
 			return s
 		}
@@ -87,7 +87,7 @@ func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensit
 		}
 
 		// referenced tags
-		refKey := extractTraversalString(attr.Expr, caseInsensitive)
+		refKey := traversalToString(attr.Expr, caseInsensitive)
 		if refKey != "" {
 			if resolved, ok := referencedTags[refKey]; ok {
 				return resolved
