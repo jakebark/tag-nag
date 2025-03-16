@@ -17,7 +17,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && (strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".json")) {
+		if !info.IsDir() && (filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".json") {
 			violations, err := processFile(path, requiredTags, caseInsensitive)
 			if err != nil {
 				fmt.Printf("Error processing file %s: %v\n", path, err)
