@@ -13,9 +13,9 @@ func main() {
 	userInput := inputs.ParseFlags()
 
 	if userInput.DryRun {
-		fmt.Printf("Dry-run: %s\n", userInput.Directory)
+		fmt.Printf("\033[32mDry-run: %s\033[0m\n", userInput.Directory)
 	} else {
-		fmt.Printf("Scanning: %s\n", userInput.Directory)
+		fmt.Printf("\033[33mScanning: %s\033[0m\n", userInput.Directory)
 	}
 
 	tfViolations := terraform.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive)
