@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
-// extractTraversalString converts a hcl hierachical/traversal string to a literal string.
-func extractTraversalString(expr hcl.Expression, caseInsensitive bool) string {
+// traversalToString converts a hcl hierachical/traversal string to a literal string.
+func traversalToString(expr hcl.Expression, caseInsensitive bool) string {
 	ste, ok := expr.(*hclsyntax.ScopeTraversalExpr)
 	if !ok {
 		return ""

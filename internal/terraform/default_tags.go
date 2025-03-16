@@ -56,6 +56,6 @@ func checkForDefaultTags(block *hclsyntax.Block, referencedTags TagReferences, c
 
 // resolveDefaultTagReferences looks up referencedTags (locals/vars)
 func resolveDefaultTagReferences(attr *hclsyntax.Attribute, referencedTags TagReferences, caseInsensitive bool) TagMap {
-	tagRef := extractTraversalString(attr.Expr, caseInsensitive)
+	tagRef := traversalToString(attr.Expr, caseInsensitive)
 	return referencedTags[tagRef]
 }

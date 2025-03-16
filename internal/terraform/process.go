@@ -22,7 +22,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && strings.HasSuffix(path, ".tf") {
+		if !info.IsDir() && filepath.Ext(path) == ".tf" {
 			processProvider(path, &defaultTags, caseInsensitive)
 		}
 		return nil
@@ -35,7 +35,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && strings.HasSuffix(path, ".tf") {
+		if !info.IsDir() && filepath.Ext(path) == ".tf" {
 			violations := processFile(path, requiredTags, &defaultTags, caseInsensitive)
 			totalViolations += len(violations)
 		}

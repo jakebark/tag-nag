@@ -3,7 +3,6 @@ package terraform
 import (
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
@@ -14,7 +13,7 @@ func checkReferencedTags(dirPath string) TagReferences {
 	referencedTags := make(TagReferences)
 
 	_ = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() || !strings.HasSuffix(path, ".tf") {
+		if err != nil || info.IsDir() || filepath.Ext(path) != ".tf" {
 			return nil
 		}
 
