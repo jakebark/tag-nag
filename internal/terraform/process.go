@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/jakebark/tag-nag/internal/shared"
 )
 
 // ProcessDirectory walks all terraform files in directory
@@ -66,6 +67,16 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 
 // processFile parses files looking for resources
 func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Printf("Error reading %s: %v\n", filePath, err)
+		return nil
+	}
+	content := string(data)
+	lines := strings.Split(content, "\n")
+
+	skipAll := strings.Contains(content, shared.TagNagIgnoreAll)
+
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
@@ -81,15 +92,26 @@ func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags,
 	}
 
 	// processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
-	violations := processResourceBlocks(syntaxBody, requiredTags, defaultTags, caseInsensitive)
+	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, caseInsensitive, lines, skipAll)
 
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
-			fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
+			if v.skip {
+				fmt.Printf("  %d: %s \"%s\" skipped\n", v.line, v.resourceType, v.resourceName)
+			} else {
+				fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
+			}
 		}
 	}
-	return violations
+
+	var filteredViolations []Violation
+	for _, v := range violations {
+		if !v.skip {
+			filteredViolations = append(filteredViolations, v)
+		}
+	}
+	return filteredViolations
 }
 
 // processProviderBlocks extracts any default_tags from providers
@@ -112,9 +134,4 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 			}
 		}
 	}
-}
-
-// processResourceBlocks initiates checking a resource for tags
-func processResourceBlocks(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
-	return checkResourcesForTags(body, requiredTags, defaultTags, caseInsensitive)
 }

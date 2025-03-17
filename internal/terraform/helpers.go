@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/jakebark/tag-nag/internal/shared"
 )
 
 // traversalToString converts a hcl hierachical/traversal string to a literal string.
@@ -68,4 +69,14 @@ func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (TagMap, err
 		tags[key] = value.AsString()
 	}
 	return tags, nil
+}
+
+func skipResource(block *hclsyntax.Block, lines []string) bool {
+	index := block.DefRange().Start.Line
+	if index < len(lines) {
+		if strings.Contains(lines[index], shared.TagNagIgnore) {
+			return true
+		}
+	}
+	return false
 }
