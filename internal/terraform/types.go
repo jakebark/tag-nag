@@ -10,6 +10,7 @@ type Violation struct {
 	resourceName string
 	line         int
 	missingTags  []string
+	skip         bool
 }
 
 type TagMap map[string]string

@@ -1,10 +1,11 @@
 package cloudformation
 
 type Violation struct {
-	ResourceName string
-	ResourceType string
-	Line         int
-	MissingTags  []string
+	resourceName string
+	resourceType string
+	line         int
+	missingTags  []string
+	skip         bool
 }
 
 type TagMap map[string]string
