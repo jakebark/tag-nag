@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/jakebark/tag-nag/internal/shared"
 )
 
 // ProcessDirectory walks all terraform files in directory
@@ -74,7 +75,7 @@ func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags,
 	content := string(data)
 	lines := strings.Split(content, "\n")
 
-	skipAll := strings.Contains(content, "#tag:nag ignore-all")
+	skipAll := strings.Contains(content, shared.TagNagIgnoreAll)
 
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)

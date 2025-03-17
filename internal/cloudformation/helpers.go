@@ -1,9 +1,11 @@
 package cloudformation
 
 import (
-	"gopkg.in/yaml.v3"
 	"os"
 	"strings"
+
+	"github.com/jakebark/tag-nag/internal/shared"
+	"gopkg.in/yaml.v3"
 )
 
 // mapNodes converts a yaml mapping node into a go map
@@ -59,7 +61,7 @@ func parseYAML(filePath string) (*yaml.Node, error) {
 func skipResource(node *yaml.Node, lines []string) bool {
 	index := node.Line - 2
 	if index < len(lines) {
-		if strings.Contains(lines[index], "#tag:nag ignore") {
+		if strings.Contains(lines[index], shared.TagNagIgnore) {
 			return true
 		}
 	}

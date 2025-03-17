@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/jakebark/tag-nag/internal/shared"
 )
 
 // ProcessDirectory walks all cfn files in a directory, then returns violations
@@ -40,7 +42,7 @@ func processFile(filePath string, requiredTags map[string]string, caseInsensitiv
 	content := string(data)
 	lines := strings.Split(content, "\n")
 
-	skipAll := strings.Contains(content, "#tag:nag ignore-all")
+	skipAll := strings.Contains(content, shared.TagNagIgnoreAll)
 
 	root, err := parseYAML(filePath)
 	if err != nil {
