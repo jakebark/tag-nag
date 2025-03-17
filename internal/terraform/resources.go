@@ -8,7 +8,7 @@ import (
 )
 
 // checkResourcesForTags inspects resource blocks and returns violations
-func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
 	var violations []Violation
 
 	for _, block := range body.Blocks {
@@ -30,20 +30,23 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTag
 		}
 
 		resourceTags := findTags(block, defaultTags.ReferencedTags, caseInsensitive)
-
 		effectiveTags := mergeTags(providerLiteralTags, resourceTags)
 
 		missingTags := filterMissingTags(requiredTags, effectiveTags, caseInsensitive)
 		if len(missingTags) > 0 {
-			violations = append(violations, Violation{
+			violation := Violation{
 				resourceType: resourceType,
 				resourceName: resourceName,
 				line:         block.DefRange().Start.Line,
 				missingTags:  missingTags,
-			})
+			}
+			// Set skip flag if file-level or resource-level ignore is found.
+			if skipAll || skipResource(block, fileLines) {
+				violation.skip = true
+			}
+			violations = append(violations, violation)
 		}
 	}
-
 	return violations
 }
 

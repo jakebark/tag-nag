@@ -69,3 +69,13 @@ func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (TagMap, err
 	}
 	return tags, nil
 }
+
+func skipResource(block *hclsyntax.Block, lines []string) bool {
+	index := block.DefRange().Start.Line
+	if index < len(lines) {
+		if strings.Contains(lines[index], "#tag:nag ignore") {
+			return true
+		}
+	}
+	return false
+}

@@ -72,6 +72,7 @@ func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags,
 		return nil
 	}
 	content := string(data)
+	lines := strings.Split(content, "\n")
 
 	skipAll := strings.Contains(content, "#tag:nag ignore-all")
 
@@ -90,7 +91,7 @@ func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags,
 	}
 
 	// processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
-	violations := processResourceBlocks(syntaxBody, requiredTags, defaultTags, caseInsensitive)
+	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, caseInsensitive, lines, skipAll)
 
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
@@ -132,9 +133,4 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 			}
 		}
 	}
-}
-
-// processResourceBlocks initiates checking a resource for tags
-func processResourceBlocks(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
-	return checkResourcesForTags(body, requiredTags, defaultTags, caseInsensitive)
 }
