@@ -40,7 +40,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTag
 				line:         block.DefRange().Start.Line,
 				missingTags:  missingTags,
 			}
-			// Set skip flag if file-level or resource-level ignore is found.
+			// if file-level or resource-level ignore is found
 			if skipAll || skipResource(block, fileLines) {
 				violation.skip = true
 			}
