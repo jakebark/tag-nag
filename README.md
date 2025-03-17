@@ -53,7 +53,7 @@ Optional flags:
 
 ## Skip Checks
 Skip file
-```
+```hcl
 #tag:nag ignore-all
 ```
 
