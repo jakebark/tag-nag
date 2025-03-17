@@ -50,6 +50,32 @@ Optional flags:
 -c # case-insensitive 
 -d # dry-run (doesnt trigger exit code 1)
 ```
+
+## Skip Checks
+Skip file
+```
+#tag:nag ignore-all
+```
+
+Terraform
+```hcl
+resource "aws_s3_bucket" "this" {
+  #tag:nag ignore
+  bucket   = "that"
+}
+```
+
+CloudFormation
+```yaml
+EC2Instance:  #tag:nag ignore
+    Type: "AWS::EC2::Instance"
+    Properties: 
+      ImageId: ami-12a34b
+      InstanceType: c1.xlarge   
+```
+
+
+
 ## Related Resources
 
 - [pkg.go.dev/github.com/jakebark/tag-nag](https://pkg.go.dev/github.com/jakebark/tag-nag)
