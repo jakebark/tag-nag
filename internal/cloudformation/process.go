@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"gopkg.in/yaml.v3"
 )
 
 // ProcessDirectory walks all cfn files in a directory, then returns violations
@@ -34,6 +32,16 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 
 // processFile parses files and maps the cfn nodes
 func processFile(filePath string, requiredTags map[string]string, caseInsensitive bool) ([]Violation, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Printf("Error reading %s: %v\n", filePath, err)
+		return nil, err
+	}
+	content := string(data)
+	lines := strings.Split(content, "\n")
+
+	skipAll := strings.Contains(content, "#tag:nag ignore-all")
+
 	root, err := parseYAML(filePath)
 	if err != nil {
 		return nil, err
@@ -45,19 +53,24 @@ func processFile(filePath string, requiredTags map[string]string, caseInsensitiv
 		return []Violation{}, nil
 	}
 
-	violations := processResourceBlocks(resourcesMapping, requiredTags, caseInsensitive)
+	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll)
 
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
-			fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %v\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
+			if v.skip {
+				fmt.Printf("  %d: %s \"%s\" skipped\n", v.line, v.resourceType, v.resourceName)
+			} else {
+				fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
+			}
 		}
 	}
 
-	return violations, nil
-}
-
-// processResourceBlocks initiates checking a resource for tags
-func processResourceBlocks(resourcesMapping map[string]*yaml.Node, requiredTags TagMap, caseInsensitive bool) []Violation {
-	return checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive)
+	var filteredViolations []Violation
+	for _, v := range violations {
+		if !v.skip {
+			filteredViolations = append(filteredViolations, v)
+		}
+	}
+	return filteredViolations, nil
 }
