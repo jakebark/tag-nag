@@ -16,7 +16,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 			return err
 		}
 		if !info.IsDir() && (filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".json") {
-			violations, err := processFile(path, requiredTags, caseInsensitive)
+			violations := processFile(path, requiredTags, caseInsensitive)
 			if err != nil {
 				fmt.Printf("Error processing file %s: %v\n", path, err)
 			}
@@ -31,11 +31,11 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 }
 
 // processFile parses files and maps the cfn nodes
-func processFile(filePath string, requiredTags map[string]string, caseInsensitive bool) ([]Violation, error) {
+func processFile(filePath string, requiredTags map[string]string, caseInsensitive bool) []Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading %s: %v\n", filePath, err)
-		return nil, err
+		return nil
 	}
 	content := string(data)
 	lines := strings.Split(content, "\n")
@@ -44,13 +44,13 @@ func processFile(filePath string, requiredTags map[string]string, caseInsensitiv
 
 	root, err := parseYAML(filePath)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
 	// search root node for resources node
 	resourcesMapping := mapNodes(findMapNode(root, "Resources"))
 	if resourcesMapping == nil {
-		return []Violation{}, nil
+		return []Violation{}
 	}
 
 	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll)
@@ -72,5 +72,5 @@ func processFile(filePath string, requiredTags map[string]string, caseInsensitiv
 			filteredViolations = append(filteredViolations, v)
 		}
 	}
-	return filteredViolations, nil
+	return filteredViolations
 }
