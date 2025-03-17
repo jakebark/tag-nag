@@ -35,7 +35,7 @@ tag-nag ./my_project --tags "Owner","Environment" # run against a directory
 
 ```
 
-Search for tag keys *and* values:
+Search for tag keys *and* values
 
 ```bash
 tag-nag <file/directory> --tags "<tagKey1>=<tagValue1>"
@@ -45,7 +45,7 @@ tag-nag main.tf --tags "Owner=Jake","Environment" # mixed search possible
 
 ```
 
-Optional flags: 
+Optional flags 
 ```bash
 -c # case-insensitive 
 -d # dry-run (doesnt trigger exit code 1)
