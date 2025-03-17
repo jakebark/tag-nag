@@ -66,6 +66,15 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 
 // processFile parses files looking for resources
 func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Printf("Error reading %s: %v\n", filePath, err)
+		return nil
+	}
+	content := string(data)
+
+	skipAll := strings.Contains(content, "#tag:nag ignore-all")
+
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
@@ -86,10 +95,21 @@ func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags,
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
-			fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
+			if v.skip {
+				fmt.Printf("  %d: %s \"%s\" skipped\n", v.line, v.resourceType, v.resourceName)
+			} else {
+				fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
+			}
 		}
 	}
-	return violations
+
+	var filteredViolations []Violation
+	for _, v := range violations {
+		if !v.skip {
+			filteredViolations = append(filteredViolations, v)
+		}
+	}
+	return filteredViolations
 }
 
 // processProviderBlocks extracts any default_tags from providers
