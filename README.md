@@ -1,5 +1,5 @@
 <div align="center">
-<img alt="tag:nag" height="200" src="./img/tag:nag.png" />
+<img alt="tag:nag" height="200" src="./img/tag.png" />
 </div>
 
 # tag:nag
