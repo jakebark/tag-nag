@@ -1,6 +1,6 @@
 module github.com/jakebark/tag-nag
 
-go 1.22.4
+go 1.22
 
 require (
 	github.com/hashicorp/hcl/v2 v2.23.0
