@@ -2,7 +2,7 @@
 <img alt="tag:nag" height="200" src="./img/tag.png" />
 </div>
 
-# tag:nag
+# tag-nag
 
 <img src="./img/demo.gif" width="650">
 
@@ -54,20 +54,20 @@ Optional flags
 ## Skip Checks
 Skip file
 ```hcl
-#tag:nag ignore-all
+#tag-nag ignore-all
 ```
 
 Terraform
 ```hcl
 resource "aws_s3_bucket" "this" {
-  #tag:nag ignore
+  #tag-nag ignore
   bucket   = "that"
 }
 ```
 
 CloudFormation
 ```yaml
-EC2Instance:  #tag:nag ignore
+EC2Instance:  #tag-nag ignore
     Type: "AWS::EC2::Instance"
     Properties: 
       ImageId: ami-12a34b
