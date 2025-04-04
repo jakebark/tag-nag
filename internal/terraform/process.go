@@ -23,6 +23,9 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 		if err != nil {
 			return err
 		}
+		if info.IsDir() && info.Name() == ".terraform" {
+			return filepath.SkipDir
+		}
 		if !info.IsDir() && filepath.Ext(path) == ".tf" {
 			processProvider(path, &defaultTags, caseInsensitive)
 		}
@@ -35,6 +38,9 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
+		}
+		if info.IsDir() && info.Name() == ".terraform" {
+			return filepath.SkipDir
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".tf" {
 			violations := processFile(path, requiredTags, &defaultTags, caseInsensitive)
