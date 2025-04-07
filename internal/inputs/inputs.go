@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type TagMap map[string]string
+type TagMap map[string][]string
 
 type UserInput struct {
 	Directory       string
