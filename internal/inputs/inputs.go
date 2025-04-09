@@ -43,7 +43,7 @@ func ParseFlags() UserInput {
 }
 
 func parseTags(input string) TagMap {
-	tagMap := make(map[string][]string)
+	tagMap := make(TagMap)
 	pairs := strings.Split(input, ",")
 	for _, pair := range pairs { //split on ,
 		trimmed := strings.TrimSpace(pair)

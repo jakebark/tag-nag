@@ -66,7 +66,7 @@ func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (TagMap, err
 		if caseInsensitive {
 			key = strings.ToLower(key)
 		}
-		tags[key] = value.AsString()
+		tags[key] = []string{value.AsString()}
 	}
 	return tags, nil
 }

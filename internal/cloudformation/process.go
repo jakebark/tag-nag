@@ -10,7 +10,7 @@ import (
 )
 
 // ProcessDirectory walks all cfn files in a directory, then returns violations
-func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsensitive bool) int {
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
 	var totalViolations int
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
@@ -33,7 +33,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string]string, caseInsens
 }
 
 // processFile parses files and maps the cfn nodes
-func processFile(filePath string, requiredTags map[string]string, caseInsensitive bool) []Violation {
+func processFile(filePath string, requiredTags TagMap, caseInsensitive bool) []Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading %s: %v\n", filePath, err)
