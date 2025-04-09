@@ -51,6 +51,15 @@ func parseTags(input string) TagMap {
 			continue
 		}
 
+		// legacy "="
+		// rm in later version
+		if eqIdx := strings.Index(trimmed, "="); eqIdx != -1 {
+			key := strings.TrimSpace(trimmed[:eqIdx])
+			value := strings.TrimSpace(trimmed[eqIdx+1:])
+			tagMap[key] = []string{value}
+			continue
+		}
+
 		// is [ present
 		if openIdx := strings.Index(trimmed, "["); openIdx != -1 {
 			// check for closing
