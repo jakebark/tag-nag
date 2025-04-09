@@ -44,7 +44,7 @@ func ParseFlags() UserInput {
 
 func parseTags(input string) TagMap {
 	tagMap := make(TagMap)
-	pairs := strings.Split(input, ",")
+	pairs := splitTags(input)
 	for _, pair := range pairs { //split on ,
 		trimmed := strings.TrimSpace(pair)
 		if trimmed == "" {
@@ -85,4 +85,29 @@ func parseTags(input string) TagMap {
 		}
 	}
 	return tagMap
+}
+
+// splitTags splits the input string on commas outside of brackets
+// to fix the [a,b,c] issue
+func splitTags(input string) []string {
+	var parts []string
+	start := 0
+	depth := 0
+	for i, r := range input {
+		switch r {
+		case '[':
+			depth++
+		case ']':
+			if depth > 0 {
+				depth--
+			}
+		case ',':
+			if depth == 0 {
+				parts = append(parts, strings.TrimSpace(input[start:i]))
+				start = i + 1
+			}
+		}
+	}
+	parts = append(parts, strings.TrimSpace(input[start:]))
+	return parts
 }
