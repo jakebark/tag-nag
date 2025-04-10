@@ -8,4 +8,4 @@ type Violation struct {
 	skip         bool
 }
 
-type TagMap map[string]string
+type TagMap map[string][]string

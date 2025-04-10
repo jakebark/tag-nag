@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type TagMap map[string]string
+type TagMap map[string][]string
 
 type UserInput struct {
 	Directory       string
@@ -24,7 +24,7 @@ func ParseFlags() UserInput {
 
 	pflag.BoolVarP(&caseInsensitive, "case-insensitive", "c", false, "Make tag checks non-case-sensitive")
 	pflag.BoolVarP(&dryRun, "dry-run", "d", false, "Dry run tag:nag without triggering exit(1) code")
-	pflag.StringVar(&tags, "tags", "", "Comma-separated list of required tag keys (e.g., 'Environment,Owner')")
+	pflag.StringVar(&tags, "tags", "", "Comma-separated list of required tag keys (e.g., 'Owner,Environment[Dev,Prod]')")
 	pflag.Parse()
 
 	if pflag.NArg() < 1 {
@@ -43,20 +43,71 @@ func ParseFlags() UserInput {
 }
 
 func parseTags(input string) TagMap {
-	tagMap := make(map[string]string)
-	pairs := strings.Split(input, ",")
-	for _, pair := range pairs { // split on ,
+	tagMap := make(TagMap)
+	pairs := splitTags(input)
+	for _, pair := range pairs { //split on ,
 		trimmed := strings.TrimSpace(pair)
 		if trimmed == "" {
 			continue
 		}
-		kv := strings.SplitN(trimmed, "=", 2) // split on =
-		key := strings.TrimSpace(kv[0])
-		var value string
-		if len(kv) > 1 {
-			value = strings.TrimSpace(kv[1])
+
+		// legacy "="
+		// rm in later version
+		if eqIdx := strings.Index(trimmed, "="); eqIdx != -1 {
+			key := strings.TrimSpace(trimmed[:eqIdx])
+			value := strings.TrimSpace(trimmed[eqIdx+1:])
+			tagMap[key] = []string{value}
+			continue
 		}
-		tagMap[key] = value
+
+		// is [ present
+		if openIdx := strings.Index(trimmed, "["); openIdx != -1 {
+			// check for closing
+			if trimmed[len(trimmed)-1] != ']' {
+				log.Fatalf("Invalid tag format: %s. Expected closing ']'", trimmed)
+			}
+			// get key
+			key := strings.TrimSpace(trimmed[:openIdx])
+			// get value
+			valuesStr := trimmed[openIdx+1 : len(trimmed)-1]
+			values := []string{}
+			// get values
+			for _, v := range strings.Split(valuesStr, ",") {
+				v = strings.TrimSpace(v)
+				if v != "" {
+					values = append(values, v)
+				}
+			}
+			tagMap[key] = values
+		} else {
+			// just tag key
+			tagMap[trimmed] = []string{}
+		}
 	}
 	return tagMap
+}
+
+// splitTags splits the input string on commas outside of brackets
+// to fix the [a,b,c] issue
+func splitTags(input string) []string {
+	var parts []string
+	start := 0
+	depth := 0
+	for i, r := range input {
+		switch r {
+		case '[':
+			depth++
+		case ']':
+			if depth > 0 {
+				depth--
+			}
+		case ',':
+			if depth == 0 {
+				parts = append(parts, strings.TrimSpace(input[start:i]))
+				start = i + 1
+			}
+		}
+	}
+	parts = append(parts, strings.TrimSpace(input[start:]))
+	return parts
 }

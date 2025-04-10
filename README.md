@@ -31,7 +31,8 @@ Tag nag will search a file or directory for tag keys. Directory search is recurs
 tag-nag <file/directory> --tags "<tagKey1>,<tagKeyN>"
 
 tag-nag main.tf --tags "Owner" # run against a file
-tag-nag ./my_project --tags "Owner","Environment" # run against a directory
+tag-nag ./my_project --tags "Owner,Environment" # run against a directory
+tag-nag . --tags "Owner", "Environment" # will take string or list
 
 ```
 
@@ -40,8 +41,9 @@ Search for tag keys *and* values
 ```bash
 tag-nag <file/directory> --tags "<tagKey1>=<tagValue1>"
 
-tag-nag main.tf --tags "Owner=Jake" 
-tag-nag main.tf --tags "Owner=Jake","Environment" # mixed search possible
+tag-nag main.tf --tags "Owner[Jake]" 
+tag-nag main.tf --tags "Owner[Jake],Environment" # mixed search possible
+tag-nag main.tf --tags "Owner[Jake],Environment[Dev,Prod]" # multiple options for tag values
 
 ```
 
