@@ -128,7 +128,7 @@ func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 
 		// if no effective value is found
 		if len(effectiveValues) == 0 {
-			if len(allowedValues) > 0 {
+			if len(allowedValues) > 0 { // allowed values == list of tag values
 				missingTags = append(missingTags, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
 			} else {
 				missingTags = append(missingTags, reqKey)
@@ -136,6 +136,7 @@ func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 			continue
 		}
 
+		// if a value is found, check it is allowed (against requiredTags)
 		if len(allowedValues) > 0 {
 			var matchFound bool
 			for _, allowed := range allowedValues {

@@ -105,6 +105,7 @@ func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (TagMap, err
 
 // resolveTagValue recursively resolves a tag value with vars or locals
 func resolveTagValue(value string, refMap TagReferences) string {
+	// handles direct locals and vars
 	if strings.HasPrefix(value, "local.") || strings.HasPrefix(value, "var.") {
 		if tagMap, ok := refMap[value]; ok {
 			if valList, found := tagMap["_"]; found && len(valList) > 0 {
@@ -119,14 +120,15 @@ func resolveTagValue(value string, refMap TagReferences) string {
 		return value
 	}
 
-	// If there’s no interpolation, simply return the value.
+	// identify interpolation
 	if !strings.Contains(value, "${") {
 		return value
 	}
-
+	// match interpolation
 	re := regexp.MustCompile(`\${([^}]+)}`)
 	resolved := value
 
+	// loop through interpolation(s)
 	for {
 		matches := re.FindAllStringSubmatch(resolved, -1)
 		if len(matches) == 0 {
@@ -135,6 +137,7 @@ func resolveTagValue(value string, refMap TagReferences) string {
 		for _, match := range matches {
 			ref := match[1]
 			replacement := ""
+			// direct locals and vars
 			if strings.HasPrefix(ref, "local.") || strings.HasPrefix(ref, "var.") {
 				if tagMap, ok := refMap[ref]; ok {
 					if valList, found := tagMap["_"]; found && len(valList) > 0 {
@@ -149,6 +152,7 @@ func resolveTagValue(value string, refMap TagReferences) string {
 					}
 				}
 			} else {
+				// indirect locals and vars
 				if tagMap, ok := refMap["local."+ref]; ok {
 					if valList, found := tagMap["_"]; found && len(valList) > 0 {
 						replacement = valList[0]
@@ -182,7 +186,7 @@ func resolveTagValue(value string, refMap TagReferences) string {
 	return resolved
 }
 
-// SkipResource checks if a resource block should be skipped based on file-level ignore markers.
+// SkipResource determines if a resource block should be skipped
 func SkipResource(block *hclsyntax.Block, lines []string) bool {
 	index := block.DefRange().Start.Line
 	if index < len(lines) {
