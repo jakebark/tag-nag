@@ -49,7 +49,6 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTag
 				line:         block.DefRange().Start.Line,
 				missingTags:  missingTags,
 			}
-			// if file-level or resource-level ignore is found
 			if skipAll || SkipResource(block, fileLines) {
 				violation.skip = true
 			}
@@ -72,13 +71,11 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 			}
 			return s
 		}
-
 		// provider is not a literal string ("aws.west")
 		s := traversalToString(attr.Expr, caseInsensitive)
 		if s != "" {
 			return s
 		}
-
 	}
 
 	// no explicit provider, return default provider
@@ -92,12 +89,12 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 // findTags returns tag map from a resource block (with extractTags), if it has tags
 func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensitive bool) TagMap {
 	if attr, ok := block.Body.Attributes["tags"]; ok {
+
 		// literal tags
 		tags := extractTags(attr, caseInsensitive)
 		if len(tags) > 0 {
 			return tags
 		}
-
 		// referenced tags
 		refKey := traversalToString(attr.Expr, caseInsensitive)
 		if refKey != "" {

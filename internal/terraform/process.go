@@ -97,7 +97,6 @@ func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags,
 		return nil
 	}
 
-	// processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
 	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, caseInsensitive, lines, skipAll)
 
 	if len(violations) > 0 {

@@ -33,5 +33,4 @@ func main() {
 		fmt.Println("No tag violations found")
 		os.Exit(0)
 	}
-
 }
