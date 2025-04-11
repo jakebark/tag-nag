@@ -1,7 +1,6 @@
 package terraform
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -48,11 +47,9 @@ func extractLocals(block *hclsyntax.Block, referencedTags TagReferences) {
 	for name, attr := range block.Body.Attributes {
 		if v, diags := attr.Expr.Value(nil); !diags.HasErrors() && v.Type().Equals(cty.String) {
 			referencedTags["local."+name] = TagMap{"_": {v.AsString()}}
-			fmt.Printf("Stored literal for local.%s: %s\n", name, v.AsString())
 		} else {
 			tags := extractTags(attr, false)
 			referencedTags["local."+name] = tags
-			fmt.Printf("Stored tag map for local.%s: %+v\n", name, tags)
 		}
 	}
 }

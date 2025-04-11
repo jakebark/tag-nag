@@ -59,10 +59,8 @@ func checkForDefaultTags(block *hclsyntax.Block, referencedTags TagReferences, c
 func resolveDefaultTagReferences(attr *hclsyntax.Attribute, referencedTags TagReferences, caseInsensitive bool) TagMap {
 	tagRef := traversalToString(attr.Expr, caseInsensitive)
 	if tagRef == "" {
-		// Fallback: if the expr isn’t a ScopeTraversalExpr, try formatting it as a string.
+		// if the expr isn’t a ScopeTraversalExpr, try formatting it as a string.
 		tagRef = strings.TrimSpace(fmt.Sprintf("%v", attr.Expr))
 	}
-	// Debug print to verify what tag reference we are using
-	fmt.Printf("resolveDefaultTagReferences: using tagRef '%s'\n", tagRef)
 	return referencedTags[tagRef]
 }

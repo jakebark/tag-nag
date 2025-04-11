@@ -32,11 +32,12 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTag
 		resourceTags := findTags(block, defaultTags.ReferencedTags, caseInsensitive)
 		effectiveTags := mergeTags(providerLiteralTags, resourceTags)
 
+		// resolve effective tag
+		// effective tags == var, locals
 		for key, vals := range effectiveTags {
 			if len(vals) > 0 {
 				resolvedVal := resolveTagValue(vals[0], defaultTags.ReferencedTags)
 				effectiveTags[key] = []string{resolvedVal}
-				fmt.Printf("Resolved effective tag for key '%s': '%s'\n", key, resolvedVal)
 			}
 		}
 
