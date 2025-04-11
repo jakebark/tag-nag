@@ -33,7 +33,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTag
 		effectiveTags := mergeTags(providerLiteralTags, resourceTags)
 
 		// resolve effective tag
-		// effective tags == var, locals
+		// effective tags == all tags after literal and referenced tags
 		for key, vals := range effectiveTags {
 			if len(vals) > 0 {
 				resolvedVal := resolveTagValue(vals[0], defaultTags.ReferencedTags)
@@ -107,8 +107,9 @@ func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensit
 }
 
 func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitive bool) []string {
-	var missing []string
+	var missingTags []string
 
+	// loop through key values in requiredTags
 	for reqKey, allowedValues := range requiredTags {
 		var effectiveValues []string
 		for key, values := range effectiveTags {
@@ -125,11 +126,12 @@ func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 			}
 		}
 
+		// if no effective value is found
 		if len(effectiveValues) == 0 {
 			if len(allowedValues) > 0 {
-				missing = append(missing, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
+				missingTags = append(missingTags, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
 			} else {
-				missing = append(missing, reqKey)
+				missingTags = append(missingTags, reqKey)
 			}
 			continue
 		}
@@ -155,11 +157,11 @@ func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 				}
 			}
 			if !matchFound {
-				missing = append(missing, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
+				missingTags = append(missingTags, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
 			}
 		}
 
 	}
 
-	return missing
+	return missingTags
 }
