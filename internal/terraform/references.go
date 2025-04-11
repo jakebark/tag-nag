@@ -1,11 +1,13 @@
 package terraform
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/zclconf/go-cty/cty"
 )
 
 // checkReferencedTags looks for locals and vars in the directory, then returns a map of them
@@ -44,8 +46,14 @@ func checkReferencedTags(dirPath string) TagReferences {
 // extractLocals extracts hcl tag maps from locals (using extractTags) and appends them to the defaultTags struct (defaultTags.referencedTags)
 func extractLocals(block *hclsyntax.Block, referencedTags TagReferences) {
 	for name, attr := range block.Body.Attributes {
-		tags := extractTags(attr, false)
-		referencedTags["local."+name] = tags
+		if v, diags := attr.Expr.Value(nil); !diags.HasErrors() && v.Type().Equals(cty.String) {
+			referencedTags["local."+name] = TagMap{"_": {v.AsString()}}
+			fmt.Printf("Stored literal for local.%s: %s\n", name, v.AsString())
+		} else {
+			tags := extractTags(attr, false)
+			referencedTags["local."+name] = tags
+			fmt.Printf("Stored tag map for local.%s: %+v\n", name, tags)
+		}
 	}
 }
 
@@ -53,8 +61,12 @@ func extractLocals(block *hclsyntax.Block, referencedTags TagReferences) {
 func extractVariables(block *hclsyntax.Block, referencedTags TagReferences) {
 	if len(block.Labels) > 0 {
 		if attr, ok := block.Body.Attributes["default"]; ok {
-			tags := extractTags(attr, false)
-			referencedTags["var."+block.Labels[0]] = tags
+			if v, diags := attr.Expr.Value(nil); !diags.HasErrors() && v.Type().Equals(cty.String) {
+				referencedTags["var."+block.Labels[0]] = TagMap{"_": {v.AsString()}}
+			} else {
+				tags := extractTags(attr, false)
+				referencedTags["var."+block.Labels[0]] = tags
+			}
 		}
 	}
 }

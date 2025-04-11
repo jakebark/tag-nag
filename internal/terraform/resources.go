@@ -36,6 +36,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTag
 			if len(vals) > 0 {
 				resolvedVal := resolveTagValue(vals[0], defaultTags.ReferencedTags)
 				effectiveTags[key] = []string{resolvedVal}
+				fmt.Printf("Resolved effective tag for key '%s': '%s'\n", key, resolvedVal)
 			}
 		}
 
@@ -48,7 +49,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTag
 				missingTags:  missingTags,
 			}
 			// if file-level or resource-level ignore is found
-			if skipAll || skipResource(block, fileLines) {
+			if skipAll || SkipResource(block, fileLines) {
 				violation.skip = true
 			}
 			violations = append(violations, violation)

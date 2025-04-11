@@ -8,29 +8,40 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jakebark/tag-nag/internal/shared"
+	"github.com/zclconf/go-cty/cty"
 )
 
-// traversalToString converts a hcl hierachical/traversal string to a literal string.
+// traversalToString converts a hcl hierachical/traversal string to a literal string
 func traversalToString(expr hcl.Expression, caseInsensitive bool) string {
-	ste, ok := expr.(*hclsyntax.ScopeTraversalExpr)
-	if !ok {
-		return ""
+	if ste, ok := expr.(*hclsyntax.ScopeTraversalExpr); ok {
+		tokens := []string{}
+		for _, step := range ste.Traversal {
+			switch t := step.(type) {
+			case hcl.TraverseRoot:
+				tokens = append(tokens, t.Name)
+			case hcl.TraverseAttr:
+				tokens = append(tokens, t.Name)
+			}
+		}
+		result := strings.Join(tokens, ".")
+		if caseInsensitive {
+			result = strings.ToLower(result)
+		}
+		return result
 	}
-	tokens := []string{}
-
-	for _, step := range ste.Traversal {
-		switch t := step.(type) {
-		case hcl.TraverseRoot:
-			tokens = append(tokens, t.Name)
-		case hcl.TraverseAttr:
-			tokens = append(tokens, t.Name)
+	// fallback - attempt to evaluate the expression as a literal value
+	if v, diags := expr.Value(nil); !diags.HasErrors() {
+		if v.Type().Equals(cty.String) {
+			s := v.AsString()
+			if caseInsensitive {
+				s = strings.ToLower(s)
+			}
+			return s
+		} else {
+			return fmt.Sprintf("%v", v)
 		}
 	}
-	result := strings.Join(tokens, ".")
-	if caseInsensitive {
-		result = strings.ToLower(result)
-	}
-	return result
+	return ""
 }
 
 // mergeTags combines multiple tag maps
@@ -57,9 +68,29 @@ func extractTags(attr *hclsyntax.Attribute, caseInsensitive bool) TagMap {
 // extractTagMap extracts the hcl tag map to a go map
 func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (TagMap, error) {
 	val, diags := attr.Expr.Value(nil)
-
 	if diags.HasErrors() || !val.Type().IsObjectType() {
-		return nil, fmt.Errorf("failed to extract tag map")
+		objExpr, ok := attr.Expr.(*hclsyntax.ObjectConsExpr)
+		if !ok {
+			return nil, fmt.Errorf("failed to extract tag map")
+		}
+		tags := make(TagMap)
+		for _, item := range objExpr.Items {
+			var keyStr string
+			if v, vdiags := item.KeyExpr.Value(nil); !vdiags.HasErrors() {
+				keyStr = v.AsString()
+			} else {
+				keyStr = traversalToString(item.KeyExpr, caseInsensitive)
+			}
+
+			var valLiteral string
+			if v, vdiags := item.ValueExpr.Value(nil); !vdiags.HasErrors() {
+				valLiteral = v.AsString()
+			} else {
+				valLiteral = traversalToString(item.ValueExpr, caseInsensitive)
+			}
+			tags[keyStr] = []string{valLiteral}
+		}
+		return tags, nil
 	}
 
 	tags := make(TagMap)
@@ -72,28 +103,30 @@ func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (TagMap, err
 	return tags, nil
 }
 
-func skipResource(block *hclsyntax.Block, lines []string) bool {
-	index := block.DefRange().Start.Line
-	if index < len(lines) {
-		if strings.Contains(lines[index], shared.TagNagIgnore) {
-			return true
-		}
-	}
-	return false
-}
-
 // resolveTagValue recursively resolves a tag value with vars or locals
 func resolveTagValue(value string, refMap TagReferences) string {
-	// If the value does not contain any interpolation or reference patterns, return as is.
-	if !strings.Contains(value, "${") && !strings.Contains(value, "local.") && !strings.Contains(value, "var.") {
+	if strings.HasPrefix(value, "local.") || strings.HasPrefix(value, "var.") {
+		if tagMap, ok := refMap[value]; ok {
+			if valList, found := tagMap["_"]; found && len(valList) > 0 {
+				return valList[0]
+			}
+			for _, val := range tagMap {
+				if len(val) > 0 {
+					return val[0]
+				}
+			}
+		}
 		return value
 	}
 
-	// Handle interpolation, e.g. "${var.env}-env-${local.account}"
+	// If there’s no interpolation, simply return the value.
+	if !strings.Contains(value, "${") {
+		return value
+	}
+
 	re := regexp.MustCompile(`\${([^}]+)}`)
 	resolved := value
 
-	// Loop until no more interpolations are found.
 	for {
 		matches := re.FindAllStringSubmatch(resolved, -1)
 		if len(matches) == 0 {
@@ -102,43 +135,60 @@ func resolveTagValue(value string, refMap TagReferences) string {
 		for _, match := range matches {
 			ref := match[1]
 			replacement := ""
-
-			// If the reference already starts with "local." or "var.", do a direct lookup.
 			if strings.HasPrefix(ref, "local.") || strings.HasPrefix(ref, "var.") {
 				if tagMap, ok := refMap[ref]; ok {
-					for _, val := range tagMap {
-						if len(val) > 0 {
-							replacement = val[0]
-						}
-						break
-					}
-				}
-			} else {
-				// Try looking up with the "local." prefix.
-				if tagMap, ok := refMap["local."+ref]; ok {
-					for _, val := range tagMap {
-						if len(val) > 0 {
-							replacement = val[0]
-						}
-						break
-					}
-				}
-				// If not found, try "var." prefix.
-				if replacement == "" {
-					if tagMap, ok := refMap["var."+ref]; ok {
+					if valList, found := tagMap["_"]; found && len(valList) > 0 {
+						replacement = valList[0]
+					} else {
 						for _, val := range tagMap {
 							if len(val) > 0 {
 								replacement = val[0]
+								break
 							}
-							break
+						}
+					}
+				}
+			} else {
+				if tagMap, ok := refMap["local."+ref]; ok {
+					if valList, found := tagMap["_"]; found && len(valList) > 0 {
+						replacement = valList[0]
+					} else {
+						for _, val := range tagMap {
+							if len(val) > 0 {
+								replacement = val[0]
+								break
+							}
+						}
+					}
+				}
+				if replacement == "" {
+					if tagMap, ok := refMap["var."+ref]; ok {
+						if valList, found := tagMap["_"]; found && len(valList) > 0 {
+							replacement = valList[0]
+						} else {
+							for _, val := range tagMap {
+								if len(val) > 0 {
+									replacement = val[0]
+									break
+								}
+							}
 						}
 					}
 				}
 			}
-
-			// If replacement not found, leave it as empty (which effectively “ignores” missing references).
 			resolved = strings.Replace(resolved, match[0], replacement, -1)
 		}
 	}
 	return resolved
+}
+
+// SkipResource checks if a resource block should be skipped based on file-level ignore markers.
+func SkipResource(block *hclsyntax.Block, lines []string) bool {
+	index := block.DefRange().Start.Line
+	if index < len(lines) {
+		if strings.Contains(lines[index], shared.TagNagIgnore) {
+			return true
+		}
+	}
+	return false
 }
