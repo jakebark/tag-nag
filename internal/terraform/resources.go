@@ -32,6 +32,13 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTag
 		resourceTags := findTags(block, defaultTags.ReferencedTags, caseInsensitive)
 		effectiveTags := mergeTags(providerLiteralTags, resourceTags)
 
+		for key, vals := range effectiveTags {
+			if len(vals) > 0 {
+				resolvedVal := resolveTagValue(vals[0], defaultTags.ReferencedTags)
+				effectiveTags[key] = []string{resolvedVal}
+			}
+		}
+
 		missingTags := filterMissingTags(requiredTags, effectiveTags, caseInsensitive)
 		if len(missingTags) > 0 {
 			violation := Violation{

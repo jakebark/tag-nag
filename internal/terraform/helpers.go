@@ -2,6 +2,7 @@ package terraform
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
@@ -79,4 +80,65 @@ func skipResource(block *hclsyntax.Block, lines []string) bool {
 		}
 	}
 	return false
+}
+
+// resolveTagValue recursively resolves a tag value with vars or locals
+func resolveTagValue(value string, refMap TagReferences) string {
+	// If the value does not contain any interpolation or reference patterns, return as is.
+	if !strings.Contains(value, "${") && !strings.Contains(value, "local.") && !strings.Contains(value, "var.") {
+		return value
+	}
+
+	// Handle interpolation, e.g. "${var.env}-env-${local.account}"
+	re := regexp.MustCompile(`\${([^}]+)}`)
+	resolved := value
+
+	// Loop until no more interpolations are found.
+	for {
+		matches := re.FindAllStringSubmatch(resolved, -1)
+		if len(matches) == 0 {
+			break
+		}
+		for _, match := range matches {
+			ref := match[1]
+			replacement := ""
+
+			// If the reference already starts with "local." or "var.", do a direct lookup.
+			if strings.HasPrefix(ref, "local.") || strings.HasPrefix(ref, "var.") {
+				if tagMap, ok := refMap[ref]; ok {
+					for _, val := range tagMap {
+						if len(val) > 0 {
+							replacement = val[0]
+						}
+						break
+					}
+				}
+			} else {
+				// Try looking up with the "local." prefix.
+				if tagMap, ok := refMap["local."+ref]; ok {
+					for _, val := range tagMap {
+						if len(val) > 0 {
+							replacement = val[0]
+						}
+						break
+					}
+				}
+				// If not found, try "var." prefix.
+				if replacement == "" {
+					if tagMap, ok := refMap["var."+ref]; ok {
+						for _, val := range tagMap {
+							if len(val) > 0 {
+								replacement = val[0]
+							}
+							break
+						}
+					}
+				}
+			}
+
+			// If replacement not found, leave it as empty (which effectively “ignores” missing references).
+			resolved = strings.Replace(resolved, match[0], replacement, -1)
+		}
+	}
+	return resolved
 }
