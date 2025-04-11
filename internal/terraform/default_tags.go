@@ -1,6 +1,7 @@
 package terraform
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclsyntax"
@@ -57,5 +58,9 @@ func checkForDefaultTags(block *hclsyntax.Block, referencedTags TagReferences, c
 // resolveDefaultTagReferences looks up referencedTags (locals/vars)
 func resolveDefaultTagReferences(attr *hclsyntax.Attribute, referencedTags TagReferences, caseInsensitive bool) TagMap {
 	tagRef := traversalToString(attr.Expr, caseInsensitive)
+	if tagRef == "" {
+		// if the expr isn’t a ScopeTraversalExpr, try formatting it as a string.
+		tagRef = strings.TrimSpace(fmt.Sprintf("%v", attr.Expr))
+	}
 	return referencedTags[tagRef]
 }
