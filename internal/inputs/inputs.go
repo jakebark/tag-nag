@@ -4,14 +4,13 @@ import (
 	"log"
 	"strings"
 
+	"github.com/jakebark/tag-nag/internal/shared"
 	"github.com/spf13/pflag"
 )
 
-type TagMap map[string][]string
-
 type UserInput struct {
 	Directory       string
-	RequiredTags    TagMap
+	RequiredTags    shared.TagMap
 	CaseInsensitive bool
 	DryRun          bool
 }
@@ -42,8 +41,8 @@ func ParseFlags() UserInput {
 	}
 }
 
-func parseTags(input string) TagMap {
-	tagMap := make(TagMap)
+func parseTags(input string) shared.TagMap {
+	tagMap := make(shared.TagMap)
 	pairs := splitTags(input)
 	for _, pair := range pairs { //split on ,
 		trimmed := strings.TrimSpace(pair)
