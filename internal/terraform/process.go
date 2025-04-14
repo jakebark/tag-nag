@@ -72,7 +72,7 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 }
 
 // processFile parses files looking for resources
-func processFile(filePath string, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading %s: %v\n", filePath, err)
