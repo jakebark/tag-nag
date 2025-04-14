@@ -45,8 +45,8 @@ func traversalToString(expr hcl.Expression, caseInsensitive bool) string {
 }
 
 // mergeTags combines multiple tag maps
-func mergeTags(tagMaps ...TagMap) TagMap {
-	merged := make(TagMap)
+func mergeTags(tagMaps ...shared.TagMap) shared.TagMap {
+	merged := make(shared.TagMap)
 	for _, m := range tagMaps {
 		for k, v := range m {
 			merged[k] = v
@@ -56,24 +56,24 @@ func mergeTags(tagMaps ...TagMap) TagMap {
 }
 
 // extractTags handles errors in extracting tags from hcl
-func extractTags(attr *hclsyntax.Attribute, caseInsensitive bool) TagMap {
+func extractTags(attr *hclsyntax.Attribute, caseInsensitive bool) shared.TagMap {
 	tags, err := extractTagMap(attr, caseInsensitive)
 	if err != nil {
 		// todo error logging
-		return make(TagMap)
+		return make(shared.TagMap)
 	}
 	return tags
 }
 
 // extractTagMap extracts the hcl tag map to a go map
-func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (TagMap, error) {
+func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (shared.TagMap, error) {
 	val, diags := attr.Expr.Value(nil)
 	if diags.HasErrors() || !val.Type().IsObjectType() {
 		objExpr, ok := attr.Expr.(*hclsyntax.ObjectConsExpr)
 		if !ok {
 			return nil, fmt.Errorf("failed to extract tag map")
 		}
-		tags := make(TagMap)
+		tags := make(shared.TagMap)
 		for _, item := range objExpr.Items {
 			var keyStr string
 			if v, vdiags := item.KeyExpr.Value(nil); !vdiags.HasErrors() {
@@ -93,7 +93,7 @@ func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (TagMap, err
 		return tags, nil
 	}
 
-	tags := make(TagMap)
+	tags := make(shared.TagMap)
 	for key, value := range val.AsValueMap() {
 		if caseInsensitive {
 			key = strings.ToLower(key)
