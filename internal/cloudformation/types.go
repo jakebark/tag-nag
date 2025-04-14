@@ -7,5 +7,3 @@ type Violation struct {
 	missingTags  []string
 	skip         bool
 }
-
-type TagMap map[string][]string
