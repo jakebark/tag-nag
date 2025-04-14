@@ -42,7 +42,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, def
 			}
 		}
 
-		missingTags := filterMissingTags(requiredTags, effectiveTags, caseInsensitive)
+		missingTags := shared.FilterMissingTags(requiredTags, effectiveTags, caseInsensitive)
 		if len(missingTags) > 0 {
 			violation := Violation{
 				resourceType: resourceType,
