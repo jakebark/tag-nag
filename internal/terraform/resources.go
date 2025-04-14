@@ -1,7 +1,6 @@
 package terraform
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclsyntax"
