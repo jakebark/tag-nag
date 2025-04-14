@@ -9,7 +9,7 @@ import (
 )
 
 // checkResourcesForTags inspects resource blocks and returns violations
-func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
+func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
 	var violations []Violation
 
 	for _, block := range body.Blocks {
@@ -27,7 +27,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTag
 		providerID := getResourceProvider(block, caseInsensitive)
 		providerLiteralTags := defaultTags.LiteralTags[providerID]
 		if providerLiteralTags == nil {
-			providerLiteralTags = make(TagMap)
+			providerLiteralTags = make(shared.TagMap)
 		}
 
 		resourceTags := findTags(block, defaultTags.ReferencedTags, caseInsensitive)
@@ -88,7 +88,7 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 }
 
 // findTags returns tag map from a resource block (with extractTags), if it has tags
-func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensitive bool) TagMap {
+func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensitive bool) shared.TagMap {
 	if attr, ok := block.Body.Attributes["tags"]; ok {
 
 		// literal tags
@@ -104,5 +104,5 @@ func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensit
 			}
 		}
 	}
-	return make(TagMap)
+	return make(shared.TagMap)
 }
