@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/jakebark/tag-nag/internal/shared"
 )
 
 // checkResourcesForTags inspects resource blocks and returns violations
@@ -104,65 +105,4 @@ func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensit
 		}
 	}
 	return make(TagMap)
-}
-
-func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitive bool) []string {
-	var missingTags []string
-
-	// loop through key values in requiredTags
-	for reqKey, allowedValues := range requiredTags {
-		var effectiveValues []string
-		for key, values := range effectiveTags {
-			if caseInsensitive {
-				if strings.EqualFold(key, reqKey) {
-					effectiveValues = values
-					break
-				}
-			} else {
-				if key == reqKey {
-					effectiveValues = values
-					break
-				}
-			}
-		}
-
-		// if no effective value is found
-		if len(effectiveValues) == 0 {
-			if len(allowedValues) > 0 { // allowed values == list of tag values
-				missingTags = append(missingTags, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
-			} else {
-				missingTags = append(missingTags, reqKey)
-			}
-			continue
-		}
-
-		// if a value is found, check it is allowed (against requiredTags)
-		if len(allowedValues) > 0 {
-			var matchFound bool
-			for _, allowed := range allowedValues {
-				for _, effVal := range effectiveValues {
-					if caseInsensitive {
-						if strings.EqualFold(effVal, allowed) {
-							matchFound = true
-							break
-						}
-					} else {
-						if effVal == allowed {
-							matchFound = true
-							break
-						}
-					}
-				}
-				if matchFound {
-					break
-				}
-			}
-			if !matchFound {
-				missingTags = append(missingTags, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
-			}
-		}
-
-	}
-
-	return missingTags
 }
