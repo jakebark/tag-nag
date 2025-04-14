@@ -5,8 +5,6 @@ import (
 	"strings"
 )
 
-type TagMap map[string][]string
-
 // FilterMissingTags checks effectiveTags against requiredTags
 func FilterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitive bool) []string {
 	var missingTags []string
