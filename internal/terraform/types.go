@@ -13,7 +13,5 @@ type Violation struct {
 	skip         bool
 }
 
-type TagMap map[string][]string
-
 // TagReferences maps a reference identifier to a tag map ("local.tags")
 type TagReferences map[string]TagMap
