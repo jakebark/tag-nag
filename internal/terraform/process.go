@@ -100,26 +100,9 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 		return nil
 	}
 
-	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, caseInsensitive, lines, skipAll)
+	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, caseInsensitive, lines, skipAll, filePath)
 
-	if len(violations) > 0 {
-		fmt.Printf("\nViolation(s) in %s\n", filePath)
-		for _, v := range violations {
-			if v.skip {
-				fmt.Printf("  %d: %s \"%s\" skipped\n", v.line, v.resourceType, v.resourceName)
-			} else {
-				fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
-			}
-		}
-	}
-
-	var filteredViolations []Violation
-	for _, v := range violations {
-		if !v.skip {
-			filteredViolations = append(filteredViolations, v)
-		}
-	}
-	return filteredViolations
+	return violations
 }
 
 // processProviderBlocks extracts any default_tags from providers
