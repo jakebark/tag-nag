@@ -8,8 +8,8 @@ import (
 )
 
 // checkResourcesForTags inspects resource blocks and returns violations
-func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
-	var violations []Violation
+func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool, fileLines []string, skipAll bool, filePath string) []shared.Violation {
+	var violations []shared.Violation
 
 	for _, block := range body.Blocks {
 		if block.Type != "resource" || len(block.Labels) < 2 { // skip anything without 2 labels eg "aws_s3_bucket" and "this"
@@ -43,14 +43,15 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, def
 
 		missingTags := shared.FilterMissingTags(requiredTags, effectiveTags, caseInsensitive)
 		if len(missingTags) > 0 {
-			violation := Violation{
-				resourceType: resourceType,
-				resourceName: resourceName,
-				line:         block.DefRange().Start.Line,
-				missingTags:  missingTags,
+			violation := shared.Violation{
+				FilePath:     filePath,
+				ResourceType: resourceType,
+				ResourceName: resourceName,
+				Line:         block.DefRange().Start.Line,
+				MissingTags:  missingTags,
 			}
 			if skipAll || SkipResource(block, fileLines) {
-				violation.skip = true
+				violation.Skip = true
 			}
 			violations = append(violations, violation)
 		}
