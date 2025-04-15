@@ -10,8 +10,8 @@ import (
 )
 
 // ProcessDirectory walks all cfn files in a directory, then returns violations
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
-	var totalViolations int
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) []shared.Violation {
+	var totalViolations []shared.Violation
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -19,10 +19,9 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		}
 		if !info.IsDir() && (filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".json") {
 			violations := processFile(path, requiredTags, caseInsensitive)
-			if err != nil {
-				fmt.Printf("Error processing file %s: %v\n", path, err)
+			if violations != nil {
+				totalViolations = append(totalViolations, violations...)
 			}
-			totalViolations += len(violations)
 		}
 		return nil
 	})
