@@ -5,21 +5,6 @@ import (
 	"strings"
 )
 
-// PrintViolations formats and prints violations
-func PrintViolations(filePath string, violations []Violation) {
-	if len(violations) == 0 {
-		return
-	}
-	fmt.Printf("\nViolation(s) in %s\n", filePath)
-	for _, v := range violations {
-		if v.Skip {
-			fmt.Printf("  %d: %s \"%s\" skipped\n", v.Line, v.ResourceType, v.ResourceName)
-		} else {
-			fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.Line, v.ResourceType, v.ResourceName, strings.Join(v.MissingTags, ", "))
-		}
-	}
-}
-
 // FilterMissingTags checks effectiveTags against requiredTags
 func FilterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitive bool) []string {
 	var missingTags []string

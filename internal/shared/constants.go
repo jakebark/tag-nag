@@ -6,12 +6,3 @@ const (
 )
 
 type TagMap map[string][]string
-
-type Violation struct {
-	FilePath     string
-	ResourceType string
-	ResourceName string
-	Line         int
-	MissingTags  []string
-	Skip         bool
-}

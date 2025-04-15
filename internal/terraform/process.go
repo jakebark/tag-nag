@@ -12,9 +12,8 @@ import (
 )
 
 // ProcessDirectory walks all terraform files in directory
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) []shared.Violation {
-	var totalViolations []shared.Violation
-
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
+	var totalViolations int
 	defaultTags := DefaultTags{
 		LiteralTags:    make(TagReferences),
 		ReferencedTags: checkReferencedTags(dirPath),
@@ -45,9 +44,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".tf" {
 			violations := processFile(path, requiredTags, &defaultTags, caseInsensitive)
-			if violations != nil {
-				totalViolations = append(totalViolations, violations...)
-			}
+			totalViolations += len(violations)
 		}
 		return nil
 	})
@@ -75,7 +72,7 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 }
 
 // processFile parses files looking for resources
-func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool) []shared.Violation {
+func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading %s: %v\n", filePath, err)
@@ -87,7 +84,7 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 	skipAll := strings.Contains(content, shared.TagNagIgnoreAll)
 
 	parser := hclparse.NewParser()
-	file, diagnostics := parser.ParseHCL(data, filePath)
+	file, diagnostics := parser.ParseHCLFile(filePath)
 
 	if diagnostics.HasErrors() {
 		fmt.Printf("Error parsing %s: %v\n", filePath, diagnostics)
@@ -100,9 +97,26 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 		return nil
 	}
 
-	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, caseInsensitive, lines, skipAll, filePath)
+	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, caseInsensitive, lines, skipAll)
 
-	return violations
+	if len(violations) > 0 {
+		fmt.Printf("\nViolation(s) in %s\n", filePath)
+		for _, v := range violations {
+			if v.skip {
+				fmt.Printf("  %d: %s \"%s\" skipped\n", v.line, v.resourceType, v.resourceName)
+			} else {
+				fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
+			}
+		}
+	}
+
+	var filteredViolations []Violation
+	for _, v := range violations {
+		if !v.skip {
+			filteredViolations = append(filteredViolations, v)
+		}
+	}
+	return filteredViolations
 }
 
 // processProviderBlocks extracts any default_tags from providers

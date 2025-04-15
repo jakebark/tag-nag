@@ -9,8 +9,8 @@ import (
 )
 
 // getResourceViolations inspects resource blocks and returns violations
-func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags shared.TagMap, caseInsensitive bool, fileLines []string, skipAll bool, filePath string) []shared.Violation {
-	var violations []shared.Violation
+func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags shared.TagMap, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
+	var violations []Violation
 
 	for resourceName, resourceNode := range resourcesMapping { // resourceNode == yaml node for resource
 		resourceMapping := mapNodes(resourceNode)
@@ -34,16 +34,15 @@ func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags 
 
 		missing := shared.FilterMissingTags(requiredTags, tags, caseInsensitive)
 		if len(missing) > 0 {
-			violation := shared.Violation{
-				FilePath:     filePath,
-				ResourceName: resourceName,
-				ResourceType: resourceType,
-				Line:         resourceNode.Line,
-				MissingTags:  missing,
+			violation := Violation{
+				resourceName: resourceName,
+				resourceType: resourceType,
+				line:         resourceNode.Line,
+				missingTags:  missing,
 			}
 			// if file-level or resource-level ignore is found
 			if skipAll || skipResource(resourceNode, fileLines) {
-				violation.Skip = true
+				violation.skip = true
 			}
 			violations = append(violations, violation)
 		}
