@@ -1,14 +1,14 @@
 package terraform
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/jakebark/tag-nag/internal/shared"
 )
 
 // checkResourcesForTags inspects resource blocks and returns violations
-func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTags *DefaultTags, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
+func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
 	var violations []Violation
 
 	for _, block := range body.Blocks {
@@ -26,7 +26,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTag
 		providerID := getResourceProvider(block, caseInsensitive)
 		providerLiteralTags := defaultTags.LiteralTags[providerID]
 		if providerLiteralTags == nil {
-			providerLiteralTags = make(TagMap)
+			providerLiteralTags = make(shared.TagMap)
 		}
 
 		resourceTags := findTags(block, defaultTags.ReferencedTags, caseInsensitive)
@@ -41,7 +41,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags TagMap, defaultTag
 			}
 		}
 
-		missingTags := filterMissingTags(requiredTags, effectiveTags, caseInsensitive)
+		missingTags := shared.FilterMissingTags(requiredTags, effectiveTags, caseInsensitive)
 		if len(missingTags) > 0 {
 			violation := Violation{
 				resourceType: resourceType,
@@ -87,7 +87,7 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 }
 
 // findTags returns tag map from a resource block (with extractTags), if it has tags
-func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensitive bool) TagMap {
+func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensitive bool) shared.TagMap {
 	if attr, ok := block.Body.Attributes["tags"]; ok {
 
 		// literal tags
@@ -103,66 +103,5 @@ func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensit
 			}
 		}
 	}
-	return make(TagMap)
-}
-
-func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitive bool) []string {
-	var missingTags []string
-
-	// loop through key values in requiredTags
-	for reqKey, allowedValues := range requiredTags {
-		var effectiveValues []string
-		for key, values := range effectiveTags {
-			if caseInsensitive {
-				if strings.EqualFold(key, reqKey) {
-					effectiveValues = values
-					break
-				}
-			} else {
-				if key == reqKey {
-					effectiveValues = values
-					break
-				}
-			}
-		}
-
-		// if no effective value is found
-		if len(effectiveValues) == 0 {
-			if len(allowedValues) > 0 { // allowed values == list of tag values
-				missingTags = append(missingTags, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
-			} else {
-				missingTags = append(missingTags, reqKey)
-			}
-			continue
-		}
-
-		// if a value is found, check it is allowed (against requiredTags)
-		if len(allowedValues) > 0 {
-			var matchFound bool
-			for _, allowed := range allowedValues {
-				for _, effVal := range effectiveValues {
-					if caseInsensitive {
-						if strings.EqualFold(effVal, allowed) {
-							matchFound = true
-							break
-						}
-					} else {
-						if effVal == allowed {
-							matchFound = true
-							break
-						}
-					}
-				}
-				if matchFound {
-					break
-				}
-			}
-			if !matchFound {
-				missingTags = append(missingTags, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
-			}
-		}
-
-	}
-
-	return missingTags
+	return make(shared.TagMap)
 }

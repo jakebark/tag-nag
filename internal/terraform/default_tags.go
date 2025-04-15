@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/jakebark/tag-nag/internal/shared"
 )
 
 // getProviderID  returns  the provider identifier (aws or alias)
@@ -38,7 +39,7 @@ func normalizeProviderID(providerName, alias string, caseInsensitive bool) strin
 
 // checkForDefaultTags returns the default_tags on a provider block.
 // It extracts any literal tags (with extractTags) and merges them with any referenced tags
-func checkForDefaultTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensitive bool) TagMap {
+func checkForDefaultTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensitive bool) shared.TagMap {
 	for _, subBlock := range block.Body.Blocks {
 		if subBlock.Type == "default_tags" {
 			attr := subBlock.Body.Attributes["tags"]
@@ -56,7 +57,7 @@ func checkForDefaultTags(block *hclsyntax.Block, referencedTags TagReferences, c
 }
 
 // resolveDefaultTagReferences looks up referencedTags (locals/vars)
-func resolveDefaultTagReferences(attr *hclsyntax.Attribute, referencedTags TagReferences, caseInsensitive bool) TagMap {
+func resolveDefaultTagReferences(attr *hclsyntax.Attribute, referencedTags TagReferences, caseInsensitive bool) shared.TagMap {
 	tagRef := traversalToString(attr.Expr, caseInsensitive)
 	if tagRef == "" {
 		// if the expr isn’t a ScopeTraversalExpr, try formatting it as a string.

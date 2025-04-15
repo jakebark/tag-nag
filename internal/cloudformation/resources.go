@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jakebark/tag-nag/internal/shared"
 	"gopkg.in/yaml.v3"
 )
 
 // getResourceViolations inspects resource blocks and returns violations
-func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags TagMap, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
+func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags shared.TagMap, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
 	var violations []Violation
 
 	for resourceName, resourceNode := range resourcesMapping { // resourceNode == yaml node for resource
@@ -31,7 +32,7 @@ func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags 
 			continue
 		}
 
-		missing := filterMissingTags(requiredTags, tags, caseInsensitive)
+		missing := shared.FilterMissingTags(requiredTags, tags, caseInsensitive)
 		if len(missing) > 0 {
 			violation := Violation{
 				resourceName: resourceName,
@@ -50,8 +51,8 @@ func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags 
 }
 
 // extractTagMap extracts a yaml/json map to a go map
-func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (TagMap, error) {
-	tagsMap := make(TagMap)
+func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (shared.TagMap, error) {
+	tagsMap := make(shared.TagMap)
 	literalTags, exists := properties["Tags"]
 	if !exists {
 		return tagsMap, nil
@@ -87,59 +88,4 @@ func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (Tag
 		tagsMap[key] = []string{tagValue}
 	}
 	return tagsMap, nil
-}
-
-func filterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitive bool) []string {
-	var missing []string
-	for reqKey, allowedValues := range requiredTags {
-		var effectiveValues []string
-		for key, values := range effectiveTags {
-			if caseInsensitive {
-				if strings.EqualFold(key, reqKey) {
-					effectiveValues = values
-					break
-				}
-			} else {
-				if key == reqKey {
-					effectiveValues = values
-					break
-				}
-			}
-		}
-
-		if len(effectiveValues) == 0 {
-			if len(allowedValues) > 0 {
-				missing = append(missing, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
-			} else {
-				missing = append(missing, reqKey)
-			}
-			continue
-		}
-
-		if len(allowedValues) > 0 {
-			var matchFound bool
-			for _, allowed := range allowedValues {
-				for _, effVal := range effectiveValues {
-					if caseInsensitive {
-						if strings.EqualFold(effVal, allowed) {
-							matchFound = true
-							break
-						}
-					} else {
-						if effVal == allowed {
-							matchFound = true
-							break
-						}
-					}
-				}
-				if matchFound {
-					break
-				}
-			}
-			if !matchFound {
-				missing = append(missing, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
-			}
-		}
-	}
-	return missing
 }

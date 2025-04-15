@@ -33,7 +33,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 }
 
 // processFile parses files and maps the cfn nodes
-func processFile(filePath string, requiredTags TagMap, caseInsensitive bool) []Violation {
+func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool) []Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading %s: %v\n", filePath, err)

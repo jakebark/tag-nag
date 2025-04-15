@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/jakebark/tag-nag/internal/shared"
 	"github.com/zclconf/go-cty/cty"
 )
 
@@ -46,7 +47,7 @@ func checkReferencedTags(dirPath string) TagReferences {
 func extractLocals(block *hclsyntax.Block, referencedTags TagReferences) {
 	for name, attr := range block.Body.Attributes {
 		if v, diags := attr.Expr.Value(nil); !diags.HasErrors() && v.Type().Equals(cty.String) {
-			referencedTags["local."+name] = TagMap{"_": {v.AsString()}}
+			referencedTags["local."+name] = shared.TagMap{"_": {v.AsString()}}
 		} else {
 			tags := extractTags(attr, false)
 			referencedTags["local."+name] = tags
@@ -59,7 +60,7 @@ func extractVariables(block *hclsyntax.Block, referencedTags TagReferences) {
 	if len(block.Labels) > 0 {
 		if attr, ok := block.Body.Attributes["default"]; ok {
 			if v, diags := attr.Expr.Value(nil); !diags.HasErrors() && v.Type().Equals(cty.String) {
-				referencedTags["var."+block.Labels[0]] = TagMap{"_": {v.AsString()}}
+				referencedTags["var."+block.Labels[0]] = shared.TagMap{"_": {v.AsString()}}
 			} else {
 				tags := extractTags(attr, false)
 				referencedTags["var."+block.Labels[0]] = tags
