@@ -32,7 +32,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 }
 
 // processFile parses files and maps the cfn nodes
-func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool) []Violation {
+func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool) []shared.Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading %s: %v\n", filePath, err)
@@ -51,27 +51,10 @@ func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bo
 	// search root node for resources node
 	resourcesMapping := mapNodes(findMapNode(root, "Resources"))
 	if resourcesMapping == nil {
-		return []Violation{}
+		return []shared.Violation{}
 	}
 
-	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll)
+	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll, filePath)
 
-	if len(violations) > 0 {
-		fmt.Printf("\nViolation(s) in %s\n", filePath)
-		for _, v := range violations {
-			if v.skip {
-				fmt.Printf("  %d: %s \"%s\" skipped\n", v.line, v.resourceType, v.resourceName)
-			} else {
-				fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
-			}
-		}
-	}
-
-	var filteredViolations []Violation
-	for _, v := range violations {
-		if !v.skip {
-			filteredViolations = append(filteredViolations, v)
-		}
-	}
-	return filteredViolations
+	return violations
 }
