@@ -12,8 +12,9 @@ import (
 )
 
 // ProcessDirectory walks all terraform files in directory
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
-	var totalViolations int
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) []shared.Violation {
+	var totalViolations []shared.Violation
+
 	defaultTags := DefaultTags{
 		LiteralTags:    make(TagReferences),
 		ReferencedTags: checkReferencedTags(dirPath),
@@ -44,7 +45,9 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".tf" {
 			violations := processFile(path, requiredTags, &defaultTags, caseInsensitive)
-			totalViolations += len(violations)
+			if violations != nil {
+				totalViolations = append(totalViolations, violations...)
+			}
 		}
 		return nil
 	})
