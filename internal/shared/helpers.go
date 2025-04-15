@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// PrintViolations formats and prints violations
 func PrintViolations(filePath string, violations []Violation) {
 	if len(violations) == 0 {
 		return
