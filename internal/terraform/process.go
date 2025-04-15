@@ -75,7 +75,7 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 }
 
 // processFile parses files looking for resources
-func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool) []shared.Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading %s: %v\n", filePath, err)
@@ -87,7 +87,7 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 	skipAll := strings.Contains(content, shared.TagNagIgnoreAll)
 
 	parser := hclparse.NewParser()
-	file, diagnostics := parser.ParseHCLFile(filePath)
+	file, diagnostics := parser.ParseHCL(data, filePath)
 
 	if diagnostics.HasErrors() {
 		fmt.Printf("Error parsing %s: %v\n", filePath, diagnostics)
