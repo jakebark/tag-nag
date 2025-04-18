@@ -40,7 +40,7 @@ func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bo
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading %s: %v\n", filePath, err)
-		return nil
+		return nil, fmt.Errorf("reading file %s: %w", filePath, err)
 	}
 	content := string(data)
 	lines := strings.Split(content, "\n")
@@ -49,13 +49,13 @@ func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bo
 
 	root, err := parseYAML(filePath)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("parsing file %s: %w", filePath, err)
 	}
 
 	// search root node for resources node
 	resourcesMapping := mapNodes(findMapNode(root, "Resources"))
 	if resourcesMapping == nil {
-		return []Violation{}
+		return []Violation{}, nil
 	}
 
 	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll)
@@ -77,5 +77,5 @@ func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bo
 			filteredViolations = append(filteredViolations, v)
 		}
 	}
-	return filteredViolations
+	return filteredViolations, nil
 }
