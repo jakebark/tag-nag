@@ -2,6 +2,7 @@ package terraform
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,6 +22,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			log.Printf("Error accessing %q: %v\n", path, err)
 			return err
 		}
 		if info.IsDir() && info.Name() == ".terraform" {
@@ -32,11 +34,12 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		return nil
 	})
 	if err != nil {
-		fmt.Println("Error finding provider:", err)
+		log.Printf("Error finding provider %q: %v\n", dirPath, err)
 	}
 
 	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			log.Printf("Error accessing path %q: %v\n", path, err)
 			return err
 		}
 		if info.IsDir() && info.Name() == ".terraform" {
