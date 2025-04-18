@@ -2,6 +2,7 @@ package cloudformation
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/jakebark/tag-nag/internal/shared"
@@ -28,7 +29,7 @@ func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags 
 
 		tags, err := extractTagMap(properties, caseInsensitive)
 		if err != nil {
-			fmt.Printf("Error extracting tags from resource %s: %v\n", resourceName, err)
+			log.Printf("Error extracting tags from resource %s: %v\n", resourceName, err)
 			continue
 		}
 
