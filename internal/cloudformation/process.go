@@ -2,6 +2,7 @@ package cloudformation
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,25 +16,27 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			log.Printf("Error accessing %q: %v\n", path, err)
 			return err
 		}
 		if !info.IsDir() && (filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".json") {
-			violations := processFile(path, requiredTags, caseInsensitive)
-			if err != nil {
-				fmt.Printf("Error processing file %s: %v\n", path, err)
+			violations, processErr := processFile(path, requiredTags, caseInsensitive)
+			if processErr != nil {
+				log.Printf("Error processing file %s: %v\n", path, processErr)
+				return nil // Example: Continue walking
 			}
 			totalViolations += len(violations)
 		}
 		return nil
 	})
 	if err != nil {
-		fmt.Println("Error scanning directory:", err)
+		log.Printf("Error scanning directory %s: %v\n", dirPath, err)
 	}
 	return totalViolations
 }
 
 // processFile parses files and maps the cfn nodes
-func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool) []Violation {
+func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool) ([]Violation, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading %s: %v\n", filePath, err)
