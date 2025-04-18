@@ -10,6 +10,8 @@ import (
 )
 
 func main() {
+	log.SetFlags(0)
+
 	userInput := inputs.ParseFlags()
 
 	if userInput.DryRun {
