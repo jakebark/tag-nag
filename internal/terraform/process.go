@@ -52,7 +52,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		return nil
 	})
 	if err != nil {
-		fmt.Println("Error scanning directory:", err)
+		log.Printf("Error scanning directory %q: %v\n", dirPath, err)
 	}
 
 	return totalViolations
