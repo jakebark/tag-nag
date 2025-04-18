@@ -79,7 +79,7 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		fmt.Printf("Error reading %s: %v\n", filePath, err)
+		log.Printf("Error reading %s: %v\n", filePath, err)
 		return nil
 	}
 	content := string(data)
@@ -91,13 +91,13 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
 	if diagnostics.HasErrors() {
-		fmt.Printf("Error parsing %s: %v\n", filePath, diagnostics)
+		log.Printf("Error parsing %s: %v\n", filePath, diagnostics)
 		return nil
 	}
 
 	syntaxBody, ok := file.Body.(*hclsyntax.Body)
 	if !ok {
-		fmt.Printf("Parsing failed for %s\n", filePath)
+		log.Printf("Parsing failed for %s\n", filePath)
 		return nil
 	}
 
