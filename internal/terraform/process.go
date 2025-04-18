@@ -64,11 +64,12 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
 	if diagnostics.HasErrors() {
-		fmt.Printf("Error parsing %s: %v\n", filePath, diagnostics)
+		log.Printf("Error parsing %s: %v\n", filePath, diagnostics)
 		return
 	}
 	syntaxBody, ok := file.Body.(*hclsyntax.Body)
 	if !ok {
+		log.Printf("Failed to parse provider HCL %s\n", filePath)
 		return
 	}
 	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
