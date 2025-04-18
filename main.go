@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/jakebark/tag-nag/internal/cloudformation"
@@ -10,12 +10,14 @@ import (
 )
 
 func main() {
+	log.SetFlags(0)
+
 	userInput := inputs.ParseFlags()
 
 	if userInput.DryRun {
-		fmt.Printf("\033[32mDry-run: %s\033[0m\n", userInput.Directory)
+		log.Printf("\033[32mDry-run: %s\033[0m\n", userInput.Directory)
 	} else {
-		fmt.Printf("\033[33mScanning: %s\033[0m\n", userInput.Directory)
+		log.Printf("\033[33mScanning: %s\033[0m\n", userInput.Directory)
 	}
 
 	tfViolations := terraform.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive)
@@ -24,13 +26,13 @@ func main() {
 	violations := tfViolations + cfnViolations
 
 	if violations > 0 && userInput.DryRun {
-		fmt.Printf("\033[32mFound %d tag violation(s)\033[0m\n", violations)
+		log.Printf("\033[32mFound %d tag violation(s)\033[0m\n", violations)
 		os.Exit(0)
 	} else if violations > 0 {
-		fmt.Printf("\033[31mFound %d tag violation(s)\033[0m\n", violations)
+		log.Printf("\033[31mFound %d tag violation(s)\033[0m\n", violations)
 		os.Exit(1)
 	} else {
-		fmt.Println("No tag violations found")
+		log.Println("No tag violations found")
 		os.Exit(0)
 	}
 }

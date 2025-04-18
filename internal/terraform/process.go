@@ -2,6 +2,7 @@ package terraform
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,6 +22,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			log.Printf("Error accessing %q: %v\n", path, err)
 			return err
 		}
 		if info.IsDir() && info.Name() == ".terraform" {
@@ -32,11 +34,12 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		return nil
 	})
 	if err != nil {
-		fmt.Println("Error finding provider:", err)
+		log.Printf("Error finding provider %q: %v\n", dirPath, err)
 	}
 
 	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			log.Printf("Error accessing path %q: %v\n", path, err)
 			return err
 		}
 		if info.IsDir() && info.Name() == ".terraform" {
@@ -49,7 +52,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		return nil
 	})
 	if err != nil {
-		fmt.Println("Error scanning directory:", err)
+		log.Printf("Error scanning directory %q: %v\n", dirPath, err)
 	}
 
 	return totalViolations
@@ -61,11 +64,12 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
 	if diagnostics.HasErrors() {
-		fmt.Printf("Error parsing %s: %v\n", filePath, diagnostics)
+		log.Printf("Error parsing %s: %v\n", filePath, diagnostics)
 		return
 	}
 	syntaxBody, ok := file.Body.(*hclsyntax.Body)
 	if !ok {
+		log.Printf("Failed to parse provider HCL %s\n", filePath)
 		return
 	}
 	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
@@ -75,7 +79,7 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		fmt.Printf("Error reading %s: %v\n", filePath, err)
+		log.Printf("Error reading %s: %v\n", filePath, err)
 		return nil
 	}
 	content := string(data)
@@ -87,25 +91,25 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 	file, diagnostics := parser.ParseHCLFile(filePath)
 
 	if diagnostics.HasErrors() {
-		fmt.Printf("Error parsing %s: %v\n", filePath, diagnostics)
+		log.Printf("Error parsing %s: %v\n", filePath, diagnostics)
 		return nil
 	}
 
 	syntaxBody, ok := file.Body.(*hclsyntax.Body)
 	if !ok {
-		fmt.Printf("Parsing failed for %s\n", filePath)
+		log.Printf("Parsing failed for %s\n", filePath)
 		return nil
 	}
 
 	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, caseInsensitive, lines, skipAll)
 
 	if len(violations) > 0 {
-		fmt.Printf("\nViolation(s) in %s\n", filePath)
+		log.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
 			if v.skip {
-				fmt.Printf("  %d: %s \"%s\" skipped\n", v.line, v.resourceType, v.resourceName)
+				log.Printf("  %d: %s \"%s\" skipped\n", v.line, v.resourceType, v.resourceName)
 			} else {
-				fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
+				log.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
 			}
 		}
 	}
