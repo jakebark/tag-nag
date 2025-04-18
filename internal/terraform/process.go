@@ -107,9 +107,9 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
 			if v.skip {
-				log.Printf("  %d: %s \"%s\" skipped\n", v.line, v.resourceType, v.resourceName)
+				fmt.Printf("  %d: %s \"%s\" skipped\n", v.line, v.resourceType, v.resourceName)
 			} else {
-				log.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
+				fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
 			}
 		}
 	}
