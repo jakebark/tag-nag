@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
-	"github.com/zclconf/go-cty/cty/function/stdlib"
+	// stdlib "github.com/zclconf/go-cty/cty/function/stdlib"
 )
 
 func buildTagContext(dirPath string) (*TerraformContext, error) {
@@ -96,7 +96,7 @@ func buildTagContext(dirPath string) (*TerraformContext, error) {
 
 	evalCtxForLocals := &hcl.EvalContext{
 		Variables: map[string]cty.Value{"var": cty.ObjectVal(tfVars)},
-		Functions: stdlib.Functions(),
+		//		Functions: stdlib.Functions,
 	}
 	evalCtxForLocals.Variables["local"] = cty.NullVal(cty.DynamicPseudoType) // Placeholder for local
 
@@ -132,7 +132,7 @@ func buildTagContext(dirPath string) (*TerraformContext, error) {
 			"var":   cty.ObjectVal(tfVars),
 			"local": cty.ObjectVal(tfLocals),
 		},
-		Functions: stdlib.Functions(),
+		//		Functions: stdlib.Functions,
 	}
 
 	return &TerraformContext{EvalContext: finalCtx}, nil
