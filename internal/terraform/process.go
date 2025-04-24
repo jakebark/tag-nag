@@ -54,6 +54,21 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		return nil
 	})
 
+	//  pass 2, evaluate tags on resources
+	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() && (info.Name() == ".terraform" || info.Name() == ".git") {
+			return filepath.SkipDir
+		}
+		if !info.IsDir() && filepath.Ext(path) == ".tf" {
+			violations := processFile(path, requiredTags, &defaultTags, tfCtx, caseInsensitive)
+			totalViolations += len(violations)
+		}
+		return nil
+	})
+
 	if err != nil {
 		log.Printf("Error scanning directory %q: %v\n", dirPath, err)
 	}
