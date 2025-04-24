@@ -29,37 +29,31 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		LiteralTags: make(map[string]shared.TagMap),
 	}
 
-	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Printf("Error accessing %q: %v\n", path, err)
-			return err
-		}
-		if info.IsDir() && info.Name() == ".terraform" {
-			return filepath.SkipDir
-		}
-		if !info.IsDir() && filepath.Ext(path) == ".tf" {
-			processProvider(path, &defaultTags, caseInsensitive)
-		}
-		return nil
-	})
-	if err != nil {
-		log.Printf("Error finding provider %q: %v\n", dirPath, err)
-	}
-
+	// pass 1, default tags
 	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			log.Printf("Error accessing path %q: %v\n", path, err)
 			return err
 		}
-		if info.IsDir() && info.Name() == ".terraform" {
+		if info.IsDir() && (info.Name() == ".terraform" || info.Name() == ".git") { // todo shared const for dir skips
 			return filepath.SkipDir
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".tf" {
-			violations := processFile(path, requiredTags, &defaultTags, caseInsensitive)
-			totalViolations += len(violations)
+			parser := hclparse.NewParser()
+			file, diags := parser.ParseHCLFile(path)
+			if diags.HasErrors() || file == nil {
+				log.Printf("Error parsing %s during default tag scan: %v\n", path, diags)
+				return nil
+			}
+			syntaxBody, ok := file.Body.(*hclsyntax.Body)
+			if !ok {
+				log.Printf("Failed to get syntax body for %s\n", path)
+				return nil // Continue walking
+			}
+			processProviderBlocks(syntaxBody, &defaultTags, tfCtx, caseInsensitive)
 		}
 		return nil
 	})
+
 	if err != nil {
 		log.Printf("Error scanning directory %q: %v\n", dirPath, err)
 	}
