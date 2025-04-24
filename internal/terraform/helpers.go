@@ -55,44 +55,6 @@ func mergeTags(tagMaps ...shared.TagMap) shared.TagMap {
 	return merged
 }
 
-// extractTagMap extracts the hcl tag map to a go map
-func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (shared.TagMap, error) {
-	val, diags := attr.Expr.Value(nil)
-	if diags.HasErrors() || !val.Type().IsObjectType() {
-		objExpr, ok := attr.Expr.(*hclsyntax.ObjectConsExpr)
-		if !ok {
-			return nil, fmt.Errorf("failed to extract tag map")
-		}
-		tags := make(shared.TagMap)
-		for _, item := range objExpr.Items {
-			var keyStr string
-			if v, vdiags := item.KeyExpr.Value(nil); !vdiags.HasErrors() {
-				keyStr = v.AsString()
-			} else {
-				keyStr = traversalToString(item.KeyExpr, caseInsensitive)
-			}
-
-			var valLiteral string
-			if v, vdiags := item.ValueExpr.Value(nil); !vdiags.HasErrors() {
-				valLiteral = v.AsString()
-			} else {
-				valLiteral = traversalToString(item.ValueExpr, caseInsensitive)
-			}
-			tags[keyStr] = []string{valLiteral}
-		}
-		return tags, nil
-	}
-
-	tags := make(shared.TagMap)
-	for key, value := range val.AsValueMap() {
-		if caseInsensitive {
-			key = strings.ToLower(key)
-		}
-		tags[key] = []string{value.AsString()}
-	}
-	return tags, nil
-}
-
 // resolveTagValue recursively resolves a tag value with vars or locals
 func resolveTagValue(value string, refMap TagReferences) string {
 	// handles direct locals and vars
