@@ -55,16 +55,6 @@ func mergeTags(tagMaps ...shared.TagMap) shared.TagMap {
 	return merged
 }
 
-// extractTags handles errors in extracting tags from hcl
-func extractTags(attr *hclsyntax.Attribute, caseInsensitive bool) shared.TagMap {
-	tags, err := extractTagMap(attr, caseInsensitive)
-	if err != nil {
-		// todo error logging
-		return make(shared.TagMap)
-	}
-	return tags
-}
-
 // extractTagMap extracts the hcl tag map to a go map
 func extractTagMap(attr *hclsyntax.Attribute, caseInsensitive bool) (shared.TagMap, error) {
 	val, diags := attr.Expr.Value(nil)
