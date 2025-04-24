@@ -76,23 +76,6 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 	return totalViolations
 }
 
-// processProvider parses files looking for providers
-func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive bool) {
-	parser := hclparse.NewParser()
-	file, diagnostics := parser.ParseHCLFile(filePath)
-
-	if diagnostics.HasErrors() {
-		log.Printf("Error parsing %s: %v\n", filePath, diagnostics)
-		return
-	}
-	syntaxBody, ok := file.Body.(*hclsyntax.Body)
-	if !ok {
-		log.Printf("Failed to parse provider HCL %s\n", filePath)
-		return
-	}
-	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
-}
-
 // processFile parses files looking for resources
 func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool) []Violation {
 	data, err := os.ReadFile(filePath)
