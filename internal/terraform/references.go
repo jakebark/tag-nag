@@ -18,7 +18,7 @@ func buildTagContext(dirPath string) (*TerraformContext, error) {
 	parsedFiles := make(map[string]*hcl.File)
 	parser := hclparse.NewParser()
 
-	// 1st pass, parse files
+	// first pass, parse files
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -51,7 +51,7 @@ func buildTagContext(dirPath string) (*TerraformContext, error) {
 		}, nil
 	}
 
-	// 2nd pass, evaluate vars
+	// second pass, evaluate vars
 	tfVars := make(map[string]cty.Value)
 	for _, file := range parsedFiles {
 		body, ok := file.Body.(*hclsyntax.Body)

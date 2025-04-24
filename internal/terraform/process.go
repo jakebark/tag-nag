@@ -29,7 +29,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		LiteralTags: make(map[string]shared.TagMap),
 	}
 
-	// pass 1, default tags
+	// first pass, default tags
 	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -54,7 +54,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		return nil
 	})
 
-	//  pass 2, evaluate tags on resources
+	//  second pass, evaluate tags on resources
 	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
