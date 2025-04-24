@@ -42,15 +42,3 @@ func checkReferencedTags(dirPath string) TagReferences {
 
 	return referencedTags
 }
-
-// extractLocals extracts hcl tag maps from locals (using extractTags) and appends them to the defaultTags struct (defaultTags.referencedTags)
-func extractLocals(block *hclsyntax.Block, referencedTags TagReferences) {
-	for name, attr := range block.Body.Attributes {
-		if v, diags := attr.Expr.Value(nil); !diags.HasErrors() && v.Type().Equals(cty.String) {
-			referencedTags["local."+name] = shared.TagMap{"_": {v.AsString()}}
-		} else {
-			tags := extractTags(attr, false)
-			referencedTags["local."+name] = tags
-		}
-	}
-}
