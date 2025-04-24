@@ -1,11 +1,9 @@
 package terraform
 
 import (
-	"fmt"
 	"log"
 	"strings"
 
-	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jakebark/tag-nag/internal/shared"
 	"github.com/zclconf/go-cty/cty"
@@ -82,21 +80,44 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 }
 
 // findTags returns tag map from a resource block (with extractTags), if it has tags
-func findTags(block *hclsyntax.Block, referencedTags TagReferences, caseInsensitive bool) shared.TagMap {
-	if attr, ok := block.Body.Attributes["tags"]; ok {
+func findTags(block *hclsyntax.Block, tfCtx *TerraformContext, caseInsensitive bool) shared.TagMap {
+	evalTags := make(shared.TagMap)
+	if attr, exists := block.Body.Attributes["tags"]; exists {
 
-		// literal tags
-		tags := extractTags(attr, caseInsensitive)
-		if len(tags) > 0 {
-			return tags
+		tagsVal, diags := attr.Expr.Value(tfCtx.EvalContext)
+		if diags.HasErrors() {
+			log.Printf("Error evaluating tags for resource %s.%s: %v", block.Labels[0], block.Labels[1], diags)
+			return evalTags
 		}
-		// referenced tags
-		refKey := traversalToString(attr.Expr, caseInsensitive)
-		if refKey != "" {
-			if resolved, ok := referencedTags[refKey]; ok {
-				return resolved
+
+		if !tagsVal.Type().IsObjectType() && !tagsVal.Type().IsMapType() {
+			return evalTags
+		}
+		if tagsVal.IsNull() {
+			return evalTags
+		}
+
+		for key, val := range tagsVal.AsValueMap() {
+			var valStr string
+			if val.IsNull() {
+				valStr = ""
+			} else if val.Type() == cty.String {
+				valStr = val.AsString()
+			} else {
+				strResult, err := convertCtyValueToString(val)
+				if err != nil {
+					valStr = ""
+				} else {
+					valStr = strResult
+				}
 			}
+
+			effectiveKey := key
+			if caseInsensitive {
+				effectiveKey = strings.ToLower(key)
+			}
+			evalTags[effectiveKey] = []string{valStr}
 		}
 	}
-	return make(shared.TagMap)
+	return evalTags
 }
