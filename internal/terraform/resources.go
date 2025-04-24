@@ -1,14 +1,18 @@
 package terraform
 
 import (
+	"fmt"
+	"log"
 	"strings"
 
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jakebark/tag-nag/internal/shared"
+	"github.com/zclconf/go-cty/cty"
 )
 
 // checkResourcesForTags inspects resource blocks and returns violations
-func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
+func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
 	var violations []Violation
 
 	for _, block := range body.Blocks {
@@ -24,22 +28,13 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, def
 		}
 
 		providerID := getResourceProvider(block, caseInsensitive)
-		providerLiteralTags := defaultTags.LiteralTags[providerID]
-		if providerLiteralTags == nil {
-			providerLiteralTags = make(shared.TagMap)
+		providerEvalTags := defaultTags.LiteralTags[providerID]
+		if providerEvalTags == nil {
+			providerEvalTags = make(shared.TagMap)
 		}
 
-		resourceTags := findTags(block, defaultTags.ReferencedTags, caseInsensitive)
-		effectiveTags := mergeTags(providerLiteralTags, resourceTags)
-
-		// resolve effective tag
-		// effective tags == all tags after literal and referenced tags
-		for key, vals := range effectiveTags {
-			if len(vals) > 0 {
-				resolvedVal := resolveTagValue(vals[0], defaultTags.ReferencedTags)
-				effectiveTags[key] = []string{resolvedVal}
-			}
-		}
+		resourceEvalTags := findTags(block, tfCtx, caseInsensitive)
+		effectiveTags := mergeTags(providerEvalTags, resourceEvalTags)
 
 		missingTags := shared.FilterMissingTags(requiredTags, effectiveTags, caseInsensitive)
 		if len(missingTags) > 0 {
