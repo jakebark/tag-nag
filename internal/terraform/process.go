@@ -7,14 +7,23 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jakebark/tag-nag/internal/shared"
+	"github.com/zclconf/go-cty/cty"
+	"github.com/zclconf/go-cty/cty/function"
 )
 
 // ProcessDirectory walks all terraform files in directory
 func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
 	var totalViolations int
+
+	tfCtx, err := buildTagContext(dirPath)
+	if err != nil {
+		tfCtx = &TerraformContext{EvalContext: &hcl.EvalContext{Variables: make(map[string]cty.Value), Functions: make(map[string]function.Function)}}
+	}
+	log.Println("Context built.")
 
 	defaultTags := DefaultTags{
 		LiteralTags: make(map[string]shared.TagMap),
