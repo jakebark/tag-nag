@@ -54,17 +54,3 @@ func extractLocals(block *hclsyntax.Block, referencedTags TagReferences) {
 		}
 	}
 }
-
-// extractVariables extracts hcl tag maps from vars (using extractTags) and appends them to the defaultTags struct (defaultTags.referencedTags)
-func extractVariables(block *hclsyntax.Block, referencedTags TagReferences) {
-	if len(block.Labels) > 0 {
-		if attr, ok := block.Body.Attributes["default"]; ok {
-			if v, diags := attr.Expr.Value(nil); !diags.HasErrors() && v.Type().Equals(cty.String) {
-				referencedTags["var."+block.Labels[0]] = shared.TagMap{"_": {v.AsString()}}
-			} else {
-				tags := extractTags(attr, false)
-				referencedTags["var."+block.Labels[0]] = tags
-			}
-		}
-	}
-}
