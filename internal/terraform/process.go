@@ -94,7 +94,7 @@ func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive 
 }
 
 // processFile parses files looking for resources
-func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool) []Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Printf("Error reading %s: %v\n", filePath, err)
@@ -119,7 +119,7 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 		return nil
 	}
 
-	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, caseInsensitive, lines, skipAll)
+	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, tfCtx, caseInsensitive, lines, skipAll)
 
 	if len(violations) > 0 {
 		log.Printf("\nViolation(s) in %s\n", filePath)
@@ -142,11 +142,11 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 }
 
 // processProviderBlocks extracts any default_tags from providers
-func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseInsensitive bool) {
+func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool) {
 	for _, block := range body.Blocks {
 		if block.Type == "provider" && len(block.Labels) > 0 {
 			providerID := getProviderID(block, caseInsensitive)
-			tags := checkForDefaultTags(block, defaultTags.ReferencedTags, caseInsensitive)
+			tags := checkForDefaultTags(block, tfCtx, caseInsensitive)
 
 			if len(tags) > 0 {
 				var keys []string
@@ -154,10 +154,8 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 					keys = append(keys, key) // remove bool element of tag map
 				}
 				fmt.Printf("Found Terraform default tags for provider %s: [%v]\n", providerID, strings.Join(keys, ", "))
-
-			}
-			if tags != nil {
 				defaultTags.LiteralTags[providerID] = tags
+
 			}
 		}
 	}
