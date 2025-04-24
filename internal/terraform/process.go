@@ -15,9 +15,9 @@ import (
 // ProcessDirectory walks all terraform files in directory
 func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
 	var totalViolations int
+
 	defaultTags := DefaultTags{
-		LiteralTags:    make(TagReferences),
-		ReferencedTags: checkReferencedTags(dirPath),
+		LiteralTags: make(map[string]shared.TagMap),
 	}
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
