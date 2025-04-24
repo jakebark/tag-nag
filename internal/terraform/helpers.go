@@ -1,14 +1,15 @@
 package terraform
 
 import (
+	"encoding/json"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jakebark/tag-nag/internal/shared"
 	"github.com/zclconf/go-cty/cty"
+	ctyjson "github.com/zclconf/go-cty/cty/json"
 )
 
 // traversalToString converts a hcl hierachical/traversal string to a literal string
@@ -64,4 +65,40 @@ func SkipResource(block *hclsyntax.Block, lines []string) bool {
 		}
 	}
 	return false
+}
+
+func convertCtyValueToString(val cty.Value) (string, error) {
+	if !val.IsKnown() {
+		return "", fmt.Errorf("value is unknown")
+	}
+	if val.IsNull() {
+		return "", nil
+	}
+
+	ty := val.Type()
+	switch {
+	case ty == cty.String:
+		return val.AsString(), nil
+	case ty == cty.Number:
+		bf := val.AsBigFloat()
+		return bf.Text('f', -1), nil
+	case ty == cty.Bool:
+		return fmt.Sprintf("%t", val.True()), nil
+	case ty.IsListType() || ty.IsTupleType() || ty.IsSetType() || ty.IsMapType() || ty.IsObjectType():
+
+		simpleJSON, err := ctyjson.SimpleJSONValue{Value: val}.MarshalJSON()
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal complex type to json: %w", err)
+		}
+		strJSON := string(simpleJSON)
+		if len(strJSON) >= 2 && strJSON[0] == '"' && strJSON[len(strJSON)-1] == '"' {
+			var unquotedStr string
+			if err := json.Unmarshal(simpleJSON, &unquotedStr); err == nil {
+				return unquotedStr, nil
+			}
+		}
+		return strJSON, nil
+	default:
+		return fmt.Sprintf("%v", val), nil // Best effort
+	}
 }
