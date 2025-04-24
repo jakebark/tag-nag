@@ -89,13 +89,3 @@ func checkForDefaultTags(block *hclsyntax.Block, tfCtx *TerraformContext, caseIn
 	}
 	return nil // No default_tags block found
 }
-
-// resolveDefaultTagReferences looks up referencedTags (locals/vars)
-func resolveDefaultTagReferences(attr *hclsyntax.Attribute, referencedTags TagReferences, caseInsensitive bool) shared.TagMap {
-	tagRef := traversalToString(attr.Expr, caseInsensitive)
-	if tagRef == "" {
-		// if the expr isn’t a ScopeTraversalExpr, try formatting it as a string.
-		tagRef = strings.TrimSpace(fmt.Sprintf("%v", attr.Expr))
-	}
-	return referencedTags[tagRef]
-}
