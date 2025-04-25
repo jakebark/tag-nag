@@ -50,7 +50,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool) ([]Violation, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		fmt.Printf("Error reading %s: %v\n", filePath, err)
+		log.Printf("Error reading %s: %v\n", filePath, err)
 		return nil, fmt.Errorf("reading file %s: %w", filePath, err)
 	}
 	content := string(data)
@@ -66,6 +66,7 @@ func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bo
 	// search root node for resources node
 	resourcesMapping := mapNodes(findMapNode(root, "Resources"))
 	if resourcesMapping == nil {
+		log.Printf("No 'Resources' section found in %s\n", filePath)
 		return []Violation{}, nil
 	}
 
