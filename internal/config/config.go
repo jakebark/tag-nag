@@ -20,6 +20,7 @@ var StdlibFuncs = map[string]function.Function{
 	"concat":     stdlib.ConcatFunc,
 	"flatten":    stdlib.FlattenFunc,
 	"join":       stdlib.JoinFunc,
+	"jsondecode": stdlib.JSONDecodeFunc,
 	"keys":       stdlib.KeysFunc,
 	"lower":      stdlib.LowerFunc,
 	"merge":      stdlib.MergeFunc,
