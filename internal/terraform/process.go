@@ -24,7 +24,6 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 	if err != nil {
 		tfCtx = &TerraformContext{EvalContext: &hcl.EvalContext{Variables: make(map[string]cty.Value), Functions: make(map[string]function.Function)}}
 	}
-	log.Println("Context built.")
 
 	defaultTags := DefaultTags{
 		LiteralTags: make(map[string]shared.TagMap),
