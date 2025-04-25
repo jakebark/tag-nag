@@ -9,28 +9,10 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/jakebark/tag-nag/internal/config"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
-	"github.com/zclconf/go-cty/cty/function/stdlib"
 )
-
-var stdlibFuncs = map[string]function.Function{
-	"upper":      stdlib.UpperFunc,
-	"lower":      stdlib.LowerFunc,
-	"chomp":      stdlib.ChompFunc,
-	"coalesce":   stdlib.CoalesceFunc,
-	"concat":     stdlib.ConcatFunc,
-	"flatten":    stdlib.FlattenFunc,
-	"merge":      stdlib.MergeFunc,
-	"min":        stdlib.MinFunc,
-	"max":        stdlib.MaxFunc,
-	"regex":      stdlib.RegexFunc,
-	"slice":      stdlib.SliceFunc,
-	"trim":       stdlib.TrimFunc,
-	"trimprefix": stdlib.TrimPrefixFunc,
-	"trimspace":  stdlib.TrimSpaceFunc,
-	"trimsuffix": stdlib.TrimSuffixFunc,
-}
 
 func buildTagContext(dirPath string) (*TerraformContext, error) {
 	parsedFiles := make(map[string]*hcl.File)
@@ -114,7 +96,7 @@ func buildTagContext(dirPath string) (*TerraformContext, error) {
 
 	evalCtxForLocals := &hcl.EvalContext{
 		Variables: map[string]cty.Value{"var": cty.ObjectVal(tfVars)},
-		Functions: stdlibFuncs,
+		Functions: config.StdlibFuncs,
 	}
 	evalCtxForLocals.Variables["local"] = cty.NullVal(cty.DynamicPseudoType) // Placeholder for local
 
@@ -150,7 +132,7 @@ func buildTagContext(dirPath string) (*TerraformContext, error) {
 			"var":   cty.ObjectVal(tfVars),
 			"local": cty.ObjectVal(tfLocals),
 		},
-		Functions: stdlibFuncs,
+		Functions: config.StdlibFuncs,
 	}
 
 	return &TerraformContext{EvalContext: finalCtx}, nil
