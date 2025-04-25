@@ -15,12 +15,11 @@ const (
 // https://developer.hashicorp.com/terraform/language/functions
 // https://pkg.go.dev/github.com/zclconf/go-cty@v1.16.2/cty/function/stdlib
 var StdlibFuncs = map[string]function.Function{
-	"upper":      stdlib.UpperFunc,
-	"lower":      stdlib.LowerFunc,
 	"chomp":      stdlib.ChompFunc,
 	"coalesce":   stdlib.CoalesceFunc,
 	"concat":     stdlib.ConcatFunc,
 	"flatten":    stdlib.FlattenFunc,
+	"lower":      stdlib.LowerFunc,
 	"merge":      stdlib.MergeFunc,
 	"min":        stdlib.MinFunc,
 	"max":        stdlib.MaxFunc,
@@ -30,4 +29,5 @@ var StdlibFuncs = map[string]function.Function{
 	"trimprefix": stdlib.TrimPrefixFunc,
 	"trimspace":  stdlib.TrimSpaceFunc,
 	"trimsuffix": stdlib.TrimSuffixFunc,
+	"upper":      stdlib.UpperFunc,
 }
