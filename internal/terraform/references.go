@@ -23,8 +23,13 @@ func buildTagContext(dirPath string) (*TerraformContext, error) {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() && (info.Name() == ".terraform" || info.Name() == ".git") {
-			return filepath.SkipDir
+		if info.IsDir() {
+			dirName := info.Name()
+			for _, skipped := range config.SkippedDirs {
+				if dirName == skipped {
+					return filepath.SkipDir
+				}
+			}
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".tf" {
 			file, diags := parser.ParseHCLFile(path)
