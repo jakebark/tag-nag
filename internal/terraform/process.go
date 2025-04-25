@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/jakebark/tag-nag/internal/config"
 	"github.com/jakebark/tag-nag/internal/shared"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
@@ -86,7 +87,7 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 	content := string(data)
 	lines := strings.Split(content, "\n")
 
-	skipAll := strings.Contains(content, shared.TagNagIgnoreAll)
+	skipAll := strings.Contains(content, config.TagNagIgnoreAll)
 
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)

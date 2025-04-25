@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/jakebark/tag-nag/internal/config"
 	"github.com/jakebark/tag-nag/internal/shared"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
@@ -60,7 +61,7 @@ func mergeTags(tagMaps ...shared.TagMap) shared.TagMap {
 func SkipResource(block *hclsyntax.Block, lines []string) bool {
 	index := block.DefRange().Start.Line
 	if index < len(lines) {
-		if strings.Contains(lines[index], shared.TagNagIgnore) {
+		if strings.Contains(lines[index], config.TagNagIgnore) {
 			return true
 		}
 	}

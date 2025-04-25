@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jakebark/tag-nag/internal/config"
 	"github.com/jakebark/tag-nag/internal/shared"
 )
 
@@ -45,7 +46,7 @@ func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bo
 	content := string(data)
 	lines := strings.Split(content, "\n")
 
-	skipAll := strings.Contains(content, shared.TagNagIgnoreAll)
+	skipAll := strings.Contains(content, config.TagNagIgnoreAll)
 
 	root, err := parseYAML(filePath)
 	if err != nil {
