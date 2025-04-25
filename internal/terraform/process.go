@@ -35,8 +35,13 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		if err != nil {
 			return err
 		}
-		if info.IsDir() && (info.Name() == ".terraform" || info.Name() == ".git") { // todo shared const for dir skips
-			return filepath.SkipDir
+		if info.IsDir() {
+			dirName := info.Name()
+			for _, skipped := range config.SkippedDirs {
+				if dirName == skipped {
+					return filepath.SkipDir
+				}
+			}
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".tf" {
 			parser := hclparse.NewParser()
