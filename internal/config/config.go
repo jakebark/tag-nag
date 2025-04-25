@@ -10,6 +10,11 @@ const (
 	TagNagIgnoreAll = "#tag-nag ignore-all"
 )
 
+var SkippedDirs = []string{
+	".terraform",
+	".git",
+}
+
 // terraform functions
 // added manually, no reasonable workaround to auto-import all
 // https://developer.hashicorp.com/terraform/language/functions
