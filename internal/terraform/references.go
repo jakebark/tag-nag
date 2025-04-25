@@ -1,70 +1,144 @@
 package terraform
 
 import (
+	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
-	"github.com/jakebark/tag-nag/internal/shared"
+	"github.com/jakebark/tag-nag/internal/config"
 	"github.com/zclconf/go-cty/cty"
+	"github.com/zclconf/go-cty/cty/function"
 )
 
-// checkReferencedTags looks for locals and vars in the directory, then returns a map of them
-func checkReferencedTags(dirPath string) TagReferences {
-	referencedTags := make(TagReferences)
+func buildTagContext(dirPath string) (*TerraformContext, error) {
+	parsedFiles := make(map[string]*hcl.File)
+	parser := hclparse.NewParser()
 
-	_ = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() || filepath.Ext(path) != ".tf" {
-			return nil
+	// first pass, parse files
+	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
 		}
-
-		parser := hclparse.NewParser()
-		file, diags := parser.ParseHCLFile(path)
-		if diags.HasErrors() {
-			return nil
+		if info.IsDir() {
+			dirName := info.Name()
+			for _, skipped := range config.SkippedDirs {
+				if dirName == skipped {
+					return filepath.SkipDir
+				}
+			}
 		}
-
-		syntaxBody, ok := file.Body.(*hclsyntax.Body)
-		if !ok {
-			return nil
-		}
-
-		for _, block := range syntaxBody.Blocks {
-			if block.Type == "locals" {
-				extractLocals(block, referencedTags)
-			} else if block.Type == "variable" {
-				extractVariables(block, referencedTags)
+		if !info.IsDir() && filepath.Ext(path) == ".tf" {
+			file, diags := parser.ParseHCLFile(path)
+			if diags.HasErrors() {
+				log.Printf("Error parsing HCL file %s: %v\n", path, diags)
+			}
+			if file != nil {
+				parsedFiles[path] = file
 			}
 		}
 		return nil
 	})
-
-	return referencedTags
-}
-
-// extractLocals extracts hcl tag maps from locals (using extractTags) and appends them to the defaultTags struct (defaultTags.referencedTags)
-func extractLocals(block *hclsyntax.Block, referencedTags TagReferences) {
-	for name, attr := range block.Body.Attributes {
-		if v, diags := attr.Expr.Value(nil); !diags.HasErrors() && v.Type().Equals(cty.String) {
-			referencedTags["local."+name] = shared.TagMap{"_": {v.AsString()}}
-		} else {
-			tags := extractTags(attr, false)
-			referencedTags["local."+name] = tags
-		}
+	if err != nil {
+		return nil, fmt.Errorf("error walking directory %s: %w", dirPath, err)
 	}
-}
 
-// extractVariables extracts hcl tag maps from vars (using extractTags) and appends them to the defaultTags struct (defaultTags.referencedTags)
-func extractVariables(block *hclsyntax.Block, referencedTags TagReferences) {
-	if len(block.Labels) > 0 {
-		if attr, ok := block.Body.Attributes["default"]; ok {
-			if v, diags := attr.Expr.Value(nil); !diags.HasErrors() && v.Type().Equals(cty.String) {
-				referencedTags["var."+block.Labels[0]] = shared.TagMap{"_": {v.AsString()}}
-			} else {
-				tags := extractTags(attr, false)
-				referencedTags["var."+block.Labels[0]] = tags
+	if len(parsedFiles) == 0 {
+		log.Println("No Terraform files (.tf) found to build context.")
+		return &TerraformContext{
+			EvalContext: &hcl.EvalContext{
+				Variables: make(map[string]cty.Value),
+				Functions: make(map[string]function.Function),
+			},
+		}, nil
+	}
+
+	// second pass, evaluate vars
+	tfVars := make(map[string]cty.Value)
+	for _, file := range parsedFiles {
+		body, ok := file.Body.(*hclsyntax.Body)
+		if !ok {
+			continue
+		}
+
+		for _, block := range body.Blocks {
+			if block.Type == "variable" && len(block.Labels) > 0 {
+				varName := block.Labels[0]
+				if defaultAttr, exists := block.Body.Attributes["default"]; exists {
+					val, diags := defaultAttr.Expr.Value(nil)
+					if diags.HasErrors() {
+						log.Printf("Error evaluating default for variable %q: %v", varName, diags)
+						val = cty.NullVal(cty.DynamicPseudoType)
+					}
+					tfVars[varName] = val
+				} else {
+					tfVars[varName] = cty.NullVal(cty.DynamicPseudoType)
+				}
 			}
 		}
 	}
+
+	// 3rd pass, evaluate locals
+	tfLocals := make(map[string]cty.Value)
+	localsDefs := make(map[string]hcl.Expression)
+
+	for _, file := range parsedFiles {
+		body, ok := file.Body.(*hclsyntax.Body)
+		if !ok {
+			continue
+		}
+		for _, block := range body.Blocks {
+			if block.Type == "locals" {
+				for name, attr := range block.Body.Attributes {
+					localsDefs[name] = attr.Expr
+				}
+			}
+		}
+	}
+
+	evalCtxForLocals := &hcl.EvalContext{
+		Variables: map[string]cty.Value{"var": cty.ObjectVal(tfVars)},
+		Functions: config.StdlibFuncs,
+	}
+	evalCtxForLocals.Variables["local"] = cty.NullVal(cty.DynamicPseudoType) // Placeholder for local
+
+	const maxLocalPasses = 10
+	evaluatedCount := 0
+	for pass := 0; pass < maxLocalPasses && evaluatedCount < len(localsDefs); pass++ {
+		madeProgress := false
+
+		evalCtxForLocals.Variables["local"] = cty.ObjectVal(tfLocals)
+
+		for name, expr := range localsDefs {
+			if _, exists := tfLocals[name]; exists {
+				continue
+			}
+
+			val, diags := expr.Value(evalCtxForLocals)
+			if !diags.HasErrors() {
+				tfLocals[name] = val
+				evaluatedCount++
+				madeProgress = true
+			}
+
+		}
+		if !madeProgress && evaluatedCount < len(localsDefs) {
+			log.Printf("Warning: Could not resolve all locals dependencies after %d passes.", pass+1)
+
+			break
+		}
+	}
+
+	finalCtx := &hcl.EvalContext{
+		Variables: map[string]cty.Value{
+			"var":   cty.ObjectVal(tfVars),
+			"local": cty.ObjectVal(tfLocals),
+		},
+		Functions: config.StdlibFuncs,
+	}
+
+	return &TerraformContext{EvalContext: finalCtx}, nil
 }

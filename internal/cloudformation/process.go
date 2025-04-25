@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jakebark/tag-nag/internal/config"
 	"github.com/jakebark/tag-nag/internal/shared"
 )
 
@@ -19,6 +20,16 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 			log.Printf("Error accessing %q: %v\n", path, err)
 			return err
 		}
+
+		if info.IsDir() {
+			dirName := info.Name()
+			for _, skipped := range config.SkippedDirs {
+				if dirName == skipped {
+					return filepath.SkipDir
+				}
+			}
+		}
+
 		if !info.IsDir() && (filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".json") {
 			violations, processErr := processFile(path, requiredTags, caseInsensitive)
 			if processErr != nil {
@@ -39,13 +50,13 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool) ([]Violation, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		fmt.Printf("Error reading %s: %v\n", filePath, err)
+		log.Printf("Error reading %s: %v\n", filePath, err)
 		return nil, fmt.Errorf("reading file %s: %w", filePath, err)
 	}
 	content := string(data)
 	lines := strings.Split(content, "\n")
 
-	skipAll := strings.Contains(content, shared.TagNagIgnoreAll)
+	skipAll := strings.Contains(content, config.TagNagIgnoreAll)
 
 	root, err := parseYAML(filePath)
 	if err != nil {
@@ -55,6 +66,7 @@ func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bo
 	// search root node for resources node
 	resourcesMapping := mapNodes(findMapNode(root, "Resources"))
 	if resourcesMapping == nil {
+		log.Printf("No 'Resources' section found in %s\n", filePath)
 		return []Violation{}, nil
 	}
 

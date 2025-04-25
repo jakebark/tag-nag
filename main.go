@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	log.SetFlags(0)
+	log.SetFlags(0) // remove timestamp from prints
 
 	userInput := inputs.ParseFlags()
 

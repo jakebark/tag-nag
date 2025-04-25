@@ -7,50 +7,78 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/jakebark/tag-nag/internal/config"
 	"github.com/jakebark/tag-nag/internal/shared"
+	"github.com/zclconf/go-cty/cty"
+	"github.com/zclconf/go-cty/cty/function"
 )
 
 // ProcessDirectory walks all terraform files in directory
 func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
 	var totalViolations int
-	defaultTags := DefaultTags{
-		LiteralTags:    make(TagReferences),
-		ReferencedTags: checkReferencedTags(dirPath),
+
+	tfCtx, err := buildTagContext(dirPath)
+	if err != nil {
+		tfCtx = &TerraformContext{EvalContext: &hcl.EvalContext{Variables: make(map[string]cty.Value), Functions: make(map[string]function.Function)}}
 	}
 
-	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+	defaultTags := DefaultTags{
+		LiteralTags: make(map[string]shared.TagMap),
+	}
+
+	// first pass, default tags
+	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			log.Printf("Error accessing %q: %v\n", path, err)
 			return err
 		}
-		if info.IsDir() && info.Name() == ".terraform" {
-			return filepath.SkipDir
+		if info.IsDir() {
+			dirName := info.Name()
+			for _, skipped := range config.SkippedDirs {
+				if dirName == skipped {
+					return filepath.SkipDir
+				}
+			}
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".tf" {
-			processProvider(path, &defaultTags, caseInsensitive)
+			parser := hclparse.NewParser()
+			file, diags := parser.ParseHCLFile(path)
+			if diags.HasErrors() || file == nil {
+				log.Printf("Error parsing %s during default tag scan: %v\n", path, diags)
+				return nil
+			}
+			syntaxBody, ok := file.Body.(*hclsyntax.Body)
+			if !ok {
+				log.Printf("Failed to get syntax body for %s\n", path)
+				return nil // Continue walking
+			}
+			processProviderBlocks(syntaxBody, &defaultTags, tfCtx, caseInsensitive)
 		}
 		return nil
 	})
-	if err != nil {
-		log.Printf("Error finding provider %q: %v\n", dirPath, err)
-	}
 
+	//  second pass, evaluate tags on resources
 	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			log.Printf("Error accessing path %q: %v\n", path, err)
 			return err
 		}
-		if info.IsDir() && info.Name() == ".terraform" {
-			return filepath.SkipDir
+		if info.IsDir() {
+			dirName := info.Name()
+			for _, skipped := range config.SkippedDirs {
+				if dirName == skipped {
+					return filepath.SkipDir
+				}
+			}
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".tf" {
-			violations := processFile(path, requiredTags, &defaultTags, caseInsensitive)
+			violations := processFile(path, requiredTags, &defaultTags, tfCtx, caseInsensitive)
 			totalViolations += len(violations)
 		}
 		return nil
 	})
+
 	if err != nil {
 		log.Printf("Error scanning directory %q: %v\n", dirPath, err)
 	}
@@ -58,25 +86,8 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 	return totalViolations
 }
 
-// processProvider parses files looking for providers
-func processProvider(filePath string, defaultTags *DefaultTags, caseInsensitive bool) {
-	parser := hclparse.NewParser()
-	file, diagnostics := parser.ParseHCLFile(filePath)
-
-	if diagnostics.HasErrors() {
-		log.Printf("Error parsing %s: %v\n", filePath, diagnostics)
-		return
-	}
-	syntaxBody, ok := file.Body.(*hclsyntax.Body)
-	if !ok {
-		log.Printf("Failed to parse provider HCL %s\n", filePath)
-		return
-	}
-	processProviderBlocks(syntaxBody, defaultTags, caseInsensitive)
-}
-
 // processFile parses files looking for resources
-func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, caseInsensitive bool) []Violation {
+func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool) []Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Printf("Error reading %s: %v\n", filePath, err)
@@ -85,7 +96,7 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 	content := string(data)
 	lines := strings.Split(content, "\n")
 
-	skipAll := strings.Contains(content, shared.TagNagIgnoreAll)
+	skipAll := strings.Contains(content, config.TagNagIgnoreAll)
 
 	parser := hclparse.NewParser()
 	file, diagnostics := parser.ParseHCLFile(filePath)
@@ -101,7 +112,7 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 		return nil
 	}
 
-	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, caseInsensitive, lines, skipAll)
+	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, tfCtx, caseInsensitive, lines, skipAll)
 
 	if len(violations) > 0 {
 		log.Printf("\nViolation(s) in %s\n", filePath)
@@ -124,11 +135,11 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 }
 
 // processProviderBlocks extracts any default_tags from providers
-func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseInsensitive bool) {
+func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool) {
 	for _, block := range body.Blocks {
 		if block.Type == "provider" && len(block.Labels) > 0 {
 			providerID := getProviderID(block, caseInsensitive)
-			tags := checkForDefaultTags(block, defaultTags.ReferencedTags, caseInsensitive)
+			tags := checkForDefaultTags(block, tfCtx, caseInsensitive)
 
 			if len(tags) > 0 {
 				var keys []string
@@ -136,10 +147,8 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, caseI
 					keys = append(keys, key) // remove bool element of tag map
 				}
 				fmt.Printf("Found Terraform default tags for provider %s: [%v]\n", providerID, strings.Join(keys, ", "))
-
-			}
-			if tags != nil {
 				defaultTags.LiteralTags[providerID] = tags
+
 			}
 		}
 	}
