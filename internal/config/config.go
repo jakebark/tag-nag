@@ -15,7 +15,7 @@ var SkippedDirs = []string{
 	".git",
 }
 
-// terraform functions
+// terraform functions, used when evaluating context of locals and vars
 // added manually, no reasonable workaround to auto-import all
 // https://developer.hashicorp.com/terraform/language/functions
 // https://pkg.go.dev/github.com/zclconf/go-cty@v1.16.2/cty/function/stdlib
