@@ -20,6 +20,16 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 			log.Printf("Error accessing %q: %v\n", path, err)
 			return err
 		}
+
+		if info.IsDir() {
+			dirName := info.Name()
+			for _, skipped := range config.SkippedDirs {
+				if dirName == skipped {
+					return filepath.SkipDir
+				}
+			}
+		}
+
 		if !info.IsDir() && (filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".json") {
 			violations, processErr := processFile(path, requiredTags, caseInsensitive)
 			if processErr != nil {
