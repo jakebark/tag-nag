@@ -27,6 +27,8 @@ var StdlibFuncs = map[string]function.Function{
 	"regex":      stdlib.RegexFunc,
 	"regexall":   stdlib.RegexAllFunc,
 	"slice":      stdlib.SliceFunc,
+	"split":      stdlib.SplitFunc,
+	"sort":       stdlib.SortFunc,
 	"trim":       stdlib.TrimFunc,
 	"trimprefix": stdlib.TrimPrefixFunc,
 	"trimspace":  stdlib.TrimSpaceFunc,
