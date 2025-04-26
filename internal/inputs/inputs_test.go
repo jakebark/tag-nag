@@ -7,6 +7,103 @@ import (
 	"github.com/jakebark/tag-nag/internal/shared"
 )
 
+func testParseTags(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected shared.TagMap
+	}{
+		{
+			name:  "key",
+			input: "Owner",
+			expected: shared.TagMap{
+				"Owner": {},
+			},
+		},
+		{
+			name:  "multiple keys",
+			input: "Owner, Environment , Project",
+			expected: shared.TagMap{
+				"Owner":       {},
+				"Environment": {},
+				"Project":     {},
+			},
+		},
+		{
+			name:  "mixed keys and values",
+			input: "Owner[jake], Environment[Dev,Prod], CostCenter",
+			expected: shared.TagMap{
+				"Owner":       {"jake"},
+				"Environment": {"Dev", "Prod"},
+				"CostCenter":  {},
+			},
+		},
+		{
+			name:  "legacy value input",
+			input: "Env=dev, Owner[jake]",
+			expected: shared.TagMap{
+				"Env":   {"dev"},
+				"Owner": {"jake"},
+			},
+		},
+		{
+			name:     "empty",
+			input:    "",
+			expected: shared.TagMap{},
+		},
+		{
+			name:     "whitespace",
+			input:    "  ,   ",
+			expected: shared.TagMap{},
+		},
+		{
+			name:  "mixed keys and values, with whitespace",
+			input: " Owner ,  Environment[Dev, Prod] ",
+			expected: shared.TagMap{
+				"Owner":       {},
+				"Environment": {"Dev", "Prod"},
+			},
+		},
+		{
+			name:  "leading comma",
+			input: ",Owner",
+			expected: shared.TagMap{
+				"Owner": {},
+			},
+		},
+		{
+			name:  "missing value",
+			input: "Env[]",
+			expected: shared.TagMap{
+				"Env": {}, // No values extracted
+			},
+		},
+		{
+			name:  "missing value, other values present",
+			input: "Env[Dev,,Prod]",
+			expected: shared.TagMap{
+				"Env": {"Dev", "Prod"},
+			},
+		},
+		{
+			name:  "whitespace preserved",
+			input: "Owner[it belongs to me]",
+			expected: shared.TagMap{
+				"Owner": {"it belongs to me"},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := parseTags(tc.input)
+			if !reflect.DeepEqual(actual, tc.expected) {
+				t.Errorf("parseTags(%q) = %v; want %v", tc.input, actual, tc.expected)
+			}
+		})
+	}
+}
+
 func testSplitTags(t *testing.T) {
 	testCases := []struct {
 		name     string
