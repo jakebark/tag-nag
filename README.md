@@ -50,7 +50,7 @@ tag-nag main.tf --tags "Owner[Jake],Environment[Dev,Prod]" # multiple options fo
 Optional flags 
 ```bash
 -c # case-insensitive 
--d # dry-run (doesnt trigger exit code 1)
+-d # dry-run (will always exit successfully)
 ```
 
 ## Skip Checks
