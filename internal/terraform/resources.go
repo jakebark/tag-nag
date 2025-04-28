@@ -84,7 +84,16 @@ func findTags(block *hclsyntax.Block, tfCtx *TerraformContext, caseInsensitive b
 	evalTags := make(shared.TagMap)
 	if attr, exists := block.Body.Attributes["tags"]; exists {
 
-		tagsVal, diags := attr.Expr.Value(tfCtx.EvalContext)
+		childCtx := tfCtx.EvalContext.NewChild()
+		if childCtx.Variables == nil {
+			childCtx.Variables = make(map[string]cty.Value)
+		}
+		childCtx.Variables["each"] = cty.ObjectVal(map[string]cty.Value{
+			"key":   cty.StringVal(""),
+			"value": cty.StringVal(""),
+		})
+		tagsVal, diags := attr.Expr.Value(childCtx)
+
 		if diags.HasErrors() {
 			log.Printf("Error evaluating tags for resource %s.%s: %v", block.Labels[0], block.Labels[1], diags)
 			return evalTags
