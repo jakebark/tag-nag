@@ -107,9 +107,13 @@ func convertCtyValueToString(val cty.Value) (string, error) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // loadTaggableResources calls the Terraform JSON schema and returns a set of all resources that are taggable
 =======
 >>>>>>> add loadTaggableResource
+=======
+// loadTaggableResources calls the Terraform JSON schema and returns a set of all resources that are taggable
+>>>>>>> comments for loading taggable
 func loadTaggableResources(providerAddr string) map[string]bool {
 	out, err := exec.Command(
 		"terraform", "providers", "schema", "-json",
