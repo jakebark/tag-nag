@@ -1,7 +1,3 @@
-<div align="center">
-<img alt="tag:nag" height="200" src="./img/tag.png" />
-</div>
-
 # tag-nag
 
 <img src="./img/demo.gif" width="650">
@@ -81,3 +77,7 @@ EC2Instance:  #tag-nag ignore
 ## Related Resources
 
 - [pkg.go.dev/github.com/jakebark/tag-nag](https://pkg.go.dev/github.com/jakebark/tag-nag)
+
+<div align="center">
+<img alt="tag:nag" height="200" src="./img/tag.png" />
+</div>
