@@ -25,7 +25,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, def
 			continue
 		}
 
-		if taggable != nil && !taggable[resourceType] {
+		if taggable == nil && !taggable[resourceType] {
 			continue
 		}
 
