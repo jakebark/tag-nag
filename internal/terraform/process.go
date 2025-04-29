@@ -20,6 +20,11 @@ import (
 func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
 	var totalViolations int
 
+	taggable := loadTaggableResources("registry.terraform.io/hashicorp/aws")
+	if taggable == nil {
+		log.Printf("failed to load terraform AWS provider schema and identify taggable resources, continuing ...")
+	}
+
 	tfCtx, err := buildTagContext(dirPath)
 	if err != nil {
 		tfCtx = &TerraformContext{EvalContext: &hcl.EvalContext{Variables: make(map[string]cty.Value), Functions: make(map[string]function.Function)}}
@@ -73,7 +78,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 			}
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".tf" {
-			violations := processFile(path, requiredTags, &defaultTags, tfCtx, caseInsensitive)
+			violations := processFile(path, requiredTags, &defaultTags, tfCtx, caseInsensitive, taggable)
 			totalViolations += len(violations)
 		}
 		return nil
@@ -87,7 +92,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 }
 
 // processFile parses files looking for resources
-func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool) []Violation {
+func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, taggable map[string]bool) []Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Printf("Error reading %s: %v\n", filePath, err)
@@ -112,7 +117,7 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 		return nil
 	}
 
-	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, tfCtx, caseInsensitive, lines, skipAll)
+	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, tfCtx, caseInsensitive, lines, skipAll, taggable)
 
 	if len(violations) > 0 {
 		log.Printf("\nViolation(s) in %s\n", filePath)

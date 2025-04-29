@@ -10,7 +10,7 @@ import (
 )
 
 // checkResourcesForTags inspects resource blocks and returns violations
-func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
+func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, fileLines []string, skipAll bool, taggable map[string]bool) []Violation {
 	var violations []Violation
 
 	for _, block := range body.Blocks {
