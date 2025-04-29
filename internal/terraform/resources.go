@@ -42,6 +42,10 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, def
 			continue
 		}
 
+		if taggable != nil && !taggable[resourceType] {
+			continue
+		}
+
 		providerID := getResourceProvider(block, caseInsensitive)
 		providerEvalTags := defaultTags.LiteralTags[providerID]
 		if providerEvalTags == nil {
