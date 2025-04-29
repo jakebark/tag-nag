@@ -106,14 +106,7 @@ func convertCtyValueToString(val cty.Value) (string, error) {
 	}
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // loadTaggableResources calls the Terraform JSON schema and returns a set of all resources that are taggable
-=======
->>>>>>> add loadTaggableResource
-=======
-// loadTaggableResources calls the Terraform JSON schema and returns a set of all resources that are taggable
->>>>>>> comments for loading taggable
 func loadTaggableResources(providerAddr string) map[string]bool {
 	out, err := exec.Command(
 		"terraform", "providers", "schema", "-json",
@@ -134,11 +127,7 @@ func loadTaggableResources(providerAddr string) map[string]bool {
 		} `json:"provider_schemas"`
 	}
 	if err := json.Unmarshal(out, &s); err != nil {
-<<<<<<< HEAD
 		log.Fatalf("failed to parse schema JSON: %v", err)
-=======
-		log.Printf("‼️ failed to parse schema JSON: %v", err)
->>>>>>> add loadTaggableResource
 		return nil
 	}
 
@@ -147,7 +136,6 @@ func loadTaggableResources(providerAddr string) map[string]bool {
 		for resType, schema := range ps.ResourceSchemas {
 			if _, has := schema.Block.Attributes["tags"]; has {
 				taggable[resType] = true
-<<<<<<< HEAD
 			} else { //
 				taggable[resType] = false
 			}
@@ -156,10 +144,5 @@ func loadTaggableResources(providerAddr string) map[string]bool {
 		return nil
 	}
 
-=======
-			}
-		}
-	}
->>>>>>> add loadTaggableResource
 	return taggable
 }
