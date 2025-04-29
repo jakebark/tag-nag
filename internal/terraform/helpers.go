@@ -127,7 +127,7 @@ func loadTaggableResources(providerAddr string) map[string]bool {
 		} `json:"provider_schemas"`
 	}
 	if err := json.Unmarshal(out, &s); err != nil {
-		log.Printf("‼️ failed to parse schema JSON: %v", err)
+		log.Printf("failed to parse schema JSON: %v", err)
 		return nil
 	}
 
