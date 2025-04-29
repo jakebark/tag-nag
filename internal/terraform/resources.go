@@ -25,7 +25,19 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, def
 			continue
 		}
 
-		if taggable == nil && !taggable[resourceType] {
+		isTaggable := true // assume resource is taggable, by default
+		if taggable != nil {
+			var found bool
+			isTaggable, found = taggable[resourceType]
+			if !found {
+				isTaggable = true // if not found, assume resource is taggable
+				// isTaggable = false
+				// log.Printf("Warning: Resource type %s not found in provider schema. Assuming not taggable.", resourceType) //todo
+			}
+		}
+
+		if !isTaggable {
+			log.Printf("Skipping non-taggable resource type: %s", resourceType)
 			continue
 		}
 
