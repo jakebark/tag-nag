@@ -3,6 +3,8 @@ package terraform
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os/exec"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
@@ -102,4 +104,39 @@ func convertCtyValueToString(val cty.Value) (string, error) {
 	default:
 		return fmt.Sprintf("%v", val), nil // Best effort
 	}
+}
+
+func loadTaggableResources(providerAddr string) map[string]bool {
+	out, err := exec.Command(
+		"terraform", "providers", "schema", "-json",
+	).Output()
+	if err != nil {
+		log.Printf("failed to load AWS terraform provider schema: %v", err)
+		return nil
+	}
+
+	// unmarshall what we need
+	var s struct {
+		ProviderSchemas map[string]struct {
+			ResourceSchemas map[string]struct {
+				Block struct {
+					Attributes map[string]json.RawMessage `json:"attributes"`
+				} `json:"block"`
+			} `json:"resource_schemas"`
+		} `json:"provider_schemas"`
+	}
+	if err := json.Unmarshal(out, &s); err != nil {
+		log.Printf("‼️ failed to parse schema JSON: %v", err)
+		return nil
+	}
+
+	taggable := make(map[string]bool)
+	if ps, ok := s.ProviderSchemas[providerAddr]; ok {
+		for resType, schema := range ps.ResourceSchemas {
+			if _, has := schema.Block.Attributes["tags"]; has {
+				taggable[resType] = true
+			}
+		}
+	}
+	return taggable
 }
