@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-// CheckForTerraformFiles checks if any .tf files exist in the directory
+// scan looks for tf files
 func scan(dirPath string) (bool, error) {
 	found := false
 	targetExt := ".tf"
