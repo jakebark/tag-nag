@@ -21,7 +21,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		return 0
 	}
 
-	log.Println("Cfn files found")
+	log.Println("Cfn files found\n")
 	var totalViolations int
 
 	walkErr := filepath.Walk(dirPath, func(path string, info os.FileInfo, walkErr error) error {
