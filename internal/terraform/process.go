@@ -20,14 +20,13 @@ import (
 func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
 	hasFiles, err := scan(dirPath)
 	if err != nil {
-		log.Printf("Aborting Terraform scan due to error during file discovery: %v", err)
 		return 0
 	}
 	if !hasFiles {
-		log.Println("No Terraform files (.tf) found, skipping Terraform checks.")
 		return 0
 	}
 
+	log.Println("Terraform files found.")
 	var totalViolations int
 
 	taggable := loadTaggableResources("registry.terraform.io/hashicorp/aws")
