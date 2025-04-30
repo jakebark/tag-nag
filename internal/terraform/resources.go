@@ -13,6 +13,11 @@ import (
 func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, fileLines []string, skipAll bool, taggable map[string]bool) []Violation {
 	var violations []Violation
 
+	log.Printf("DEBUG: Entering checkResourcesForTags. Taggable map is nil: %t", taggable == nil) // <-- Add print statement
+	if taggable != nil {
+		log.Printf("DEBUG: Taggable map has %d entries.", len(taggable)) // <-- Add print statement
+	}
+
 	for _, block := range body.Blocks {
 		if block.Type != "resource" || len(block.Labels) < 2 { // skip anything without 2 labels eg "aws_s3_bucket" and "this"
 			continue
@@ -20,6 +25,8 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, def
 
 		resourceType := block.Labels[0] // aws_s3_bucket
 		resourceName := block.Labels[1] // this
+
+		log.Printf("DEBUG: Checking resource: %s \"%s\"", resourceType, resourceName)
 
 		if !strings.HasPrefix(resourceType, "aws_") {
 			continue
@@ -29,8 +36,10 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, def
 		if taggable != nil {
 			var found bool
 			isTaggable, found = taggable[resourceType]
+			log.Printf("DEBUG: Checking taggability for %s: Found in map: %t, Is Taggable: %t", resourceType, found, isTaggable)
 			if !found {
 				isTaggable = true // if not found, assume resource is taggable
+				log.Printf("DEBUG: Resource type %s not found in schema, assuming taggable.", resourceType)
 				// isTaggable = false
 				// log.Printf("Warning: Resource type %s not found in provider schema. Assuming not taggable.", resourceType) //todo
 			}
