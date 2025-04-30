@@ -26,7 +26,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		return 0
 	}
 
-	log.Println("Terraform files found\n")
+	// log.Println("Terraform files found\n")
 	var totalViolations int
 
 	taggable := loadTaggableResources("registry.terraform.io/hashicorp/aws")
