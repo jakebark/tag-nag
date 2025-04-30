@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
-	"sort"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
