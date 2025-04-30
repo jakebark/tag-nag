@@ -19,7 +19,7 @@ func scan(dirPath string) (bool, error) {
 		if !d.IsDir() {
 			if filepath.Ext(path) == targetExt {
 				found = true
-				return fs.ErrNotExist
+				return fs.ErrNotExist // stop scan immediately
 			}
 		}
 		return nil
