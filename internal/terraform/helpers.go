@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"sort"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
@@ -108,6 +109,7 @@ func convertCtyValueToString(val cty.Value) (string, error) {
 
 // loadTaggableResources calls the Terraform JSON schema and returns a set of all resources that are taggable
 func loadTaggableResources(providerAddr string) map[string]bool {
+	log.Println("DEBUG: load provider schema")
 	out, err := exec.Command(
 		"terraform", "providers", "schema", "-json",
 	).Output()
@@ -115,6 +117,7 @@ func loadTaggableResources(providerAddr string) map[string]bool {
 		log.Fatalf("failed to load AWS terraform provider schema: %v", err)
 		return nil
 	}
+	log.Println("DEBUG: Successfully executed 'terraform providers schema -json'.")
 
 	// unmarshall what we need
 	var s struct {
@@ -130,14 +133,43 @@ func loadTaggableResources(providerAddr string) map[string]bool {
 		log.Fatalf("failed to parse schema JSON: %v", err)
 		return nil
 	}
+	log.Println("DEBUG: Successfully parsed schema JSON.")
 
 	taggable := make(map[string]bool)
 	if ps, ok := s.ProviderSchemas[providerAddr]; ok {
+		log.Printf("DEBUG: Found provider schema for: %s", providerAddr)
 		for resType, schema := range ps.ResourceSchemas {
 			if _, has := schema.Block.Attributes["tags"]; has {
 				taggable[resType] = true
+			} else { //
+				taggable[resType] = false
 			}
 		}
+	} else {
+		log.Printf("DEBUG: Provider schema not found for: %s", providerAddr)
+		return nil
 	}
+	log.Printf("Generated taggable map (Size: %d):", len(taggable))
+	keys := make([]string, 0, len(taggable))
+	for k := range taggable {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys) // Sort for consistent output
+	// Limit printing if the map is very large
+	limit := 200 // Print details for up to 200 resource types
+	for i, k := range keys {
+		if i < limit || k == "aws_kms_alias" || k == "aws_kms_key" { // Always print kms_alias/key if present
+			log.Printf("  - %s: %t", k, taggable[k])
+		} else if i == limit {
+			log.Printf("  ... (output truncated)")
+			break
+		}
+	}
+	if isKmsAliasTaggable, ok := taggable["aws_kms_alias"]; ok {
+		log.Printf("DEBUG: 'aws_kms_alias' found in taggable map, value: %t", isKmsAliasTaggable)
+	} else {
+		log.Printf("DEBUG: 'aws_kms_alias' NOT found in taggable map.")
+	}
+
 	return taggable
 }
