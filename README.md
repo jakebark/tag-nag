@@ -21,7 +21,7 @@ docker run --rm -v $(pwd):/workspace jakebark/tag-nag --tags "Owner,Environment"
 
 ## Commands
 
-Tag nag will search a file or directory for tag keys. Directory search is recursive.
+Tag-nag will search a file or directory for tag keys. Directory search is recursive.
 
 ```bash
 tag-nag <file/directory> --tags "<tagKey1>,<tagKeyN>"
@@ -72,12 +72,16 @@ EC2Instance:  #tag-nag ignore
       InstanceType: c1.xlarge   
 ```
 
+## Terraform 
 
+Tag-nag works best against an initialised directory (`terraform init`).
+
+This enables tag-nag to filter out untaggable Terraform resources (eg AWS KMS key aliases).  
 
 ## Related Resources
 
 - [pkg.go.dev/github.com/jakebark/tag-nag](https://pkg.go.dev/github.com/jakebark/tag-nag)
 
 <div align="center">
-<img alt="tag:nag" height="200" src="./img/tag.png" />
+<img alt="tag:nag" height="150" src="./img/tag.png" />
 </div>
