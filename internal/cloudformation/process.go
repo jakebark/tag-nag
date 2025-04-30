@@ -13,12 +13,20 @@ import (
 
 // ProcessDirectory walks all cfn files in a directory, then returns violations
 func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
+	hasFiles, err := scan(dirPath)
+	if err != nil {
+		return 0
+	}
+	if !hasFiles {
+		return 0
+	}
+
 	var totalViolations int
 
-	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Printf("Error accessing %q: %v\n", path, err)
-			return err
+	walkErr := filepath.Walk(dirPath, func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			log.Printf("Error accessing %q: %v\n", path, walkErr)
+			return walkErr
 		}
 
 		if info.IsDir() {
@@ -40,8 +48,8 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		}
 		return nil
 	})
-	if err != nil {
-		log.Printf("Error scanning directory %s: %v\n", dirPath, err)
+	if walkErr != nil {
+		log.Printf("Error scanning directory %s: %v\n", dirPath, walkErr)
 	}
 	return totalViolations
 }
