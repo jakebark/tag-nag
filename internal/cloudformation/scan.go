@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-// scan looks for cfn files
+// scan checks if any cfn files exist in the directory
 func scan(dirPath string) (bool, error) {
 	found := false
 	targetExts := map[string]bool{
