@@ -17,7 +17,7 @@ import (
 )
 
 // ProcessDirectory walks all terraform files in directory
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string) int {
 	hasFiles, err := scan(dirPath)
 	if err != nil {
 		return 0
