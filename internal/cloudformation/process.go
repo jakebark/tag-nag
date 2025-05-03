@@ -24,6 +24,18 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 	log.Println("CloudFormation files found\n")
 	var totalViolations int
 
+	var taggable map[string]bool
+	if specFilePath != "" {
+		var loadSpecErr error
+		taggable, loadSpecErr = loadTaggableResourcesFromSpec(specFilePath)
+		if loadSpecErr != nil {
+			log.Printf("Warning: Could not load or parse --cfn-spec file '%s': %v.", specFilePath, loadSpecErr)
+			taggable = nil
+		} else {
+			log.Println("Parsing CloudFormation spec file.")
+		}
+	}
+
 	walkErr := filepath.Walk(dirPath, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			log.Printf("Error accessing %q: %v\n", path, walkErr)
@@ -40,7 +52,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		}
 
 		if !info.IsDir() && (filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".json") {
-			violations, processErr := processFile(path, requiredTags, caseInsensitive)
+			violations, processErr := processFile(path, requiredTags, caseInsensitive, taggable)
 			if processErr != nil {
 				log.Printf("Error processing file %s: %v\n", path, processErr)
 				return nil // Example: Continue walking
