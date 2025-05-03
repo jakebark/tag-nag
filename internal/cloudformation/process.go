@@ -68,7 +68,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 }
 
 // processFile parses files and maps the cfn nodes
-func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool) ([]Violation, error) {
+func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool, taggable map[string]bool) ([]Violation, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Printf("Error reading %s: %v\n", filePath, err)
@@ -91,7 +91,7 @@ func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bo
 		return []Violation{}, nil
 	}
 
-	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll)
+	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll, taggable)
 
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
