@@ -21,7 +21,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		return 0
 	}
 
-	log.Println("CloudFormation files found\n")
+	// log.Println("\nCloudFormation files found")
 	var totalViolations int
 
 	var taggable map[string]bool
