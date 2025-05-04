@@ -17,7 +17,7 @@ import (
 )
 
 // ProcessDirectory walks all terraform files in directory
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string) int {
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
 	hasFiles, err := scan(dirPath)
 	if err != nil {
 		return 0
@@ -26,7 +26,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		return 0
 	}
 
-	log.Println("Terraform files found\n")
+	// log.Println("Terraform files found\n")
 	var totalViolations int
 
 	taggable := loadTaggableResources("registry.terraform.io/hashicorp/aws")
