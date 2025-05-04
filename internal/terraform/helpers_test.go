@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jakebark/tag-nag/internal/shared"
+	"github.com/zclconf/go-cty/cty"
 )
 
 func testTraversalToString(t *testing.T) {
@@ -106,6 +107,78 @@ func testMergeTags(t *testing.T) {
 			actual := mergeTags(tc.inputs...)
 			if !reflect.DeepEqual(actual, tc.expected) {
 				t.Errorf("mergeTags() = %v; want %v", actual, tc.expected)
+			}
+		})
+	}
+}
+
+func testConvertCtyValueToString(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   cty.Value
+		want    string
+		wantErr bool
+	}{
+		{
+			name:  "string",
+			input: cty.StringVal("hello world"),
+			want:  "hello world",
+		},
+		{
+			name:  "empty string",
+			input: cty.StringVal(""),
+			want:  "",
+		},
+		{
+			name:  "number",
+			input: cty.NumberIntVal(123),
+			want:  "123",
+		},
+		{
+			name:  "float",
+			input: cty.NumberFloatVal(123.45),
+			want:  "123.45",
+		},
+		{
+			name:  "bool, true",
+			input: cty.True,
+			want:  "true",
+		},
+		{
+			name:  "bool, false",
+			input: cty.False,
+			want:  "false",
+		},
+		{
+			name:  "null",
+			input: cty.NullVal(cty.String),
+			want:  "",
+		},
+		{
+			name:    "unknown value",
+			input:   cty.UnknownVal(cty.String),
+			wantErr: true,
+		},
+		{
+			name:  "list",
+			input: cty.ListVal([]cty.Value{cty.StringVal("a"), cty.StringVal("b")}),
+			want:  `["a","b"]`,
+		},
+		{
+			name:  "map",
+			input: cty.MapVal(map[string]cty.Value{"key": cty.StringVal("value")}),
+			want:  `{"key":"value"}`,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := convertCtyValueToString(tc.input)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("convertCtyValueToString() error = %v, wantErr %v", err, tc.wantErr)
+			}
+			if !tc.wantErr && got != tc.want {
+				t.Errorf("convertCtyValueToString() = %v, want %v", got, tc.want)
 			}
 		})
 	}
