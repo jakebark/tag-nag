@@ -49,6 +49,11 @@ Optional flags
 -d # dry-run (will always exit successfully)
 ```
 
+Optional inputs
+```bash
+--cfn-spec ~/path/to/CloudFormationResourceSpecification.json # path to Cfn spec file, filters taggable resources
+```
+
 ## Skip Checks
 Skip file
 ```hcl
@@ -72,11 +77,13 @@ EC2Instance:  #tag-nag ignore
       InstanceType: c1.xlarge   
 ```
 
-## Terraform 
+## Filtering taggable resources
 
-Tag-nag works best against an initialised directory (`terraform init`).
+Some resources cannot be tagged (eg [AWS KMS key aliases](https://docs.aws.amazon.com/kms/latest/developerguide/kms-alias.html)). 
 
-This enables tag-nag to filter out untaggable Terraform resources (eg AWS KMS key aliases).  
+To filter out these resources with Terraform, run tag-nag against an initialised directory (`terraform init`).
+
+To filter out these resources with CloudFormation, specify a path to the [CloudFormation JSON spec file](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-resource-specification.html) with the `--cfn-spec` input. 
 
 ## Related Resources
 
