@@ -10,7 +10,7 @@ import (
 )
 
 // getResourceViolations inspects resource blocks and returns violations
-func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags shared.TagMap, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
+func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags shared.TagMap, caseInsensitive bool, fileLines []string, skipAll bool, taggable map[string]bool) []Violation {
 	var violations []Violation
 
 	for resourceName, resourceNode := range resourcesMapping { // resourceNode == yaml node for resource
@@ -21,6 +21,13 @@ func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags 
 			continue
 		}
 		resourceType := typeNode.Value
+
+		if taggable != nil {
+			isTaggable, found := taggable[resourceType]
+			if found && !isTaggable {
+				continue
+			}
+		}
 
 		properties := make(map[string]interface{}) // tags are part of the properties  node
 		if propsNode, ok := resourceMapping["Properties"]; ok {

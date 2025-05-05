@@ -21,7 +21,7 @@ docker run --rm -v $(pwd):/workspace jakebark/tag-nag --tags "Owner,Environment"
 
 ## Commands
 
-Tag nag will search a file or directory for tag keys. Directory search is recursive.
+Tag-nag will search a file or directory for tag keys. Directory search is recursive.
 
 ```bash
 tag-nag <file/directory> --tags "<tagKey1>,<tagKeyN>"
@@ -49,6 +49,11 @@ Optional flags
 -d # dry-run (will always exit successfully)
 ```
 
+Optional inputs
+```bash
+--cfn-spec ~/path/to/CloudFormationResourceSpecification.json # path to Cfn spec file, filters taggable resources
+```
+
 ## Skip Checks
 Skip file
 ```hcl
@@ -72,12 +77,18 @@ EC2Instance:  #tag-nag ignore
       InstanceType: c1.xlarge   
 ```
 
+## Filtering taggable resources
 
+Some resources cannot be tagged (eg [AWS KMS key aliases](https://docs.aws.amazon.com/kms/latest/developerguide/kms-alias.html)). 
+
+To filter out these resources with Terraform, run tag-nag against an initialised directory (`terraform init`).
+
+To filter out these resources with CloudFormation, specify a path to the [CloudFormation JSON spec file](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-resource-specification.html) with the `--cfn-spec` input. 
 
 ## Related Resources
 
 - [pkg.go.dev/github.com/jakebark/tag-nag](https://pkg.go.dev/github.com/jakebark/tag-nag)
 
 <div align="center">
-<img alt="tag:nag" height="200" src="./img/tag.png" />
+<img alt="tag:nag" height="150" src="./img/tag.png" />
 </div>

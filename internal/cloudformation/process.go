@@ -12,13 +12,34 @@ import (
 )
 
 // ProcessDirectory walks all cfn files in a directory, then returns violations
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string) int {
+	hasFiles, err := scan(dirPath)
+	if err != nil {
+		return 0
+	}
+	if !hasFiles {
+		return 0
+	}
+
+	// log.Println("\nCloudFormation files found")
 	var totalViolations int
 
-	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Printf("Error accessing %q: %v\n", path, err)
-			return err
+	var taggable map[string]bool
+	if specFilePath != "" {
+		var loadSpecErr error
+		taggable, loadSpecErr = loadTaggableResourcesFromSpec(specFilePath)
+		if loadSpecErr != nil {
+			log.Printf("Warning: Could not load or parse --cfn-spec file '%s': %v.", specFilePath, loadSpecErr)
+			taggable = nil
+		} else {
+			// log.Println("Parsing CloudFormation spec file.")
+		}
+	}
+
+	walkErr := filepath.Walk(dirPath, func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			log.Printf("Error accessing %q: %v\n", path, walkErr)
+			return walkErr
 		}
 
 		if info.IsDir() {
@@ -31,7 +52,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		}
 
 		if !info.IsDir() && (filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".json") {
-			violations, processErr := processFile(path, requiredTags, caseInsensitive)
+			violations, processErr := processFile(path, requiredTags, caseInsensitive, taggable)
 			if processErr != nil {
 				log.Printf("Error processing file %s: %v\n", path, processErr)
 				return nil // Example: Continue walking
@@ -40,14 +61,14 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		}
 		return nil
 	})
-	if err != nil {
-		log.Printf("Error scanning directory %s: %v\n", dirPath, err)
+	if walkErr != nil {
+		log.Printf("Error scanning directory %s: %v\n", dirPath, walkErr)
 	}
 	return totalViolations
 }
 
 // processFile parses files and maps the cfn nodes
-func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool) ([]Violation, error) {
+func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool, taggable map[string]bool) ([]Violation, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Printf("Error reading %s: %v\n", filePath, err)
@@ -70,7 +91,7 @@ func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bo
 		return []Violation{}, nil
 	}
 
-	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll)
+	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll, taggable)
 
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)

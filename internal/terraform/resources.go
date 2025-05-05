@@ -10,7 +10,7 @@ import (
 )
 
 // checkResourcesForTags inspects resource blocks and returns violations
-func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, fileLines []string, skipAll bool) []Violation {
+func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, fileLines []string, skipAll bool, taggable map[string]bool) []Violation {
 	var violations []Violation
 
 	for _, block := range body.Blocks {
@@ -22,6 +22,23 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, def
 		resourceName := block.Labels[1] // this
 
 		if !strings.HasPrefix(resourceType, "aws_") {
+			continue
+		}
+
+		isTaggable := true // assume resource is taggable, by default
+		if taggable != nil {
+			var found bool
+			isTaggable, found = taggable[resourceType]
+			if !found {
+				isTaggable = true // if not found, assume resource is taggable
+				// isTaggable = false
+				// log.Printf("Warning: Resource type %s not found in provider schema. Assuming not taggable.", resourceType) //todo
+			}
+		} else {
+		}
+
+		if !isTaggable {
+			log.Printf("Skipping non-taggable resource type: %s", resourceType)
 			continue
 		}
 
