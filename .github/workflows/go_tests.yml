@@ -1,6 +1,6 @@
 # .github/workflows/go_tests.yml
 
-name: Go Tests 
+name: go tests 
 
 on:
   pull_request:
@@ -19,11 +19,7 @@ jobs:
         with:
           go-version: '1.22' 
           cache: true 
-
-      # - name: Setup Terraform
-      #   uses: hashicorp/setup-terraform@v3 
-      #   with:
       #     terraform_version: latest 
 
-      - name: Run Go Tests
+      - name: run go tests
         run: go test -v ./... 
