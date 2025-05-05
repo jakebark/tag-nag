@@ -32,7 +32,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 			log.Printf("Warning: Could not load or parse --cfn-spec file '%s': %v.", specFilePath, loadSpecErr)
 			taggable = nil
 		} else {
-			log.Println("Parsing CloudFormation spec file.")
+			// log.Println("Parsing CloudFormation spec file.")
 		}
 	}
 

@@ -75,6 +75,6 @@ func loadTaggableResourcesFromSpec(specFilePath string) (map[string]bool, error)
 		}
 	}
 
-	log.Printf("Successfully loaded taggability info for %d AWS resource types from spec.", len(taggableMap))
+	log.Printf("Loaded %d AWS resource types.", len(taggableMap))
 	return taggableMap, nil
 }
