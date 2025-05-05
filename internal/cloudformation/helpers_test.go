@@ -20,7 +20,6 @@ func createYamlNode(t *testing.T, yamlStr string) *yaml.Node {
 	return &node
 }
 
-// Test mapNodes function
 func testMapNodes(t *testing.T) {
 	tests := []struct {
 		name      string
