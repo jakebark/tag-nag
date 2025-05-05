@@ -3,14 +3,17 @@ FROM golang:1.22 AS builder
 WORKDIR /app
 
 COPY go.mod go.sum ./
-RUN go mod download
+RUN go mod tidy
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -ldflags="-w -s" -o /tag-nag main.go
+RUN go build -o tag-nag
 
-FROM gcr.io/distroless/static-debian11 AS final
+FROM debian:stable-slim
 
-COPY --from=builder /tag-nag /usr/local/bin/tag-nag
+WORKDIR /app
 
-ENTRYPOINT ["/usr/local/bin/tag-nag"] 
+COPY --from=builder /app/tag-nag /usr/local/bin/tag-nag
+
+ENTRYPOINT ["tag-nag"]
+
