@@ -32,9 +32,9 @@ func testMapNodes(t *testing.T) {
 			wantKeys:  []string{"Key1", "Key2"},
 		},
 		{
-			name:      "Nested map (maps top level only)",
-			inputYAML: `Top1: Value1\nTop2:\n  Nested1: NestedValue`,
-			wantKeys:  []string{"Top1", "Top2"},
+			name:      "nested map",
+			inputYAML: `Key1: Value1\nKey2:\n  Nested1: NestedValue`,
+			wantKeys:  []string{"Key1", "Key2"},
 		},
 		{
 			name:      "empty map",
