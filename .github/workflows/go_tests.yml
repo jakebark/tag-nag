@@ -1,0 +1,29 @@
+# .github/workflows/go_tests.yml
+
+name: Go Tests 
+
+on:
+  pull_request:
+    branches: [ main ] 
+
+jobs:
+  test: 
+    runs-on: ubuntu-latest 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 
+
+      - name: Set up Go
+        uses: actions/setup-go@v5 
+        with:
+          go-version: '1.22' 
+          cache: true 
+
+      # - name: Setup Terraform
+      #   uses: hashicorp/setup-terraform@v3 
+      #   with:
+      #     terraform_version: latest 
+
+      - name: Run Go Tests
+        run: go test -v ./... 
