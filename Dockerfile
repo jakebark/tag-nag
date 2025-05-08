@@ -9,12 +9,11 @@ COPY . .
 
 RUN go build -o tag-nag
 
-FROM hashicorp/terraform:latest
+FROM debian:stable-slim
 
-RUN apk add --no-cache git
+WORKDIR /app
 
 COPY --from=builder /app/tag-nag /usr/local/bin/tag-nag
 
-WORKDIR /workspace
-
 ENTRYPOINT ["tag-nag"]
+
