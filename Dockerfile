@@ -17,3 +17,4 @@ COPY --from=builder /app/tag-nag /usr/local/bin/tag-nag
 
 WORKDIR /workspace
 
+ENTRYPOINT ["tag-nag"]
