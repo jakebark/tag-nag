@@ -31,8 +31,8 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 
 	taggable := loadTaggableResources("registry.terraform.io/hashicorp/aws")
 	if taggable == nil {
-		log.Printf("Warning: Failed to load Terraform AWS Provider\nRun 'terraform init' to fix\n")
-		log.Printf("Continuing with limited features ... \n ")
+		// log.Printf("Warning: Failed to load Terraform AWS Provider\nRun 'terraform init' to fix\n")
+		// log.Printf("Continuing with limited features ... \n ")
 	}
 
 	tfCtx, err := buildTagContext(dirPath)
