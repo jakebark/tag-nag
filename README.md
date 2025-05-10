@@ -18,6 +18,14 @@ docker pull jakebark/tag-nag:latest
 docker run --rm -v $(pwd):/workspace jakebark/tag-nag --tags "Owner,Environment" /workspace
 
 ```
+With terraform init (to filter [taggable resources](#Filtering-taggable-resources))
+```bash
+docker pull jakebark/tag-nag:latest
+docker run --rm -v "$(pwd)":/workspace -w /workspace \
+  --entrypoint /bin/sh jakebark/tag-nag:latest \
+  -c "terraform init -input=false -no-color && \
+      tag-nag --tags 'Owner,Environment' ."
+```
 
 ## Commands
 
