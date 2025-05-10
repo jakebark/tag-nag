@@ -33,6 +33,9 @@ RUN groupadd -r appgroup && \
 
 COPY --from=builder /app/tag-nag /usr/local/bin/tag-nag
 
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 USER appuser
 
-ENTRYPOINT ["tag-nag"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
