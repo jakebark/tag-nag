@@ -72,7 +72,7 @@ EC2Instance:  #tag-nag ignore
 
 ## Filtering taggable resources
 
-Some resources cannot be tagged (eg [AWS KMS key aliases](https://docs.aws.amazon.com/kms/latest/developerguide/kms-alias.html)). 
+Some AWS resources cannot be tagged. 
 
 To filter out these resources with Terraform, run tag-nag against an initialised directory (`terraform init`).
 
