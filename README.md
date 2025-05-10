@@ -12,13 +12,6 @@ go install github.com/jakebark/tag-nag@latest
 ```
 You may need to set [GOPATH](https://go.dev/wiki/SettingGOPATH).
 
-### Docker
-```bash
-docker pull jakebark/tag-nag:latest
-docker run --rm -v $(pwd):/workspace jakebark/tag-nag --tags "Owner,Environment" /workspace
-
-```
-
 ## Commands
 
 Tag-nag will search a file or directory for tag keys. Directory search is recursive.
@@ -79,11 +72,37 @@ EC2Instance:  #tag-nag ignore
 
 ## Filtering taggable resources
 
-Some resources cannot be tagged (eg [AWS KMS key aliases](https://docs.aws.amazon.com/kms/latest/developerguide/kms-alias.html)). 
+Some AWS resources cannot be tagged. 
 
 To filter out these resources with Terraform, run tag-nag against an initialised directory (`terraform init`).
 
 To filter out these resources with CloudFormation, specify a path to the [CloudFormation JSON spec file](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-resource-specification.html) with the `--cfn-spec` input. 
+
+## Docker
+Run
+```bash
+docker pull jakebark/tag-nag:latest
+docker run --rm -v $(pwd):/workspace -w /workspace jakebark/tag-nag \
+  . --tags "Owner,Environment" 
+
+```
+
+Interactive shell
+```bash
+docker run -it --rm \
+  -v "$(pwd)":/workspace \
+  -w /workspace \
+  --entrypoint /bin/sh jakebark/tag-nag:latest
+```
+
+The image contains terraform, allowing `terraform init` to be run, if required.  
+```bash
+docker pull jakebark/tag-nag:latest
+docker run --rm -v $(pwd):/workspace -w /workspace \
+  --entrypoint /bin/sh jakebark/tag-nag:latest \
+  -c "terraform init -input=false -no-color && tag-nag\
+     . --tags 'Owner,Environment'"
+```
 
 ## Related Resources
 
