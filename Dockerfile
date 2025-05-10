@@ -26,16 +26,15 @@ RUN wget "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terrafor
     rm "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" && \
     chmod +x /usr/local/bin/terraform
 
-WORKDIR /app
-
 RUN groupadd -r appgroup && \
     useradd --no-log-init -r -g appgroup appuser
 
 COPY --from=builder /app/tag-nag /usr/local/bin/tag-nag
 
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
 USER appuser
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+WORKDIR /workspace
+
+ENTRYPOINT ["tag-nag"]
+
+CMD ["--help"]
