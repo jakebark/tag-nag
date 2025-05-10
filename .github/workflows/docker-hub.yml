@@ -34,4 +34,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            TERRAFORM_VERSION=${{ vars.TERRAFORM_VERSION }}
 
