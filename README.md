@@ -89,6 +89,7 @@ docker run --rm -v $(pwd):/workspace -w /workspace jakebark/tag-nag \
 
 Interactive shell
 ```bash
+docker pull jakebark/tag-nag:latest
 docker run -it --rm \
   -v "$(pwd)":/workspace \
   -w /workspace \
