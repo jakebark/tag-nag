@@ -112,7 +112,7 @@ func loadTaggableResources(providerAddr string) map[string]bool {
 		"terraform", "providers", "schema", "-json",
 	).Output()
 	if err != nil {
-		log.Printf("Failed to load AWS terraform provider schema: %v", err)
+		// log.Printf("Failed to load AWS terraform provider schema: %v", err)
 		return nil
 	}
 
