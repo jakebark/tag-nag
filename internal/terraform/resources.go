@@ -38,7 +38,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, def
 		}
 
 		if !isTaggable {
-			log.Printf("Skipping non-taggable resource type: %s", resourceType)
+			// log.Printf("Skipping non-taggable resource type: %s", resourceType)
 			continue
 		}
 
