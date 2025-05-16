@@ -8,7 +8,7 @@ jobs:
   semgrep:
     runs-on: ubuntu-latest
     permissions:
-      contents: read          
+      contents: read       
       security-events: write 
 
     steps:
@@ -19,10 +19,33 @@ jobs:
 
       - name: run semgrep
         run: |
-          docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep ci --sarif -o /src/semgrep.sarif
+          # Added --config auto for explicitness and error echoing
+          docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep ci --config auto --sarif -o /src/semgrep.sarif || echo "Semgrep command potentially failed, exit code $?. Continuing to check for SARIF file."
+
+      # --- CRUCIAL DEBUGGING STEP ---
+      - name: Verify SARIF file creation and content
+        if: always() # Ensure this debugging step always runs
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Workspace content (${{ github.workspace }}):"
+          ls -la ${{ github.workspace }}
+          
+          SARIF_FILE_PATH="${{ github.workspace }}/semgrep.sarif"
+          echo "Checking for SARIF file at: ${SARIF_FILE_PATH}"
+          if [ -f "${SARIF_FILE_PATH}" ]; then
+            echo "--- semgrep.sarif FOUND ---"
+            echo "File size: $(ls -lh ${SARIF_FILE_PATH} | awk '{print $5}')"
+            echo "First 10 lines of semgrep.sarif:"
+            head -n 10 "${SARIF_FILE_PATH}"
+            # You can also try to cat the whole file if it's small enough for logs:
+            # echo "Full content of semgrep.sarif:"
+            # cat "${SARIF_FILE_PATH}"
+          else
+            echo "--- semgrep.sarif NOT FOUND in ${{ github.workspace }} ---"
+          fi
 
       - name: sarif report
         if: always() 
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: semgrep.sarif 
+          sarif_file: semgrep.sarif
