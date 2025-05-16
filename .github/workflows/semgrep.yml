@@ -19,7 +19,7 @@ jobs:
 
       - name: run semgrep
         run: |
-          docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep ci --sarif -o semgrep.sarif
+          docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep ci --sarif -o /src/semgrep.sarif
 
       - name: sarif report
         if: always() 
