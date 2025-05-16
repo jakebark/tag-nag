@@ -1,0 +1,19 @@
+name: semgrep
+
+on:
+  pull_request:
+    branches: [ main ] 
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    
+    container:
+      image: semgrep/semgrep
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: run semgrep
+        run: semgrep ci
