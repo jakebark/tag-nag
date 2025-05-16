@@ -1,5 +1,3 @@
-# .github/workflows/semgrep_scan.yml
-
 name: semgrep
 
 on:
