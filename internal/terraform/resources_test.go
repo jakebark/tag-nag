@@ -1,7 +1,6 @@
 package terraform
 
 import (
-	"reflect"
 	"sort"
 	"strings"
 	"testing"
