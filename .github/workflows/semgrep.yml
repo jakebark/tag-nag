@@ -7,22 +7,13 @@ on:
 jobs:
   semgrep:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read          
-      security-events: write 
+    
+    container:
+      image: semgrep/semgrep
 
     steps:
       - name: checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: run semgrep
-        run: |
-          docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep ci --sarif -o /src/semgrep.sarif
-
-      - name: sarif report
-        if: always() 
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: semgrep.sarif 
+        run: semgrep ci
