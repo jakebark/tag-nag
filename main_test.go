@@ -67,3 +67,16 @@ func TestTerraform_PassBasic(t *testing.T) {
 		t.Errorf("Expected 'No tag violations found', output:\n%s", output)
 	}
 }
+
+func TestTerraform_FailBasic(t *testing.T) {
+	output, err, exitCode := runTagNagCommand(t, "testdata/terraform/fail_basic", "--tags", requiredTagsCLI)
+	if err == nil {
+		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
+	}
+	if exitCode != 1 {
+		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
+	}
+	if !strings.Contains(output, `aws_s3_bucket "this"`) || !strings.Contains(output, "Missing tags: Environment, Project") {
+		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
+	}
+}
