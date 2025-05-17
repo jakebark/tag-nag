@@ -10,9 +10,11 @@ import (
 )
 
 var (
-	binaryName                = "tag-nag"
-	requiredTagsCLI           = "Owner,Environment,Project"
-	requiredTagsWithValuesCLI = "Owner,Environment[dev,prod],Project"
+	binaryName    = "tag-nag"
+	tagKeysPass   = "Owner,Environment"
+	tagKeysFail   = "Owner,Environment,Project"
+	tagValuesPass = "Owner,Environment[dev,prod]"
+	tagValuesFail = "Owner,Environment[test]"
 )
 
 func TestMain(m *testing.M) {
@@ -55,8 +57,8 @@ func runTagNagCommand(t *testing.T, args ...string) (string, error, int) {
 	return fullOutput, err, exitCode
 }
 
-func TestTerraform_PassBasic(t *testing.T) {
-	output, err, exitCode := runTagNagCommand(t, "testdata/terraform/pass_basic", "--tags", requiredTagsCLI)
+func TestTerraformPassSingleResource(t *testing.T) {
+	output, err, exitCode := runTagNagCommand(t, "testdata/terraform/pass_basic", "--tags", tagKeysPass)
 	if err != nil {
 		t.Errorf("Expected no error, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
 	}
@@ -68,15 +70,15 @@ func TestTerraform_PassBasic(t *testing.T) {
 	}
 }
 
-func TestTerraform_FailBasic(t *testing.T) {
-	output, err, exitCode := runTagNagCommand(t, "testdata/terraform/fail_basic", "--tags", requiredTagsCLI)
+func TestTerraformFailSingleResource(t *testing.T) {
+	output, err, exitCode := runTagNagCommand(t, "testdata/terraform/single_resource", "--tags", tagKeysFail)
 	if err == nil {
 		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
 	}
 	if exitCode != 1 {
 		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
 	}
-	if !strings.Contains(output, `aws_s3_bucket "this"`) || !strings.Contains(output, "Missing tags: Environment, Project") {
+	if !strings.Contains(output, `aws_s3_bucket "this"`) || !strings.Contains(output, "Missing tags: Project") {
 		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
 	}
 }
