@@ -58,7 +58,7 @@ func runTagNagCommand(t *testing.T, args ...string) (string, error, int) {
 }
 
 func TestTerraformPassSingleResource(t *testing.T) {
-	output, err, exitCode := runTagNagCommand(t, "testdata/terraform/pass_basic", "--tags", tagKeysPass)
+	output, err, exitCode := runTagNagCommand(t, "testdata/terraform/single_resource", "--tags", tagKeysPass)
 	if err != nil {
 		t.Errorf("Expected no error, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
 	}
