@@ -7,7 +7,7 @@ import (
 	"github.com/jakebark/tag-nag/internal/shared"
 )
 
-func testExtractTagMap(t *testing.T) {
+func TestExtractTagMap(t *testing.T) {
 	tests := []struct {
 		name            string
 		properties      map[string]interface{}
