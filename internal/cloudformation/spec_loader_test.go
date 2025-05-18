@@ -28,7 +28,7 @@ func createTestSpec() *cfnSpec {
 	return &spec
 }
 
-func testIsTaggable(t *testing.T) {
+func TestIsTaggable(t *testing.T) {
 	baseSpec := createTestSpec()
 
 	tests := []struct {
