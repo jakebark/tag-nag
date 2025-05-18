@@ -10,11 +10,12 @@ import (
 )
 
 var (
-	binaryName    = "tag-nag"
-	tagKeysPass   = "Owner,Environment"
-	tagKeysFail   = "Owner,Environment,Project"
-	tagValuesPass = "Owner,Environment[dev,prod]"
-	tagValuesFail = "Owner,Environment[test]"
+	binaryName       = "tag-nag"
+	oneTag           = "Owner"
+	twoTags          = "Owner,Environment"
+	threeTags        = "Owner,Environment,Project"
+	tagValues        = "Owner,Environment[dev,prod]"
+	tagValuesMissing = "Owner,Environment[test]"
 )
 
 func TestMain(m *testing.M) {
@@ -57,7 +58,7 @@ func runTagNag(t *testing.T, args ...string) (string, error, int) {
 }
 
 func TestTerraformPassSingleResource(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource", "--tags", tagKeysPass)
+	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", twoTags)
 	if err != nil {
 		t.Errorf("Expected no error, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
 	}
@@ -70,7 +71,7 @@ func TestTerraformPassSingleResource(t *testing.T) {
 }
 
 func TestTerraformFailSingleResource(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource", "--tags", tagKeysFail)
+	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", threeTags)
 	if err == nil {
 		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
 	}
@@ -78,6 +79,19 @@ func TestTerraformFailSingleResource(t *testing.T) {
 		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
 	}
 	if !strings.Contains(output, `aws_s3_bucket "this"`) || !strings.Contains(output, "Missing tags: Project") {
+		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
+	}
+}
+
+func TestTerraformFailNoTags(t *testing.T) {
+	output, err, exitCode := runTagNag(t, "testdata/terraform/no_tags.tf", "--tags", twoTags)
+	if err == nil {
+		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
+	}
+	if exitCode != 1 {
+		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
+	}
+	if !strings.Contains(output, `aws_s3_bucket "this"`) || !strings.Contains(output, "Missing tags: Owner, Environment") {
 		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
 	}
 }
