@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func testFilterMissingTags(t *testing.T) {
+func TestFilterMissingTags(t *testing.T) {
 	testCases := []struct {
 		name            string
 		requiredTags    TagMap
