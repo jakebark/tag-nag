@@ -18,7 +18,6 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	fmt.Println("Building tag-nag binary for E2E tests...")
 	cmd := exec.Command("go", "build", "-o", binaryName)
 	if err := cmd.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to build %s: %v\n", binaryName, err)
@@ -30,7 +29,7 @@ func TestMain(m *testing.M) {
 	os.Exit(exitVal)
 }
 
-func runTagNagCommand(t *testing.T, args ...string) (string, error, int) {
+func runTagNag(t *testing.T, args ...string) (string, error, int) {
 	t.Helper()
 	cmd := exec.Command("./"+binaryName, args...)
 	var outbuf, errbuf bytes.Buffer
@@ -58,7 +57,7 @@ func runTagNagCommand(t *testing.T, args ...string) (string, error, int) {
 }
 
 func TestTerraformPassSingleResource(t *testing.T) {
-	output, err, exitCode := runTagNagCommand(t, "testdata/terraform/single_resource", "--tags", tagKeysPass)
+	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource", "--tags", tagKeysPass)
 	if err != nil {
 		t.Errorf("Expected no error, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
 	}
@@ -71,7 +70,7 @@ func TestTerraformPassSingleResource(t *testing.T) {
 }
 
 func TestTerraformFailSingleResource(t *testing.T) {
-	output, err, exitCode := runTagNagCommand(t, "testdata/terraform/single_resource", "--tags", tagKeysFail)
+	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource", "--tags", tagKeysFail)
 	if err == nil {
 		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
 	}
