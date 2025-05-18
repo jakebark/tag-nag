@@ -10,7 +10,7 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-func testTraversalToString(t *testing.T) {
+func TestTraversalToString(t *testing.T) {
 	testCases := []struct {
 		name            string
 		hclInput        string
@@ -53,7 +53,7 @@ func testTraversalToString(t *testing.T) {
 	}
 }
 
-func testMergeTags(t *testing.T) {
+func TestMergeTags(t *testing.T) {
 	testCases := []struct {
 		name     string
 		inputs   []shared.TagMap
@@ -112,7 +112,7 @@ func testMergeTags(t *testing.T) {
 	}
 }
 
-func testConvertCtyValueToString(t *testing.T) {
+func TestConvertCtyValueToString(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   cty.Value
