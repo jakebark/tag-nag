@@ -33,7 +33,7 @@ func TestTraversalToString(t *testing.T) {
 			name:            "traversal",
 			hclInput:        "local.network.subnets[0].id",
 			caseInsensitive: false,
-			expected:        "local.network.subnets",
+			expected:        "local.network.subnets.id",
 		},
 	}
 
