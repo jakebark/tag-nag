@@ -5,7 +5,7 @@ import (
 )
 
 // Test for normalizeProviderID
-func testNormalizeProviderID(t *testing.T) {
+func TestNormalizeProviderID(t *testing.T) {
 	tests := []struct {
 		name            string
 		providerName    string
