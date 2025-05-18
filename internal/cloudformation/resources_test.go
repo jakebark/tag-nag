@@ -35,7 +35,6 @@ func TestExtractTagMap(t *testing.T) {
 			},
 			expectedErr: true,
 		},
-
 		{
 			name: "literal tags",
 			properties: map[string]interface{}{
@@ -126,7 +125,7 @@ func TestExtractTagMap(t *testing.T) {
 			}
 			if !tc.expectedErr {
 				if diff := cmp.Diff(tc.expected, got); diff != "" {
-					t.Errorf("extractTagMap() mismatch (-expected +got):\n%s", diff)resources
+					t.Errorf("extractTagMap() mismatch (-expected +got):\n%s", diff)
 				}
 			}
 		})
