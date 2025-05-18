@@ -14,7 +14,7 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-func testCheckResourcesForTags_Taggability(t *testing.T) {
+func TestCheckResourcesForTags_Taggability(t *testing.T) {
 	parser := hclparse.NewParser()
 
 	tfCode := `
