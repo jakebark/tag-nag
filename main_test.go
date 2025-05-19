@@ -105,3 +105,16 @@ func TestTerraformPassCaseInsensitive(t *testing.T) {
 		t.Errorf("Expected exit code 0 with case-insensitive, got %d. Output:\n%s", exitCode, output)
 	}
 }
+
+func TestTerraformFailCaseInsensitive(t *testing.T) {
+	output, err, exitCode := runTagNag(t, "testdata/terraform/no_tags.tf", "--tags", tags)
+	if err == nil {
+		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
+	}
+	if exitCode != 1 {
+		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
+	}
+	if !strings.Contains(output, `aws_s3_bucket "this"`) || !strings.Contains(output, "Missing tags: Owner, Environment") {
+		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
+	}
+}
