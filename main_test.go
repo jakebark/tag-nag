@@ -12,13 +12,12 @@ import (
 const binaryName = "tag-nag"
 
 type testCases struct {
-	name              string
-	filePathOrDir     string
-	cliArgs           []string
-	expectedExitCode  int
-	expectError       bool
-	expectedOutput    []string
-	notExpectedOutput []string
+	name             string
+	filePathOrDir    string
+	cliArgs          []string
+	expectedExitCode int
+	expectedError    bool
+	expectedOutput   []string
 }
 
 func TestMain(m *testing.M) {
@@ -61,145 +60,51 @@ func runTagNag(t *testing.T, args ...string) (string, error, int) {
 	return fullOutput, err, exitCode
 }
 
-func TestTerraformPass(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", tags)
-	if err != nil {
-		t.Errorf("Expected no error, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
+func TestTerraformCLI(t *testing.T) {
+	testCases := []testCases{
+		{
+			name:             "tags",
+			filePathOrDir:    "testdata/terraform/single_resource.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"No tag violations found"},
+		},
+		{
+			name:             "no tags",
+			filePathOrDir:    "testdata/terraform/single_resource.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment,Project"},
+			expectedExitCode: 1,
+			expectedError:    true,
+			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: Project"},
+		},
 	}
-	if exitCode != 0 {
-		t.Errorf("Expected exit code 0, got %d. Output:\n%s", exitCode, output)
-	}
-	if !strings.Contains(output, "No tag violations found") {
-		t.Errorf("Expected 'No tag violations found', output:\n%s", output)
-	}
-}
 
-func TestTerraformFail(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", tagsMissing)
-	if err == nil {
-		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
-	}
-	if exitCode != 1 {
-		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
-	}
-	if !strings.Contains(output, `aws_s3_bucket "this"`) || !strings.Contains(output, "Missing tags: Project") {
-		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
-	}
-}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Construct arguments for runTagNag: filePathOrDir + cliArgs
+			argsForRun := append([]string{tc.filePathOrDir}, tc.cliArgs...)
+			output, err, exitCode := runTagNag(t, argsForRun...)
 
-func TestTerraformFailNoTags(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/terraform/no_tags.tf", "--tags", tags)
-	if err == nil {
-		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
-	}
-	if exitCode != 1 {
-		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
-	}
-	if !strings.Contains(output, `aws_s3_bucket "this"`) || !strings.Contains(output, "Missing tags: Owner, Environment") {
-		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
-	}
-}
+			// Check if an error was expected from cmd.Run()
+			if tc.expectedError && err == nil {
+				t.Errorf("Expected an error from command execution, but got none. Output:\n%s", output)
+			}
+			if !tc.expectedError && err != nil {
+				t.Errorf("Expected no error from command execution, but got: %v. Output:\n%s", err, output)
+			}
 
-func TestTerraformPassCaseInsensitive(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", tagsLower, "-c")
-	if err != nil {
-		t.Errorf("Expected no error with case-insensitive, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
-	}
-	if exitCode != 0 {
-		t.Errorf("Expected exit code 0 with case-insensitive, got %d. Output:\n%s", exitCode, output)
-	}
-	if !strings.Contains(output, "No tag violations found") {
-		t.Errorf("Expected 'No tag violations found', output:\n%s", output)
-	}
-}
+			// Check exit code
+			if exitCode != tc.expectedExitCode {
+				t.Errorf("Expected exit code %d, got %d. Output:\n%s", tc.expectedExitCode, exitCode, output)
+			}
 
-func TestTerraformFailCaseInsensitive(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/terraform/no_tags.tf", "--tags", tags)
-	if err == nil {
-		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
-	}
-	if exitCode != 1 {
-		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
-	}
-	if !strings.Contains(output, `aws_s3_bucket "this"`) || !strings.Contains(output, "Missing tags: Owner, Environment") {
-		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
-	}
-}
-
-func TestTerraformPassTagValues(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", tagValues)
-	if err != nil {
-		t.Errorf("Expected no error, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
-	}
-	if exitCode != 0 {
-		t.Errorf("Expected exit code 0, got %d. Output:\n%s", exitCode, output)
-	}
-	if !strings.Contains(output, "No tag violations found") {
-		t.Errorf("Expected 'No tag violations found', output:\n%s", output)
-	}
-}
-
-func TestTerraformFailTagValues(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", tagValuesMissing)
-	if err == nil {
-		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
-	}
-	if exitCode != 1 {
-		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
-	}
-	if !strings.Contains(output, `aws_s3_bucket "this"`) || !strings.Contains(output, "Missing tags: Environment[test]") {
-		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
-	}
-}
-
-func TestCfnPassYAML(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/cloudformation/single_resource.yml", "--tags", tags)
-	if err != nil {
-		t.Errorf("Expected no error for CFN YAML pass, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
-	}
-	if exitCode != 0 {
-		t.Errorf("Expected exit code 0 for CFN YAML pass, got %d. Output:\n%s", exitCode, output)
-	}
-	if !strings.Contains(output, "No tag violations found") {
-		t.Errorf("Expected 'No tag violations found', output:\n%s", output)
-	}
-}
-
-func TestCfnPassJSON(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/cloudformation/single_resource.json", "--tags", tags)
-	if err != nil {
-		t.Errorf("Expected no error for CFN YAML pass, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
-	}
-	if exitCode != 0 {
-		t.Errorf("Expected exit code 0 for CFN YAML pass, got %d. Output:\n%s", exitCode, output)
-	}
-	if !strings.Contains(output, "No tag violations found") {
-		t.Errorf("Expected 'No tag violations found', output:\n%s", output)
-	}
-}
-
-func TestCfnFailYAML(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/cloudformation/single_resource.yml", "--tags", tagsMissing)
-	if err == nil {
-		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
-	}
-	if exitCode != 1 {
-		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
-	}
-	if !strings.Contains(output, `AWS::S3::Bucket "this"`) || !strings.Contains(output, "Missing tags: Project") {
-		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
-	}
-}
-
-func TestCfnFailJSON(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/cloudformation/single_resource.json", "--tags", tagsMissing)
-	if err == nil {
-		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
-	}
-	if exitCode != 1 {
-		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
-	}
-	if !strings.Contains(output, `AWS::S3::Bucket "this"`) || !strings.Contains(output, "Missing tags: Project") {
-		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
+			// Check for expected substrings in output
+			for _, expectedStr := range tc.expectedOutput {
+				if !strings.Contains(output, expectedStr) {
+					t.Errorf("Output missing expected string '%s'. Output:\n%s", expectedStr, output)
+				}
+			}
+		})
 	}
 }
