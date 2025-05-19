@@ -57,7 +57,7 @@ func runTagNag(t *testing.T, args ...string) (string, error, int) {
 	return fullOutput, err, exitCode
 }
 
-func TestTerraformPassSingleResource(t *testing.T) {
+func TestTerraformPass(t *testing.T) {
 	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", tags)
 	if err != nil {
 		t.Errorf("Expected no error, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
@@ -70,7 +70,7 @@ func TestTerraformPassSingleResource(t *testing.T) {
 	}
 }
 
-func TestTerraformFailSingleResource(t *testing.T) {
+func TestTerraformFail(t *testing.T) {
 	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", tagsMissing)
 	if err == nil {
 		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
@@ -148,7 +148,7 @@ func TestTerraformFailTagValues(t *testing.T) {
 	}
 }
 
-func TestCfnPassSingleResourceYAML(t *testing.T) {
+func TestCfnPassYAML(t *testing.T) {
 	output, err, exitCode := runTagNag(t, "testdata/cloudformation/single_resource.yml", "--tags", tags)
 	if err != nil {
 		t.Errorf("Expected no error for CFN YAML pass, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
@@ -161,7 +161,7 @@ func TestCfnPassSingleResourceYAML(t *testing.T) {
 	}
 }
 
-func TestCfnPassSingleResourceJSON(t *testing.T) {
+func TestCfnPassJSON(t *testing.T) {
 	output, err, exitCode := runTagNag(t, "testdata/cloudformation/single_resource.json", "--tags", tags)
 	if err != nil {
 		t.Errorf("Expected no error for CFN YAML pass, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
@@ -174,7 +174,7 @@ func TestCfnPassSingleResourceJSON(t *testing.T) {
 	}
 }
 
-func TestCfnFailSingleResourceYAML(t *testing.T) {
+func TestCfnFailYAML(t *testing.T) {
 	output, err, exitCode := runTagNag(t, "testdata/cloudformation/single_resource.yml", "--tags", tagsMissing)
 	if err == nil {
 		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
@@ -187,7 +187,7 @@ func TestCfnFailSingleResourceYAML(t *testing.T) {
 	}
 }
 
-func TestCfnFailSingleResourceJSON(t *testing.T) {
+func TestCfnFailJSON(t *testing.T) {
 	output, err, exitCode := runTagNag(t, "testdata/cloudformation/single_resource.json", "--tags", tagsMissing)
 	if err == nil {
 		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
