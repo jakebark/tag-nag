@@ -71,22 +71,28 @@ func TestTerraformCLI(t *testing.T) {
 			expectedOutput:   []string{"No tag violations found"},
 		},
 		{
-			name:             "no tags",
+			name:             "missing tags",
 			filePathOrDir:    "testdata/terraform/single_resource.tf",
 			cliArgs:          []string{"--tags", "Owner,Environment,Project"},
 			expectedExitCode: 1,
 			expectedError:    true,
 			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: Project"},
 		},
+		{
+			name:             "no tags",
+			filePathOrDir:    "testdata/terraform/no_tags.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment"},
+			expectedExitCode: 1,
+			expectedError:    true,
+			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: Owner, Environment"},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Construct arguments for runTagNag: filePathOrDir + cliArgs
 			argsForRun := append([]string{tc.filePathOrDir}, tc.cliArgs...)
 			output, err, exitCode := runTagNag(t, argsForRun...)
 
-			// Check if an error was expected from cmd.Run()
 			if tc.expectedError && err == nil {
 				t.Errorf("Expected an error from command execution, but got none. Output:\n%s", output)
 			}
@@ -94,12 +100,10 @@ func TestTerraformCLI(t *testing.T) {
 				t.Errorf("Expected no error from command execution, but got: %v. Output:\n%s", err, output)
 			}
 
-			// Check exit code
 			if exitCode != tc.expectedExitCode {
 				t.Errorf("Expected exit code %d, got %d. Output:\n%s", tc.expectedExitCode, exitCode, output)
 			}
 
-			// Check for expected substrings in output
 			for _, expectedStr := range tc.expectedOutput {
 				if !strings.Contains(output, expectedStr) {
 					t.Errorf("Output missing expected string '%s'. Output:\n%s", expectedStr, output)
