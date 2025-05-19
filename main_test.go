@@ -11,9 +11,9 @@ import (
 
 var (
 	binaryName       = "tag-nag"
-	oneTag           = "Owner"
-	twoTags          = "Owner,Environment"
-	threeTags        = "Owner,Environment,Project"
+	tags             = "Owner,Environment"
+	tagsMissing      = "Owner,Environment,Project"
+	tagsLower        = "owner,environment"
 	tagValues        = "Owner,Environment[dev,prod]"
 	tagValuesMissing = "Owner,Environment[test]"
 )
@@ -58,7 +58,7 @@ func runTagNag(t *testing.T, args ...string) (string, error, int) {
 }
 
 func TestTerraformPassSingleResource(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", twoTags)
+	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", tags)
 	if err != nil {
 		t.Errorf("Expected no error, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
 	}
@@ -71,7 +71,7 @@ func TestTerraformPassSingleResource(t *testing.T) {
 }
 
 func TestTerraformFailSingleResource(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", threeTags)
+	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", tagsMissing)
 	if err == nil {
 		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
 	}
@@ -84,7 +84,7 @@ func TestTerraformFailSingleResource(t *testing.T) {
 }
 
 func TestTerraformFailNoTags(t *testing.T) {
-	output, err, exitCode := runTagNag(t, "testdata/terraform/no_tags.tf", "--tags", twoTags)
+	output, err, exitCode := runTagNag(t, "testdata/terraform/no_tags.tf", "--tags", tags)
 	if err == nil {
 		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
 	}
@@ -93,5 +93,15 @@ func TestTerraformFailNoTags(t *testing.T) {
 	}
 	if !strings.Contains(output, `aws_s3_bucket "this"`) || !strings.Contains(output, "Missing tags: Owner, Environment") {
 		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
+	}
+}
+
+func TestTerraformPassCaseInsensitive(t *testing.T) {
+	output, err, exitCode := runTagNag(t, "testdata/terraform/single_resource.tf", "--tags", tagsLower, "-c")
+	if err != nil {
+		t.Errorf("Expected no error with case-insensitive, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
+	}
+	if exitCode != 0 {
+		t.Errorf("Expected exit code 0 with case-insensitive, got %d. Output:\n%s", exitCode, output)
 	}
 }
