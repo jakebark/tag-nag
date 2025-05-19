@@ -160,3 +160,16 @@ func TestCfnPassSingleResourceYAML(t *testing.T) {
 		t.Errorf("Expected 'No tag violations found', output:\n%s", output)
 	}
 }
+
+func TestCfnPassSingleResourceJSON(t *testing.T) {
+	output, err, exitCode := runTagNag(t, "testdata/cloudformation/single_resource.json", "--tags", tags)
+	if err != nil {
+		t.Errorf("Expected no error for CFN YAML pass, got exit code %d, err: %v, output:\n%s", exitCode, err, output)
+	}
+	if exitCode != 0 {
+		t.Errorf("Expected exit code 0 for CFN YAML pass, got %d. Output:\n%s", exitCode, output)
+	}
+	if !strings.Contains(output, "No tag violations found") {
+		t.Errorf("Expected 'No tag violations found', output:\n%s", output)
+	}
+}
