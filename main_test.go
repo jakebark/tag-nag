@@ -11,6 +11,16 @@ import (
 
 const binaryName = "tag-nag"
 
+type testCases struct {
+	name              string
+	filePathOrDir     string
+	cliArgs           []string
+	expectedExitCode  int
+	expectError       bool
+	expectedOutput    []string
+	notExpectedOutput []string
+}
+
 func TestMain(m *testing.M) {
 	cmd := exec.Command("go", "build", "-o", binaryName)
 	if err := cmd.Run(); err != nil {
