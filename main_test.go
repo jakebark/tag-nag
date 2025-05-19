@@ -173,3 +173,29 @@ func TestCfnPassSingleResourceJSON(t *testing.T) {
 		t.Errorf("Expected 'No tag violations found', output:\n%s", output)
 	}
 }
+
+func TestCfnFailSingleResourceYAML(t *testing.T) {
+	output, err, exitCode := runTagNag(t, "testdata/cloudformation/single_resource.yml", "--tags", tagsMissing)
+	if err == nil {
+		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
+	}
+	if exitCode != 1 {
+		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
+	}
+	if !strings.Contains(output, `AWS::S3::Bucket "this"`) || !strings.Contains(output, "Missing tags: Project") {
+		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
+	}
+}
+
+func TestCfnFailSingleResourceJSON(t *testing.T) {
+	output, err, exitCode := runTagNag(t, "testdata/cloudformation/single_resource.json", "--tags", tagsMissing)
+	if err == nil {
+		t.Errorf("Expected an error due to violations, but got none. Output:\n%s", output)
+	}
+	if exitCode != 1 {
+		t.Errorf("Expected exit code 1, got %d. Output:\n%s", exitCode, output)
+	}
+	if !strings.Contains(output, `AWS::S3::Bucket "this"`) || !strings.Contains(output, "Missing tags: Project") {
+		t.Errorf("Output missing expected violation details for fail_basic. Output:\n%s", output)
+	}
+}
