@@ -9,14 +9,7 @@ import (
 	"testing"
 )
 
-var (
-	binaryName       = "tag-nag"
-	tags             = "Owner,Environment"
-	tagsMissing      = "Owner,Environment,Project"
-	tagsLower        = "owner,environment"
-	tagValues        = "Owner,Environment[dev,prod]"
-	tagValuesMissing = "Owner,Environment[test]"
-)
+const binaryName = "tag-nag"
 
 func TestMain(m *testing.M) {
 	cmd := exec.Command("go", "build", "-o", binaryName)
@@ -32,7 +25,8 @@ func TestMain(m *testing.M) {
 
 func runTagNag(t *testing.T, args ...string) (string, error, int) {
 	t.Helper()
-	cmd := exec.Command("./"+binaryName, args...)
+	fullArgs := append([]string{"./" + binaryName}, args...)
+	cmd := exec.Command(fullArgs[0], fullArgs[1:]...)
 	var outbuf, errbuf bytes.Buffer
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
