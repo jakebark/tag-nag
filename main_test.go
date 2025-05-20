@@ -102,6 +102,14 @@ func TestTerraformCLI(t *testing.T) {
 			expectedError:    true,
 			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: owner, environment"},
 		},
+		{
+			name:             "tag values",
+			filePathOrDir:    "testdata/terraform/single_resource.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment[dev,prod]"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"No tag violations found"},
+		},
 	}
 
 	for _, tc := range testCases {
