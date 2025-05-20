@@ -148,8 +148,16 @@ func TestTerraformCLI(t *testing.T) {
 func TestCloudFormationCLI(t *testing.T) {
 	testCases := []testCases{
 		{
-			name:             "yaml",
+			name:             "yml",
 			filePathOrDir:    "testdata/cloudformation/single_resource.yml",
+			cliArgs:          []string{"--tags", "Owner,Environment"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"No tag violations found"},
+		},
+		{
+			name:             "yaml",
+			filePathOrDir:    "testdata/cloudformation/single_resource.yaml",
 			cliArgs:          []string{"--tags", "Owner,Environment"},
 			expectedExitCode: 0,
 			expectedError:    false,
