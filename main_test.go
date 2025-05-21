@@ -198,6 +198,22 @@ func TestTerraformCLI(t *testing.T) {
 			expectedError:    false,
 			expectedOutput:   []string{"No tag violations found"},
 		},
+		{
+			name:             "interpolation",
+			filePathOrDir:    "testdata/terraform/referenced_values.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment,Project[112233],Source[my-repo]"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"No tag violations found"},
+		},
+		{
+			name:             "interpolation missing value",
+			filePathOrDir:    "testdata/terraform/referenced_values.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment,Project[112233],Source[not-my-repo]"},
+			expectedExitCode: 1,
+			expectedError:    true,
+			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: Source[not-my-repo]"},
+		},
 	}
 
 	for _, tc := range testCases {

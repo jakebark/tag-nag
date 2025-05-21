@@ -3,6 +3,8 @@ resource "aws_s3_bucket" "this" {
   tags = {
     Owner       = var.owner
     Environment = local.environment
+    Project     = "${local.project}"
+    Source      = "${local.source}"
   }
 }
 
@@ -11,6 +13,13 @@ variable "owner" {
   default = "jakebark"
 }
 
+variable "source" {
+  type    = string
+  default = "my-repo"
+}
+
 locals {
   environment = "dev"
+  project     = "112233"
+  source      = var.source
 }
