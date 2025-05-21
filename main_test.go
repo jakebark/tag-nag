@@ -230,6 +230,14 @@ func TestTerraformCLI(t *testing.T) {
 			expectedError:    false,
 			expectedOutput:   []string{`aws_s3_bucket "this" skipped`},
 		},
+		{
+			name:             "ignore all",
+			filePathOrDir:    "testdata/terraform/ignore_all.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment,Project"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{`aws_s3_bucket "this" skipped`},
+		},
 	}
 
 	for _, tc := range testCases {
