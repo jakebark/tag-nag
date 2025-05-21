@@ -64,7 +64,7 @@ func TestTerraformCLI(t *testing.T) {
 	testCases := []testCases{
 		{
 			name:             "tags",
-			filePathOrDir:    "testdata/terraform/single_resource.tf",
+			filePathOrDir:    "testdata/terraform/tags.tf",
 			cliArgs:          []string{"--tags", "Owner,Environment"},
 			expectedExitCode: 0,
 			expectedError:    false,
@@ -72,7 +72,7 @@ func TestTerraformCLI(t *testing.T) {
 		},
 		{
 			name:             "missing tags",
-			filePathOrDir:    "testdata/terraform/single_resource.tf",
+			filePathOrDir:    "testdata/terraform/tags.tf",
 			cliArgs:          []string{"--tags", "Owner,Environment,Project"},
 			expectedExitCode: 1,
 			expectedError:    true,
@@ -88,7 +88,7 @@ func TestTerraformCLI(t *testing.T) {
 		},
 		{
 			name:             "case insensitive",
-			filePathOrDir:    "testdata/terraform/single_resource.tf",
+			filePathOrDir:    "testdata/terraform/tags.tf",
 			cliArgs:          []string{"--tags", "owner,environment", "-c"},
 			expectedExitCode: 0,
 			expectedError:    false,
@@ -96,7 +96,7 @@ func TestTerraformCLI(t *testing.T) {
 		},
 		{
 			name:             "lower case",
-			filePathOrDir:    "testdata/terraform/single_resource.tf",
+			filePathOrDir:    "testdata/terraform/tags.tf",
 			cliArgs:          []string{"--tags", "owner,environment"},
 			expectedExitCode: 1,
 			expectedError:    true,
@@ -104,7 +104,7 @@ func TestTerraformCLI(t *testing.T) {
 		},
 		{
 			name:             "tag values",
-			filePathOrDir:    "testdata/terraform/single_resource.tf",
+			filePathOrDir:    "testdata/terraform/tags.tf",
 			cliArgs:          []string{"--tags", "Owner,Environment[dev,prod]"},
 			expectedExitCode: 0,
 			expectedError:    false,
@@ -112,7 +112,7 @@ func TestTerraformCLI(t *testing.T) {
 		},
 		{
 			name:             "missing tag value",
-			filePathOrDir:    "testdata/terraform/single_resource.tf",
+			filePathOrDir:    "testdata/terraform/tags.tf",
 			cliArgs:          []string{"--tags", "Owner,Environment[test]"},
 			expectedExitCode: 1,
 			expectedError:    true,
@@ -149,7 +149,7 @@ func TestCloudFormationCLI(t *testing.T) {
 	testCases := []testCases{
 		{
 			name:             "yml",
-			filePathOrDir:    "testdata/cloudformation/single_resource.yml",
+			filePathOrDir:    "testdata/cloudformation/tags.yml",
 			cliArgs:          []string{"--tags", "Owner,Environment"},
 			expectedExitCode: 0,
 			expectedError:    false,
@@ -157,7 +157,7 @@ func TestCloudFormationCLI(t *testing.T) {
 		},
 		{
 			name:             "yaml",
-			filePathOrDir:    "testdata/cloudformation/single_resource.yaml",
+			filePathOrDir:    "testdata/cloudformation/tags.yaml",
 			cliArgs:          []string{"--tags", "Owner,Environment"},
 			expectedExitCode: 0,
 			expectedError:    false,
@@ -165,7 +165,7 @@ func TestCloudFormationCLI(t *testing.T) {
 		},
 		{
 			name:             "json",
-			filePathOrDir:    "testdata/cloudformation/single_resource.json",
+			filePathOrDir:    "testdata/cloudformation/tags.json",
 			cliArgs:          []string{"--tags", "Owner,Environment"},
 			expectedExitCode: 0,
 			expectedError:    false,
@@ -173,7 +173,7 @@ func TestCloudFormationCLI(t *testing.T) {
 		},
 		{
 			name:             "yaml missing tags",
-			filePathOrDir:    "testdata/cloudformation/single_resource.yml",
+			filePathOrDir:    "testdata/cloudformation/tags.yml",
 			cliArgs:          []string{"--tags", "Owner,Environment,Project"},
 			expectedExitCode: 1,
 			expectedError:    true,
@@ -181,7 +181,7 @@ func TestCloudFormationCLI(t *testing.T) {
 		},
 		{
 			name:             "json missing tags",
-			filePathOrDir:    "testdata/cloudformation/single_resource.json",
+			filePathOrDir:    "testdata/cloudformation/tags.json",
 			cliArgs:          []string{"--tags", "Owner,Environment,Project"},
 			expectedExitCode: 1,
 			expectedError:    true,
