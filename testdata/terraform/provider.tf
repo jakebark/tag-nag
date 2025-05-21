@@ -2,8 +2,8 @@ provider "aws" {
   region = "us-east-1"
   default_tags {
     tags = {
-      Source  = "my-repo"
       Project = "112233"
+      Source  = "my-repo"
     }
   }
 }

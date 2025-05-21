@@ -126,6 +126,22 @@ func TestTerraformCLI(t *testing.T) {
 			expectedError:    false,
 			expectedOutput:   []string{"Found Terraform default tags for provider aws: [Project, Source]", "No tag violations found"},
 		},
+		{
+			name:             "provider",
+			filePathOrDir:    "testdata/terraform/provider.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment,Project,Source"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"Found Terraform default tags for provider aws: [Project, Source]", "No tag violations found"},
+		},
+		{
+			name:             "provider, case insensitive",
+			filePathOrDir:    "testdata/terraform/provider.tf",
+			cliArgs:          []string{"--tags", "owner,environment,project,source", "-c"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"Found Terraform default tags for provider aws: [project, source]", "No tag violations found"},
+		},
 	}
 
 	for _, tc := range testCases {
