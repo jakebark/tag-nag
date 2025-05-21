@@ -166,6 +166,14 @@ func TestTerraformCLI(t *testing.T) {
 			expectedError:    false,
 			expectedOutput:   []string{"No tag violations found"},
 		},
+		{
+			name:             "local value",
+			filePathOrDir:    "testdata/terraform/referenced_values.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment[dev,prod]"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"No tag violations found"},
+		},
 	}
 
 	for _, tc := range testCases {
