@@ -72,7 +72,7 @@ func TestInputs(t *testing.T) {
 		},
 		{
 			name:             "no tags",
-			filePathOrDir:    "testdata/terraform/pass_basic",
+			filePathOrDir:    "testdata/terraform/tags.tf",
 			cliArgs:          []string{},
 			expectedExitCode: 1,
 			expectedError:    true,
@@ -117,7 +117,7 @@ func TestInputs(t *testing.T) {
 	}
 }
 
-func TestTerraformCLI(t *testing.T) {
+func TestTerraform(t *testing.T) {
 	testCases := []testCases{
 		{
 			name:             "tags",
