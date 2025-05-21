@@ -159,6 +159,14 @@ func TestTerraformCLI(t *testing.T) {
 			expectedOutput:   []string{"Found Terraform default tags for provider aws", "No tag violations found"},
 		},
 		{
+			name:             "variable tags",
+			filePathOrDir:    "testdata/terraform/referenced_tags.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"No tag violations found"},
+		},
+		{
 			name:             "variable value",
 			filePathOrDir:    "testdata/terraform/referenced_values.tf",
 			cliArgs:          []string{"--tags", "Owner[jakebark],Environment"},
