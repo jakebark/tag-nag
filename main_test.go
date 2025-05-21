@@ -174,6 +174,22 @@ func TestTerraformCLI(t *testing.T) {
 			expectedError:    false,
 			expectedOutput:   []string{"No tag violations found"},
 		},
+		{
+			name:             "variable value case insensitive",
+			filePathOrDir:    "testdata/terraform/referenced_values.tf",
+			cliArgs:          []string{"--tags", "Owner[Jakebark],Environment", "-c"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"No tag violations found"},
+		},
+		{
+			name:             "local value case insensitive",
+			filePathOrDir:    "testdata/terraform/referenced_values.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment[DEV,PROD]", "-c"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"No tag violations found"},
+		},
 	}
 
 	for _, tc := range testCases {
