@@ -78,6 +78,14 @@ func TestInputs(t *testing.T) {
 			expectedError:    true,
 			expectedOutput:   []string{"Error: Please specify required tags using --tags"},
 		},
+		{
+			name:             "dry run",
+			filePathOrDir:    "testdata/terraform/tags.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment,Project", "--dry-run"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"Dry-run:", `aws_s3_bucket "this"`, "Missing tags: Project"},
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
