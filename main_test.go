@@ -119,6 +119,14 @@ func TestTerraformCLI(t *testing.T) {
 			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: Environment[test]"},
 		},
 		{
+			name:             "tag values case insensitive",
+			filePathOrDir:    "testdata/terraform/tags.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment[Dev,Prod]", "-c"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"No tag violations found"},
+		},
+		{
 			name:             "provider",
 			filePathOrDir:    "testdata/terraform/provider.tf",
 			cliArgs:          []string{"--tags", "Owner,Environment,Project,Source"},
