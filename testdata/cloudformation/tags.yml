@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: single resource
+Resources:
+  this:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: test-bucket
+      Tags:
+        - Key: Owner
+          Value: jakebark
+        - Key: Environment
+          Value: dev

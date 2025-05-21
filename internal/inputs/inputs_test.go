@@ -9,7 +9,7 @@ import (
 	"github.com/jakebark/tag-nag/internal/shared"
 )
 
-func testParseTags(t *testing.T) {
+func TestParseTags(t *testing.T) {
 	testCases := []struct {
 		name     string
 		input    string
@@ -106,7 +106,7 @@ func testParseTags(t *testing.T) {
 	}
 }
 
-func testSplitTags(t *testing.T) {
+func TestSplitTags(t *testing.T) {
 	testCases := []struct {
 		name     string
 		input    string
@@ -134,7 +134,7 @@ func testSplitTags(t *testing.T) {
 	}
 }
 
-func testParseTagsFatal(t *testing.T) {
+func TestParseTagsFatal(t *testing.T) {
 	if os.Getenv("BE_TEST_FATAL") == "1" {
 		parseTags("Invalid[Tag")
 		return
