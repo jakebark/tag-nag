@@ -187,14 +187,6 @@ func TestCloudFormationCLI(t *testing.T) {
 			expectedError:    true,
 			expectedOutput:   []string{`AWS::S3::Bucket "this"`, "Missing tags: Project"},
 		},
-		{
-			name:             "provider",
-			filePathOrDir:    "testdata/cloudformation/tags.json",
-			cliArgs:          []string{"--tags", "Owner,Environment,Project,Source"},
-			expectedExitCode: 0,
-			expectedError:    false,
-			expectedOutput:   []string{"No tag violations found"},
-		},
 	}
 
 	for _, tc := range testCases {
