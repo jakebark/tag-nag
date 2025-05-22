@@ -372,6 +372,14 @@ func TestCloudFormation(t *testing.T) {
 			expectedError:    false,
 			expectedOutput:   []string{"No tag violations found"},
 		},
+		{
+			name:             "lower case",
+			filePathOrDir:    "testdata/cloudformation/tags.tf",
+			cliArgs:          []string{"--tags", "owner,environment"},
+			expectedExitCode: 1,
+			expectedError:    true,
+			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: owner, environment"},
+		},
 	}
 
 	for _, tc := range testCases {
