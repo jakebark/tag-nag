@@ -322,7 +322,7 @@ func TestTerraform(t *testing.T) {
 	}
 }
 
-func TestCloudFormationCLI(t *testing.T) {
+func TestCloudFormation(t *testing.T) {
 	testCases := []testCases{
 		{
 			name:             "yml",
