@@ -31,10 +31,10 @@ func ParseFlags() UserInput {
 	pflag.Parse()
 
 	if pflag.NArg() < 1 {
-		log.Fatal("Error: please specify a directory or file to scan")
+		log.Fatal("Error: Please specify a directory or file to scan")
 	}
 	if tags == "" {
-		log.Fatal("Error: please specify required tags using --tags")
+		log.Fatal("Error: Please specify required tags using --tags")
 	}
 
 	parsedTags, err := parseTags(tags)
