@@ -95,6 +95,24 @@ func TestParseTags(t *testing.T) {
 			},
 			expectedError: false,
 		},
+		{
+			name:          "unclosed bracket",
+			input:         "invalid[value",
+			expected:      nil,
+			expectedError: true,
+		},
+		{
+			name:          "no key",
+			input:         "[value]",
+			expected:      nil,
+			expectedError: true,
+		},
+		{
+			name:          "stray bracket",
+			input:         "stray]",
+			expected:      nil,
+			expectedError: true,
+		},
 	}
 
 	for _, tc := range testCases {
