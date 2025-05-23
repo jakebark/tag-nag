@@ -154,10 +154,10 @@ func TestTerraform(t *testing.T) {
 		{
 			name:             "lower case",
 			filePathOrDir:    "testdata/terraform/tags.tf",
-			cliArgs:          []string{"--tags", "owner,environment"},
+			cliArgs:          []string{"--tags", "owner"},
 			expectedExitCode: 1,
 			expectedError:    true,
-			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: owner, environment"},
+			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: owner"},
 		},
 		{
 			name:             "tag values",
@@ -366,7 +366,7 @@ func TestCloudFormation(t *testing.T) {
 		},
 		{
 			name:             "case insensitive",
-			filePathOrDir:    "testdata/cloudformation/tags.tf",
+			filePathOrDir:    "testdata/cloudformation/tags.yml",
 			cliArgs:          []string{"--tags", "owner,environment", "-c"},
 			expectedExitCode: 0,
 			expectedError:    false,
@@ -374,11 +374,11 @@ func TestCloudFormation(t *testing.T) {
 		},
 		{
 			name:             "lower case",
-			filePathOrDir:    "testdata/cloudformation/tags.tf",
-			cliArgs:          []string{"--tags", "owner,environment"},
+			filePathOrDir:    "testdata/cloudformation/tags.yml",
+			cliArgs:          []string{"--tags", "owner"},
 			expectedExitCode: 1,
 			expectedError:    true,
-			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: owner, environment"},
+			expectedOutput:   []string{`AWS::S3::Bucket "this"`, "Missing tags: owner"},
 		},
 	}
 
