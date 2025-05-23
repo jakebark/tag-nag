@@ -2,6 +2,7 @@ package shared
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -74,6 +75,6 @@ func FilterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 			}
 		}
 	}
-
+	sort.Strings(missingTags)
 	return missingTags
 }
