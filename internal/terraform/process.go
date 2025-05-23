@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
@@ -161,6 +162,7 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, tfCtx
 				for key := range tags {
 					keys = append(keys, key) // remove bool element of tag map
 				}
+				sort.Strings(keys)
 				fmt.Printf("Found Terraform default tags for provider %s: [%v]\n", providerID, strings.Join(keys, ", "))
 				defaultTags.LiteralTags[providerID] = tags
 

@@ -60,7 +60,64 @@ func runTagNag(t *testing.T, args ...string) (string, error, int) {
 	return fullOutput, err, exitCode
 }
 
-func TestTerraformCLI(t *testing.T) {
+func TestInputs(t *testing.T) {
+	testCases := []testCases{
+		{
+			name:             "no dir",
+			filePathOrDir:    "",
+			cliArgs:          []string{"--tags", "Owner"},
+			expectedExitCode: 1,
+			expectedError:    true,
+			expectedOutput:   []string{"Error: Please specify a directory or file to scan."},
+		},
+		{
+			name:             "no tags",
+			filePathOrDir:    "testdata/terraform/tags.tf",
+			cliArgs:          []string{},
+			expectedExitCode: 1,
+			expectedError:    true,
+			expectedOutput:   []string{"Error: Please specify required tags using --tags"},
+		},
+		{
+			name:             "dry run",
+			filePathOrDir:    "testdata/terraform/tags.tf",
+			cliArgs:          []string{"--tags", "Owner,Environment,Project", "--dry-run"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"Dry-run:", `aws_s3_bucket "this"`, "Missing tags: Project"},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var argsForRun []string
+			if tc.filePathOrDir != "" {
+				argsForRun = append(argsForRun, tc.filePathOrDir)
+			}
+			argsForRun = append(argsForRun, tc.cliArgs...)
+
+			output, err, exitCode := runTagNag(t, argsForRun...)
+
+			if tc.expectedError && err == nil {
+				t.Errorf("Expected an error from command execution, but got none. Output:\n%s", output)
+			}
+			if !tc.expectedError && err != nil {
+				t.Errorf("Expected no error from command execution, but got: %v. Output:\n%s", err, output)
+			}
+
+			if exitCode != tc.expectedExitCode {
+				t.Errorf("Expected exit code %d, got %d. Output:\n%s", tc.expectedExitCode, exitCode, output)
+			}
+
+			for _, expectedStr := range tc.expectedOutput {
+				if !strings.Contains(output, expectedStr) {
+					t.Errorf("Output missing expected string '%s'. Output:\n%s", expectedStr, output)
+				}
+			}
+		})
+	}
+}
+
+func TestTerraform(t *testing.T) {
 	testCases := []testCases{
 		{
 			name:             "tags",
@@ -81,10 +138,10 @@ func TestTerraformCLI(t *testing.T) {
 		{
 			name:             "no tags",
 			filePathOrDir:    "testdata/terraform/no_tags.tf",
-			cliArgs:          []string{"--tags", "Owner,Environment"},
+			cliArgs:          []string{"--tags", "Owner, Environment"},
 			expectedExitCode: 1,
 			expectedError:    true,
-			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: Owner, Environment"},
+			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: Environment, Owner"},
 		},
 		{
 			name:             "case insensitive",
@@ -97,10 +154,10 @@ func TestTerraformCLI(t *testing.T) {
 		{
 			name:             "lower case",
 			filePathOrDir:    "testdata/terraform/tags.tf",
-			cliArgs:          []string{"--tags", "owner,environment"},
+			cliArgs:          []string{"--tags", "owner"},
 			expectedExitCode: 1,
 			expectedError:    true,
-			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: owner, environment"},
+			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: owner"},
 		},
 		{
 			name:             "tag values",
@@ -140,7 +197,7 @@ func TestTerraformCLI(t *testing.T) {
 			cliArgs:          []string{"--tags", "Owner,Environment,Project,Source"},
 			expectedExitCode: 0,
 			expectedError:    false,
-			expectedOutput:   []string{"Found Terraform default tags for provider aws", "No tag violations found"},
+			expectedOutput:   []string{"Found Terraform default tags for provider aws: [Project, Source]", "No tag violations found"},
 		},
 		{
 			name:             "provider case insensitive",
@@ -148,7 +205,7 @@ func TestTerraformCLI(t *testing.T) {
 			cliArgs:          []string{"--tags", "owner,environment,project,source", "-c"},
 			expectedExitCode: 0,
 			expectedError:    false,
-			expectedOutput:   []string{"Found Terraform default tags for provider aws", "No tag violations found"},
+			expectedOutput:   []string{"Found Terraform default tags for provider aws: [project, source]", "No tag violations found"},
 		},
 		{
 			name:             "provider tag values",
@@ -156,7 +213,7 @@ func TestTerraformCLI(t *testing.T) {
 			cliArgs:          []string{"--tags", "Owner,Environment[dev,prod],Project,Source[my-repo]"},
 			expectedExitCode: 0,
 			expectedError:    false,
-			expectedOutput:   []string{"Found Terraform default tags for provider aws", "No tag violations found"},
+			expectedOutput:   []string{"Found Terraform default tags for provider aws: [Project, Source]", "No tag violations found"},
 		},
 		{
 			name:             "variable tags",
@@ -220,7 +277,7 @@ func TestTerraformCLI(t *testing.T) {
 			cliArgs:          []string{"--tags", "Owner,Environment"},
 			expectedExitCode: 1,
 			expectedError:    true,
-			expectedOutput:   []string{"Found Terraform default tags for provider aws", `aws_s3_bucket "baz"`, "Found 1 tag violation(s)"},
+			expectedOutput:   []string{"Found Terraform default tags for provider aws: [Environment, Owner, Source]", `aws_s3_bucket "baz"`, "Found 1 tag violation(s)"},
 		},
 		{
 			name:             "ignore",
@@ -265,7 +322,7 @@ func TestTerraformCLI(t *testing.T) {
 	}
 }
 
-func TestCloudFormationCLI(t *testing.T) {
+func TestCloudFormation(t *testing.T) {
 	testCases := []testCases{
 		{
 			name:             "yml",
@@ -306,6 +363,22 @@ func TestCloudFormationCLI(t *testing.T) {
 			expectedExitCode: 1,
 			expectedError:    true,
 			expectedOutput:   []string{`AWS::S3::Bucket "this"`, "Missing tags: Project"},
+		},
+		{
+			name:             "case insensitive",
+			filePathOrDir:    "testdata/cloudformation/tags.yml",
+			cliArgs:          []string{"--tags", "owner,environment", "-c"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"No tag violations found"},
+		},
+		{
+			name:             "lower case",
+			filePathOrDir:    "testdata/cloudformation/tags.yml",
+			cliArgs:          []string{"--tags", "owner"},
+			expectedExitCode: 1,
+			expectedError:    true,
+			expectedOutput:   []string{`AWS::S3::Bucket "this"`, "Missing tags: owner"},
 		},
 	}
 
