@@ -1,8 +1,6 @@
 package inputs
 
 import (
-	"os"
-	"os/exec"
 	"reflect"
 	"testing"
 
