@@ -197,7 +197,7 @@ func TestTerraform(t *testing.T) {
 			cliArgs:          []string{"--tags", "Owner,Environment,Project,Source"},
 			expectedExitCode: 0,
 			expectedError:    false,
-			expectedOutput:   []string{"Found Terraform default tags for provider aws", "No tag violations found"},
+			expectedOutput:   []string{"Found Terraform default tags for provider aws: [Project, Source]", "No tag violations found"},
 		},
 		{
 			name:             "provider case insensitive",
@@ -205,7 +205,7 @@ func TestTerraform(t *testing.T) {
 			cliArgs:          []string{"--tags", "owner,environment,project,source", "-c"},
 			expectedExitCode: 0,
 			expectedError:    false,
-			expectedOutput:   []string{"Found Terraform default tags for provider aws", "No tag violations found"},
+			expectedOutput:   []string{"Found Terraform default tags for provider aws: [project, source]", "No tag violations found"},
 		},
 		{
 			name:             "provider tag values",
@@ -213,7 +213,7 @@ func TestTerraform(t *testing.T) {
 			cliArgs:          []string{"--tags", "Owner,Environment[dev,prod],Project,Source[my-repo]"},
 			expectedExitCode: 0,
 			expectedError:    false,
-			expectedOutput:   []string{"Found Terraform default tags for provider aws", "No tag violations found"},
+			expectedOutput:   []string{"Found Terraform default tags for provider aws: [Project, Source]", "No tag violations found"},
 		},
 		{
 			name:             "variable tags",
@@ -277,7 +277,7 @@ func TestTerraform(t *testing.T) {
 			cliArgs:          []string{"--tags", "Owner,Environment"},
 			expectedExitCode: 1,
 			expectedError:    true,
-			expectedOutput:   []string{"Found Terraform default tags for provider aws", `aws_s3_bucket "baz"`, "Found 1 tag violation(s)"},
+			expectedOutput:   []string{"Found Terraform default tags for provider aws: [Environment, Owner, Source]", `aws_s3_bucket "baz"`, "Found 1 tag violation(s)"},
 		},
 		{
 			name:             "ignore",
