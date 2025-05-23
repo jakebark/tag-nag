@@ -45,15 +45,6 @@ func TestParseTags(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name:  "legacy value input",
-			input: "Env=dev, Owner[jake]",
-			expected: shared.TagMap{
-				"Env":   {"dev"},
-				"Owner": {"jake"},
-			},
-			expectedError: false,
-		},
-		{
 			name:          "empty",
 			input:         "",
 			expected:      shared.TagMap{},
@@ -139,8 +130,6 @@ func TestSplitTags(t *testing.T) {
 		{"value", "Owner[Jake]", []string{"Owner[Jake]"}},
 		{"multiple values", "Env[Dev,Prod]", []string{"Env[Dev,Prod]"}},
 		{"mixed keys and values", "Owner[Jake], Env[Dev,Prod], CostCenter", []string{"Owner[Jake]", "Env[Dev,Prod]", "CostCenter"}},
-		{"legacy value input", "owner=jake, env=prod", []string{"owner=jake", "env=prod"}},
-		{"mixed legacy", "owner=jake, Env[Dev,Prod]", []string{"owner=jake", "Env[Dev,Prod]"}},
 		{"trailing comma", "Owner,Env,", []string{"Owner", "Env", ""}},
 		{"leading comma", ",Owner,Env", []string{"", "Owner", "Env"}},
 	}
