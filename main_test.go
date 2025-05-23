@@ -138,10 +138,10 @@ func TestTerraform(t *testing.T) {
 		{
 			name:             "no tags",
 			filePathOrDir:    "testdata/terraform/no_tags.tf",
-			cliArgs:          []string{"--tags", "Owner,Environment"},
+			cliArgs:          []string{"--tags", "Owner, Environment"},
 			expectedExitCode: 1,
 			expectedError:    true,
-			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: Owner, Environment"},
+			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: Environment, Owner"},
 		},
 		{
 			name:             "case insensitive",
