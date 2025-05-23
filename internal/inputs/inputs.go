@@ -31,10 +31,10 @@ func ParseFlags() UserInput {
 	pflag.Parse()
 
 	if pflag.NArg() < 1 {
-		log.Fatal("Error: Please specify a directory or file to scan.")
+		log.Fatal("Error: please specify a directory or file to scan")
 	}
 	if tags == "" {
-		log.Fatal("Error: Please specify required tags using --tags")
+		log.Fatal("Error: please specify required tags using --tags")
 	}
 
 	parsedTags, err := parseTags(tags)
@@ -51,6 +51,7 @@ func ParseFlags() UserInput {
 	}
 }
 
+// parses tag input components
 func parseTags(input string) (shared.TagMap, error) {
 	tagMap := make(shared.TagMap)
 	pairs := splitTags(input)
@@ -69,6 +70,7 @@ func parseTags(input string) (shared.TagMap, error) {
 	return tagMap, nil
 }
 
+// parses tag keys and values
 func parseTag(tagComponent string) (key string, values []string, err error) {
 	trimmed := strings.TrimSpace(tagComponent)
 	if trimmed == "" {
