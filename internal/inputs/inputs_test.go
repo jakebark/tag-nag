@@ -11,9 +11,10 @@ import (
 
 func TestParseTags(t *testing.T) {
 	testCases := []struct {
-		name     string
-		input    string
-		expected shared.TagMap
+		name          string
+		input         string
+		expected      shared.TagMap
+		expectedError bool
 	}{
 		{
 			name:  "key",
@@ -21,6 +22,7 @@ func TestParseTags(t *testing.T) {
 			expected: shared.TagMap{
 				"Owner": {},
 			},
+			expectedError: false,
 		},
 		{
 			name:  "multiple keys",
@@ -30,6 +32,7 @@ func TestParseTags(t *testing.T) {
 				"Environment": {},
 				"Project":     {},
 			},
+			expectedError: false,
 		},
 		{
 			name:  "mixed keys and values",
@@ -39,6 +42,7 @@ func TestParseTags(t *testing.T) {
 				"Environment": {"Dev", "Prod"},
 				"CostCenter":  {},
 			},
+			expectedError: false,
 		},
 		{
 			name:  "legacy value input",
@@ -47,16 +51,19 @@ func TestParseTags(t *testing.T) {
 				"Env":   {"dev"},
 				"Owner": {"jake"},
 			},
+			expectedError: false,
 		},
 		{
-			name:     "empty",
-			input:    "",
-			expected: shared.TagMap{},
+			name:          "empty",
+			input:         "",
+			expected:      shared.TagMap{},
+			expectedError: false,
 		},
 		{
-			name:     "whitespace",
-			input:    "  ,   ",
-			expected: shared.TagMap{},
+			name:          "whitespace",
+			input:         "  ,   ",
+			expected:      shared.TagMap{},
+			expectedError: false,
 		},
 		{
 			name:  "mixed keys and values, with whitespace",
@@ -65,6 +72,7 @@ func TestParseTags(t *testing.T) {
 				"Owner":       {},
 				"Environment": {"Dev", "Prod"},
 			},
+			expectedError: false,
 		},
 		{
 			name:  "leading comma",
@@ -72,6 +80,7 @@ func TestParseTags(t *testing.T) {
 			expected: shared.TagMap{
 				"Owner": {},
 			},
+			expectedError: false,
 		},
 		{
 			name:  "missing value",
@@ -79,6 +88,7 @@ func TestParseTags(t *testing.T) {
 			expected: shared.TagMap{
 				"Env": {}, // No values extracted
 			},
+			expectedError: false,
 		},
 		{
 			name:  "missing value, other values present",
@@ -86,6 +96,7 @@ func TestParseTags(t *testing.T) {
 			expected: shared.TagMap{
 				"Env": {"Dev", "Prod"},
 			},
+			expectedError: false,
 		},
 		{
 			name:  "whitespace preserved",
@@ -93,12 +104,22 @@ func TestParseTags(t *testing.T) {
 			expected: shared.TagMap{
 				"Owner": {"it belongs to me"},
 			},
+			expectedError: false,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := parseTags(tc.input)
+			actual, err := parseTags(tc.input)
+			if tc.expectedError {
+				if err == nil {
+					t.Errorf("parseTags(%q) expected an error, but got nil", tc.input)
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("parseTags(%q) expected no error, but got: %v", tc.input, err)
+			}
 			if !reflect.DeepEqual(actual, tc.expected) {
 				t.Errorf("parseTags(%q) = %v; want %v", tc.input, actual, tc.expected)
 			}
