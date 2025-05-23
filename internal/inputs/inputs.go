@@ -1,6 +1,7 @@
 package inputs
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -30,64 +31,84 @@ func ParseFlags() UserInput {
 	pflag.Parse()
 
 	if pflag.NArg() < 1 {
-		log.Fatal("Error: Please specify a directory or file to scan.")
+		log.Fatal("Error: Please specify a directory or file to scan")
 	}
 	if tags == "" {
 		log.Fatal("Error: Please specify required tags using --tags")
 	}
 
+	parsedTags, err := parseTags(tags)
+	if err != nil {
+		log.Fatalf("Error parsing tags: %v", err)
+	}
+
 	return UserInput{
 		Directory:       pflag.Arg(0),
-		RequiredTags:    parseTags(tags),
+		RequiredTags:    parsedTags,
 		CaseInsensitive: caseInsensitive,
 		DryRun:          dryRun,
 		CfnSpecPath:     cfnSpecPath,
 	}
 }
 
-func parseTags(input string) shared.TagMap {
+// parses tag input components
+func parseTags(input string) (shared.TagMap, error) {
 	tagMap := make(shared.TagMap)
 	pairs := splitTags(input)
-	for _, pair := range pairs { //split on ,
+	for _, pair := range pairs {
 		trimmed := strings.TrimSpace(pair)
 		if trimmed == "" {
 			continue
 		}
 
-		// legacy "="
-		// rm in later version
-		if eqIdx := strings.Index(trimmed, "="); eqIdx != -1 {
-			key := strings.TrimSpace(trimmed[:eqIdx])
-			value := strings.TrimSpace(trimmed[eqIdx+1:])
-			tagMap[key] = []string{value}
-			continue
+		key, values, err := parseTag(trimmed)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse tag component '%s': %w", trimmed, err)
+		}
+		tagMap[key] = values
+	}
+	return tagMap, nil
+}
+
+// parses tag keys and values
+func parseTag(tagComponent string) (key string, values []string, err error) {
+	trimmed := strings.TrimSpace(tagComponent)
+	if trimmed == "" {
+		return "", nil, fmt.Errorf("empty tag component")
+	}
+
+	// key and value
+	openBracketIdx := strings.Index(trimmed, "[")
+	if openBracketIdx != -1 {
+		if !strings.HasSuffix(trimmed, "]") {
+			return "", nil, fmt.Errorf("invalid tag format: %s. Expected closing ']'", trimmed)
 		}
 
-		// is [ present
-		if openIdx := strings.Index(trimmed, "["); openIdx != -1 {
-			// check for closing
-			if trimmed[len(trimmed)-1] != ']' {
-				log.Fatalf("Invalid tag format: %s. Expected closing ']'", trimmed)
-			}
-			// get key
-			key := strings.TrimSpace(trimmed[:openIdx])
-			// get value
-			valuesStr := trimmed[openIdx+1 : len(trimmed)-1]
-			values := []string{}
-			// get values
-			for _, v := range strings.Split(valuesStr, ",") {
-				v = strings.TrimSpace(v)
-				if v != "" {
-					values = append(values, v)
-				}
-			}
-			tagMap[key] = values
-		} else {
-			// just tag key
-			tagMap[trimmed] = []string{}
+		key = strings.TrimSpace(trimmed[:openBracketIdx])
+		if key == "" {
+			return "", nil, fmt.Errorf("empty key in bracket format: %s", trimmed)
 		}
+
+		valuesStr := trimmed[openBracketIdx+1 : len(trimmed)-1]
+		if valuesStr == "" {
+			return key, []string{}, nil
+		}
+
+		valParts := strings.Split(valuesStr, ",")
+		for _, v := range valParts {
+			trimmedVal := strings.TrimSpace(v)
+			if trimmedVal != "" {
+				values = append(values, trimmedVal)
+			}
+		}
+		return key, values, nil
 	}
-	return tagMap
+
+	// key only
+	if strings.Contains(trimmed, "[") || strings.Contains(trimmed, "]") {
+		return "", nil, fmt.Errorf("invalid tag format: %s. Contains '[' or ']' without matching pair or value definition", trimmed)
+	}
+	return trimmed, []string{}, nil
 }
 
 // splitTags splits the input string on commas outside of brackets

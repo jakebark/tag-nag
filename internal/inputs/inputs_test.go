@@ -1,8 +1,6 @@
 package inputs
 
 import (
-	"os"
-	"os/exec"
 	"reflect"
 	"testing"
 
@@ -11,9 +9,10 @@ import (
 
 func TestParseTags(t *testing.T) {
 	testCases := []struct {
-		name     string
-		input    string
-		expected shared.TagMap
+		name          string
+		input         string
+		expected      shared.TagMap
+		expectedError bool
 	}{
 		{
 			name:  "key",
@@ -21,6 +20,7 @@ func TestParseTags(t *testing.T) {
 			expected: shared.TagMap{
 				"Owner": {},
 			},
+			expectedError: false,
 		},
 		{
 			name:  "multiple keys",
@@ -30,6 +30,7 @@ func TestParseTags(t *testing.T) {
 				"Environment": {},
 				"Project":     {},
 			},
+			expectedError: false,
 		},
 		{
 			name:  "mixed keys and values",
@@ -39,24 +40,19 @@ func TestParseTags(t *testing.T) {
 				"Environment": {"Dev", "Prod"},
 				"CostCenter":  {},
 			},
+			expectedError: false,
 		},
 		{
-			name:  "legacy value input",
-			input: "Env=dev, Owner[jake]",
-			expected: shared.TagMap{
-				"Env":   {"dev"},
-				"Owner": {"jake"},
-			},
+			name:          "empty",
+			input:         "",
+			expected:      shared.TagMap{},
+			expectedError: false,
 		},
 		{
-			name:     "empty",
-			input:    "",
-			expected: shared.TagMap{},
-		},
-		{
-			name:     "whitespace",
-			input:    "  ,   ",
-			expected: shared.TagMap{},
+			name:          "whitespace",
+			input:         "  ,   ",
+			expected:      shared.TagMap{},
+			expectedError: false,
 		},
 		{
 			name:  "mixed keys and values, with whitespace",
@@ -65,6 +61,7 @@ func TestParseTags(t *testing.T) {
 				"Owner":       {},
 				"Environment": {"Dev", "Prod"},
 			},
+			expectedError: false,
 		},
 		{
 			name:  "leading comma",
@@ -72,6 +69,7 @@ func TestParseTags(t *testing.T) {
 			expected: shared.TagMap{
 				"Owner": {},
 			},
+			expectedError: false,
 		},
 		{
 			name:  "missing value",
@@ -79,6 +77,7 @@ func TestParseTags(t *testing.T) {
 			expected: shared.TagMap{
 				"Env": {}, // No values extracted
 			},
+			expectedError: false,
 		},
 		{
 			name:  "missing value, other values present",
@@ -86,6 +85,7 @@ func TestParseTags(t *testing.T) {
 			expected: shared.TagMap{
 				"Env": {"Dev", "Prod"},
 			},
+			expectedError: false,
 		},
 		{
 			name:  "whitespace preserved",
@@ -93,12 +93,40 @@ func TestParseTags(t *testing.T) {
 			expected: shared.TagMap{
 				"Owner": {"it belongs to me"},
 			},
+			expectedError: false,
+		},
+		{
+			name:          "unclosed bracket",
+			input:         "invalid[value",
+			expected:      nil,
+			expectedError: true,
+		},
+		{
+			name:          "no key",
+			input:         "[value]",
+			expected:      nil,
+			expectedError: true,
+		},
+		{
+			name:          "stray bracket",
+			input:         "stray]",
+			expected:      nil,
+			expectedError: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := parseTags(tc.input)
+			actual, err := parseTags(tc.input)
+			if tc.expectedError {
+				if err == nil {
+					t.Errorf("parseTags(%q) expected an error, but got nil", tc.input)
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("parseTags(%q) expected no error, but got: %v", tc.input, err)
+			}
 			if !reflect.DeepEqual(actual, tc.expected) {
 				t.Errorf("parseTags(%q) = %v; want %v", tc.input, actual, tc.expected)
 			}
@@ -118,8 +146,6 @@ func TestSplitTags(t *testing.T) {
 		{"value", "Owner[Jake]", []string{"Owner[Jake]"}},
 		{"multiple values", "Env[Dev,Prod]", []string{"Env[Dev,Prod]"}},
 		{"mixed keys and values", "Owner[Jake], Env[Dev,Prod], CostCenter", []string{"Owner[Jake]", "Env[Dev,Prod]", "CostCenter"}},
-		{"legacy value input", "owner=jake, env=prod", []string{"owner=jake", "env=prod"}},
-		{"mixed legacy", "owner=jake, Env[Dev,Prod]", []string{"owner=jake", "Env[Dev,Prod]"}},
 		{"trailing comma", "Owner,Env,", []string{"Owner", "Env", ""}},
 		{"leading comma", ",Owner,Env", []string{"", "Owner", "Env"}},
 	}
@@ -132,18 +158,4 @@ func TestSplitTags(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestParseTagsFatal(t *testing.T) {
-	if os.Getenv("BE_TEST_FATAL") == "1" {
-		parseTags("Invalid[Tag")
-		return
-	}
-	cmd := exec.Command(os.Args[0], "-test.run=^TestParseTagsFatal$")
-	cmd.Env = append(os.Environ(), "BE_TEST_FATAL=1")
-	err := cmd.Run()
-	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
-		return
-	}
-	t.Fatalf("process ran with err %v, want exit status 1", err)
 }
