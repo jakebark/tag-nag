@@ -51,6 +51,7 @@ func ParseFlags() UserInput {
 		CaseInsensitive: caseInsensitive,
 		DryRun:          dryRun,
 		CfnSpecPath:     cfnSpecPath,
+		ShowVersion:     showVersion,
 	}
 }
 

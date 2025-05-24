@@ -16,6 +16,11 @@ func main() {
 
 	userInput := inputs.ParseFlags()
 
+	if userInput.ShowVersion {
+		log.Println("tag-nag version:", version)
+		os.Exit(0)
+	}
+
 	if userInput.DryRun {
 		log.Printf("\033[32mDry-run: %s\033[0m\n", userInput.Directory)
 	} else {
