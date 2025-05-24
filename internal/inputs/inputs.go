@@ -23,11 +23,13 @@ func ParseFlags() UserInput {
 	var dryRun bool
 	var tags string
 	var cfnSpecPath string
+	var showVersion bool
 
 	pflag.BoolVarP(&caseInsensitive, "case-insensitive", "c", false, "Make tag checks non-case-sensitive")
 	pflag.BoolVarP(&dryRun, "dry-run", "d", false, "Dry run tag:nag without triggering exit(1) code")
 	pflag.StringVar(&tags, "tags", "", "Comma-separated list of required tag keys (e.g., 'Owner,Environment[Dev,Prod]')")
 	pflag.StringVar(&cfnSpecPath, "cfn-spec", "", "Optional path to CloudFormationResourceSpecification.json)")
+	pflag.BoolVarP(&showVersion, "version", "v", false, "Print application version")
 	pflag.Parse()
 
 	if pflag.NArg() < 1 {
