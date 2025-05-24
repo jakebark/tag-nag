@@ -9,6 +9,8 @@ import (
 	"github.com/jakebark/tag-nag/internal/terraform"
 )
 
+var version = "dev"
+
 func main() {
 	log.SetFlags(0) // remove timestamp from prints
 
