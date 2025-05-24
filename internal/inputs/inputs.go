@@ -15,6 +15,7 @@ type UserInput struct {
 	CaseInsensitive bool
 	DryRun          bool
 	CfnSpecPath     string
+	ShowVersion     bool
 }
 
 // ParseFlags returns pased CLI flags and arguments
