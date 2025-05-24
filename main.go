@@ -9,10 +9,17 @@ import (
 	"github.com/jakebark/tag-nag/internal/terraform"
 )
 
+var version = "dev"
+
 func main() {
 	log.SetFlags(0) // remove timestamp from prints
 
 	userInput := inputs.ParseFlags()
+
+	if userInput.ShowVersion {
+		log.Println("tag-nag version:", version)
+		os.Exit(0)
+	}
 
 	if userInput.DryRun {
 		log.Printf("\033[32mDry-run: %s\033[0m\n", userInput.Directory)
