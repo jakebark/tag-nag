@@ -295,6 +295,14 @@ func TestTerraform(t *testing.T) {
 			expectedError:    false,
 			expectedOutput:   []string{`aws_s3_bucket "this" skipped`},
 		},
+		{
+			name:             "lower function",
+			filePathOrDir:    "testdata/terraform/function.tf",
+			cliArgs:          []string{"--tags", "Environment[dev]"},
+			expectedExitCode: 0,
+			expectedError:    false,
+			expectedOutput:   []string{"No tag violations found"},
+		},
 	}
 
 	for _, tc := range testCases {
