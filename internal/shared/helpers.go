@@ -38,19 +38,14 @@ func FilterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 // matchTagKey checks required tag key against effective tags
 func matchTagKey(reqKey string, effectiveTags TagMap, caseInsensitive bool) (values []string, found bool) {
 	for effKey, effValues := range effectiveTags {
-		keyMatch := false
 		if caseInsensitive {
 			if strings.EqualFold(effKey, reqKey) {
-				keyMatch = true
+				return effValues, true
 			}
 		} else {
 			if effKey == reqKey {
-				keyMatch = true
+				return effValues, true
 			}
-		}
-
-		if keyMatch {
-			return effValues, true
 		}
 	}
 	return nil, false
