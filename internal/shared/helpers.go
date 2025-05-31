@@ -10,71 +10,76 @@ import (
 func FilterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitive bool) []string {
 	var missingTags []string
 
-	// loop through key values in requiredTags
 	for reqKey, allowedValues := range requiredTags {
-		var effectiveValues []string
-		tagFound := false
+		effectiveValues, keyFound := matchTagKey(reqKey, effectiveTags, caseInsensitive)
 
-		// required key exists in effective tags
-		for effKey, values := range effectiveTags {
-			keyMatch := false
-			if caseInsensitive {
-				if strings.EqualFold(effKey, reqKey) {
-					keyMatch = true
-				}
-			} else {
-				if effKey == reqKey {
-					keyMatch = true
-				}
-			}
-
-			if keyMatch {
-				effectiveValues = values
-				tagFound = true
-				break // Found the key, no need to check further keys
-			}
+		violationMessage := reqKey
+		if len(allowedValues) > 0 {
+			violationMessage = fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ","))
 		}
 
-		// if no effective value is found
-		if !tagFound {
-			if len(allowedValues) > 0 {
-				missingTags = append(missingTags, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
-			} else {
-				missingTags = append(missingTags, reqKey)
-			}
+		if !keyFound {
+			missingTags = append(missingTags, violationMessage)
 			continue
 		}
 
-		// if a value is found, check it is allowed (against requiredTags)
 		if len(allowedValues) > 0 {
-			valueMatchFound := false
-			for _, allowed := range allowedValues {
-				for _, effVal := range effectiveValues {
-					valMatch := false
-					if caseInsensitive {
-						if strings.EqualFold(effVal, allowed) {
-							valMatch = true
-						}
-					} else {
-						if effVal == allowed {
-							valMatch = true
-						}
-					}
-					if valMatch {
-						valueMatchFound = true
-						break
-					}
-				}
-				if valueMatchFound {
-					break
-				}
-			}
-			// effective values dont match allowed values
-			if !valueMatchFound {
-				missingTags = append(missingTags, fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ",")))
+			if !matchTagValue(allowedValues, effectiveValues, caseInsensitive) {
+				missingTags = append(missingTags, violationMessage)
 			}
 		}
 	}
-	sort.Strings(missingTags)
+
+	sort.Strings(missingTags) //
 	return missingTags
+}
+
+// matchTagKey checks required tag key against effective tags
+func matchTagKey(reqKey string, effectiveTags TagMap, caseInsensitive bool) (values []string, found bool) {
+	for effKey, effValues := range effectiveTags {
+		keyMatch := false
+		if caseInsensitive {
+			if strings.EqualFold(effKey, reqKey) {
+				keyMatch = true
+			}
+		} else {
+			if effKey == reqKey {
+				keyMatch = true
+			}
+		}
+
+		if keyMatch {
+			return effValues, true
+		}
+	}
+	return nil, false
+}
+
+// matchTagValue checks required tag values (if present) against effective tags
+func matchTagValue(allowedValues []string, effectiveValues []string, caseInsensitive bool) bool {
+	if len(allowedValues) == 0 { // if no tag alues are required, return match
+		return true
+	}
+	if len(effectiveValues) == 0 && len(allowedValues) > 0 {
+		return false
+	}
+
+	for _, allowed := range allowedValues {
+		for _, effVal := range effectiveValues {
+			match := false
+			if caseInsensitive {
+				if strings.EqualFold(effVal, allowed) {
+					match = true
+				}
+			} else {
+				if effVal == allowed {
+					match = true
+				}
+			}
+			if match {
+				return true // found a match
+			}
+		}
+	}
+	return false // no match
 }
