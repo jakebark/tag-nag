@@ -62,20 +62,16 @@ func matchTagValue(allowedValues []string, effectiveValues []string, caseInsensi
 
 	for _, allowed := range allowedValues {
 		for _, effVal := range effectiveValues {
-			match := false
 			if caseInsensitive {
 				if strings.EqualFold(effVal, allowed) {
-					match = true
+					return true
 				}
 			} else {
 				if effVal == allowed {
-					match = true
+					return true
 				}
-			}
-			if match {
-				return true // found a match
 			}
 		}
 	}
-	return false // no match
+	return false
 }
