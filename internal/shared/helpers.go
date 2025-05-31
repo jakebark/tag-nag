@@ -13,16 +13,17 @@ func FilterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 	for reqKey, allowedValues := range requiredTags {
 		effectiveValues, keyFound := matchTagKey(reqKey, effectiveTags, caseInsensitive)
 
+		// construct violation message
 		violationMessage := reqKey
 		if len(allowedValues) > 0 {
 			violationMessage = fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ","))
 		}
-
 		if !keyFound {
 			missingTags = append(missingTags, violationMessage)
 			continue
 		}
 
+		// if there are tag values required, check them
 		if len(allowedValues) > 0 {
 			if !matchTagValue(allowedValues, effectiveValues, caseInsensitive) {
 				missingTags = append(missingTags, violationMessage)
