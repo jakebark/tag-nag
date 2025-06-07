@@ -19,6 +19,7 @@ RUN apt-get update && \
     wget \
     unzip \
     ca-certificates && \
+    git && \
     rm -rf /var/lib/apt/lists/*
 
 RUN wget "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" && \
