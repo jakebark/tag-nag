@@ -1,0 +1,9 @@
+## codebuild image 'jakebar/tag-nag:$latest'
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - cd "$CODEBUILD_SRC_DIR"
+      - terraform init -backend=false # remove for CloudFormation
+      - tag-nag . --tags "tags"
