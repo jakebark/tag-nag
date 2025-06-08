@@ -1,0 +1,9 @@
+stages:
+  - validate
+
+tag-nag:
+  stage: validate
+  image: jakebark/tag-nag:latest
+  script:
+    - terraform init -backend=false # remove for CloudFormation
+    - tag-nag . --tags "tags"
