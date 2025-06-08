@@ -4,8 +4,6 @@
 
 Validate AWS tags in Terraform and CloudFormation.  
 
-Designed to run in a pipeline or as part of pre-deployment checks.  
-
 ## Installation
 ```bash
 go install github.com/jakebark/tag-nag@latest
@@ -104,6 +102,13 @@ docker run --rm -v $(pwd):/workspace -w /workspace \
   -c "terraform init -input=false -no-color && tag-nag\
      . --tags 'Owner,Environment'"
 ```
+
+## CI/CD
+
+Example CI files:
+- [GitHub](./examples/github.yml)
+- [GitLab](./examples/gitlab.yml)
+- [AWS CodeBuild](./examples/codebuild.yml)
 
 ## Related Resources
 
