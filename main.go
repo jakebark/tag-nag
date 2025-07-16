@@ -20,8 +20,8 @@ func main() {
 		log.Printf("\033[33mScanning: %s\033[0m\n", userInput.Directory)
 	}
 
-	tfViolations := terraform.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive)
-	cfnViolations := cloudformation.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive, userInput.CfnSpecPath)
+	tfViolations := terraform.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive, userInput.Skip)
+	cfnViolations := cloudformation.ProcessDirectory(userInput.Directory, userInput.RequiredTags, userInput.CaseInsensitive, userInput.CfnSpecPath, userInput.Skip)
 
 	violations := tfViolations + cfnViolations
 

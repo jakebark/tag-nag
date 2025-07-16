@@ -18,7 +18,7 @@ import (
 )
 
 // ProcessDirectory walks all terraform files in directory
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool) int {
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, skip []string) int {
 	hasFiles, err := scan(dirPath)
 	if err != nil {
 		return 0
@@ -50,14 +50,24 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		if err != nil {
 			return err
 		}
+
+		for _, skipped := range skip {
+			if strings.HasPrefix(path, skipped) {
+				if info.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+		}
 		if info.IsDir() {
 			dirName := info.Name()
-			for _, skipped := range config.SkippedDirs {
-				if dirName == skipped {
+			for _, skippedDir := range config.SkippedDirs {
+				if dirName == skippedDir {
 					return filepath.SkipDir
 				}
 			}
 		}
+
 		if !info.IsDir() && filepath.Ext(path) == ".tf" {
 			parser := hclparse.NewParser()
 			file, diags := parser.ParseHCLFile(path)
@@ -80,6 +90,24 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		if err != nil {
 			return err
 		}
+
+		for _, skipped := range skip {
+			if strings.HasPrefix(path, skipped) {
+				if info.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+		}
+		if info.IsDir() {
+			dirName := info.Name()
+			for _, skippedDir := range config.SkippedDirs {
+				if dirName == skippedDir {
+					return filepath.SkipDir
+				}
+			}
+		}
+
 		if info.IsDir() {
 			dirName := info.Name()
 			for _, skipped := range config.SkippedDirs {

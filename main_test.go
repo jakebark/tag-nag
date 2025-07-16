@@ -303,6 +303,22 @@ func TestTerraform(t *testing.T) {
 			expectedError:    false,
 			expectedOutput:   []string{"No tag violations found"},
 		},
+		{
+			name:             "skip file",
+			filePathOrDir:    "testdata/terraform",
+			cliArgs:          []string{"--tags", "Owner,Environment,Project", "-s", "testdata/terraform/tags.tf"},
+			expectedExitCode: 1,
+			expectedError:    true,
+			expectedOutput:   []string{`aws_s3_bucket "this"`, "Missing tags: Environment, Owner"},
+		},
+		{
+			name:             "skip directory",
+			filePathOrDir:    "testdata",
+			cliArgs:          []string{"--tags", "Owner,Environment,Project", "-s", "testdata/terraform"},
+			expectedExitCode: 1,
+			expectedError:    true,
+			expectedOutput:   []string{`AWS::S3::Bucket "this"`, "Missing tags: Project"},
+		},
 	}
 
 	for _, tc := range testCases {

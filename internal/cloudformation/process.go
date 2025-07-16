@@ -12,7 +12,7 @@ import (
 )
 
 // ProcessDirectory walks all cfn files in a directory, then returns violations
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string) int {
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string, skip []string) int {
 	hasFiles, err := scan(dirPath)
 	if err != nil {
 		return 0
@@ -40,6 +40,23 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		if walkErr != nil {
 			log.Printf("Error accessing %q: %v\n", path, walkErr)
 			return walkErr
+		}
+
+		for _, skipped := range skip {
+			if strings.HasPrefix(path, skipped) {
+				if info.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+		}
+		if info.IsDir() {
+			dirName := info.Name()
+			for _, skippedDir := range config.SkippedDirs {
+				if dirName == skippedDir {
+					return filepath.SkipDir
+				}
+			}
 		}
 
 		if info.IsDir() {
