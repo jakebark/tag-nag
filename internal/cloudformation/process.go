@@ -12,7 +12,7 @@ import (
 )
 
 // ProcessDirectory walks all cfn files in a directory, then returns violations
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string) int {
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string, skip []string) int {
 	hasFiles, err := scan(dirPath)
 	if err != nil {
 		return 0
