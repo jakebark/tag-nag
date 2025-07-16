@@ -34,7 +34,7 @@ tag-nag main.tf --tags "Owner[Jake],Environment[Dev,Prod]" # multiple options fo
 
 ```
 
-Optional flags 
+Optional flags
 ```bash
 -c # case-insensitive 
 -d # dry-run (will always exit successfully)
@@ -43,9 +43,12 @@ Optional flags
 Optional inputs
 ```bash
 --cfn-spec ~/path/to/CloudFormationResourceSpecification.json # path to Cfn spec file, filters taggable resources
+--skip "file.tf, path/to/directory" # skip files and directories
 ```
 
+
 ## Skip Checks
+
 Skip file
 ```hcl
 #tag-nag ignore-all
