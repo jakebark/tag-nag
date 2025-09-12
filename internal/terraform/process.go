@@ -46,10 +46,6 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		tfCtx = &TerraformContext{EvalContext: &hcl.EvalContext{Variables: make(map[string]cty.Value), Functions: make(map[string]function.Function)}}
 	}
 
-	defaultTags := DefaultTags{
-		LiteralTags: make(map[string]shared.TagMap),
-	}
-
 	// testing single directory walk
 	tfFiles, err := collectTerraformFiles(dirPath, skip)
 	if err != nil {
@@ -65,7 +61,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 	defaultTags := extractDefaultTags(tfFiles, tfCtx, caseInsensitive)
 
 	// process resources for tag violations
-	totalViolations := processResourceViolations(tfFiles, requiredTags, defaultTags, tfCtx, caseInsensitive, taggable)
+	totalViolations = processResourceViolations(tfFiles, requiredTags, defaultTags, tfCtx, caseInsensitive, taggable)
 
 	return totalViolations
 }
@@ -99,7 +95,7 @@ func shouldSkipPath(path string, info os.FileInfo, skip []string) bool {
 		}
 	}
 
-	// fefault skipped directories eg .git
+	// default skipped directories eg .git
 	if info.IsDir() {
 		dirName := info.Name()
 		for _, skippedDir := range config.SkippedDirs {
@@ -223,3 +219,4 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, tfCtx
 		}
 	}
 }
+
