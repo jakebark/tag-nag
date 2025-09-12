@@ -58,7 +58,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 	}
 
 	// extract default tags from all files
-	defaultTags := extractDefaultTags(tfFiles, tfCtx, caseInsensitive)
+	defaultTags := processDefaultTags(tfFiles, tfCtx, caseInsensitive)
 
 	// process resources for tag violations
 	totalViolations = processResourceViolations(tfFiles, requiredTags, defaultTags, tfCtx, caseInsensitive, taggable)
@@ -115,7 +115,7 @@ func handleSkip(info os.FileInfo) error {
 	return nil
 }
 
-func extractDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensitive bool) DefaultTags {
+func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensitive bool) DefaultTags {
 	defaultTags := DefaultTags{
 		LiteralTags: make(map[string]shared.TagMap),
 	}
@@ -219,4 +219,3 @@ func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, tfCtx
 		}
 	}
 }
-
