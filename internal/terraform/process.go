@@ -135,6 +135,55 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 	return totalViolations
 }
 
+func collectTerraformFiles(dirPath string, skip []string) ([]tfFile, error) {
+	var tfFiles []tfFile
+
+	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if shouldSkipPath(path, info, skip) {
+			return handleSkip(info)
+		}
+
+		if !info.IsDir() && filepath.Ext(path) == ".tf" {
+			tfFiles = append(tfFiles, tfFile{path: path, info: info})
+		}
+		return nil
+	})
+
+	return tfFiles, err
+}
+
+func shouldSkipPath(path string, info os.FileInfo, skip []string) bool {
+	// user-defined skip paths
+	for _, skipped := range skip {
+		if strings.HasPrefix(path, skipped) {
+			return true
+		}
+	}
+
+	// fefault skipped directories eg .git
+	if info.IsDir() {
+		dirName := info.Name()
+		for _, skippedDir := range config.SkippedDirs {
+			if dirName == skippedDir {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func handleSkip(info os.FileInfo) error {
+	if info.IsDir() {
+		return filepath.SkipDir
+	}
+	return nil
+}
+
 // processFile parses files looking for resources
 func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, taggable map[string]bool) []Violation {
 	data, err := os.ReadFile(filePath)
