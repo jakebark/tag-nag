@@ -46,8 +46,8 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		tfCtx = &TerraformContext{EvalContext: &hcl.EvalContext{Variables: make(map[string]cty.Value), Functions: make(map[string]function.Function)}}
 	}
 
-	// testing single directory walk
-	tfFiles, err := collectTerraformFiles(dirPath, skip)
+	// single directory walk
+	tfFiles, err := collectFiles(dirPath, skip)
 	if err != nil {
 		log.Printf("Error scanning directory %q: %v\n", dirPath, err)
 		return 0
@@ -66,7 +66,8 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 	return totalViolations
 }
 
-func collectTerraformFiles(dirPath string, skip []string) ([]tfFile, error) {
+// collectFiles identifies all elligible terraform files
+func collectFiles(dirPath string, skip []string) ([]tfFile, error) {
 	var tfFiles []tfFile
 
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
@@ -74,7 +75,7 @@ func collectTerraformFiles(dirPath string, skip []string) ([]tfFile, error) {
 			return err
 		}
 
-		if shouldSkipPath(path, info, skip) {
+		if skipDir(path, info, skip) {
 			if info.IsDir() {
 				return filepath.SkipDir
 			}
@@ -90,7 +91,8 @@ func collectTerraformFiles(dirPath string, skip []string) ([]tfFile, error) {
 	return tfFiles, err
 }
 
-func shouldSkipPath(path string, info os.FileInfo, skip []string) bool {
+// skipDir identifies directories to ignore
+func skipDir(path string, info os.FileInfo, skip []string) bool {
 	// user-defined skip paths
 	for _, skipped := range skip {
 		if strings.HasPrefix(path, skipped) {
