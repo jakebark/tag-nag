@@ -17,6 +17,11 @@ import (
 	"github.com/zclconf/go-cty/cty/function"
 )
 
+type tfFile struct {
+	path string
+	info os.FileInfo
+}
+
 // ProcessDirectory walks all terraform files in directory
 func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, skip []string) int {
 	hasFiles, err := scan(dirPath)
