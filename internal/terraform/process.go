@@ -116,32 +116,6 @@ func skipDir(path string, info os.FileInfo, skip []string) bool {
 	return false
 }
 
-// processDefaultTags identifies the default tags
-func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensitive bool) DefaultTags {
-	defaultTags := DefaultTags{
-		LiteralTags: make(map[string]shared.TagMap),
-	}
-
-	for _, tf := range tfFiles {
-		parser := hclparse.NewParser()
-		file, diags := parser.ParseHCLFile(tf.path)
-		if diags.HasErrors() || file == nil {
-			log.Printf("Error parsing %s during default tag scan: %v\n", tf.path, diags)
-			continue
-		}
-
-		syntaxBody, ok := file.Body.(*hclsyntax.Body)
-		if !ok {
-			log.Printf("Failed to get syntax body for %s\n", tf.path)
-			continue
-		}
-
-		processProviderBlocks(syntaxBody, &defaultTags, tfCtx, caseInsensitive)
-	}
-
-	return defaultTags
-}
-
 // processFile parses files looking for resources
 func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, taggable map[string]bool) []Violation {
 	data, err := os.ReadFile(filePath)
@@ -188,6 +162,32 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 		}
 	}
 	return filteredViolations
+}
+
+// processDefaultTags identifies the default tags
+func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensitive bool) DefaultTags {
+	defaultTags := DefaultTags{
+		LiteralTags: make(map[string]shared.TagMap),
+	}
+
+	for _, tf := range tfFiles {
+		parser := hclparse.NewParser()
+		file, diags := parser.ParseHCLFile(tf.path)
+		if diags.HasErrors() || file == nil {
+			log.Printf("Error parsing %s during default tag scan: %v\n", tf.path, diags)
+			continue
+		}
+
+		syntaxBody, ok := file.Body.(*hclsyntax.Body)
+		if !ok {
+			log.Printf("Failed to get syntax body for %s\n", tf.path)
+			continue
+		}
+
+		processProviderBlocks(syntaxBody, &defaultTags, tfCtx, caseInsensitive)
+	}
+
+	return defaultTags
 }
 
 // processProviderBlocks extracts any default_tags from providers
