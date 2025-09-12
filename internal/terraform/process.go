@@ -75,7 +75,10 @@ func collectTerraformFiles(dirPath string, skip []string) ([]tfFile, error) {
 		}
 
 		if shouldSkipPath(path, info, skip) {
-			return handleSkip(info)
+			if info.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
 		}
 
 		if !info.IsDir() && filepath.Ext(path) == ".tf" {
@@ -106,13 +109,6 @@ func shouldSkipPath(path string, info os.FileInfo, skip []string) bool {
 	}
 
 	return false
-}
-
-func handleSkip(info os.FileInfo) error {
-	if info.IsDir() {
-		return filepath.SkipDir
-	}
-	return nil
 }
 
 func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensitive bool) DefaultTags {
