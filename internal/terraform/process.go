@@ -61,7 +61,10 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 	defaultTags := processDefaultTags(tfFiles, tfCtx, caseInsensitive)
 
 	// process resources for tag violations
-	totalViolations = processResourceViolations(tfFiles, requiredTags, defaultTags, tfCtx, caseInsensitive, taggable)
+	for _, tf := range tfFiles {
+		violations := processFile(tf.path, requiredTags, &defaultTags, tfCtx, caseInsensitive, taggable)
+		totalViolations += len(violations)
+	}
 
 	return totalViolations
 }
@@ -137,18 +140,6 @@ func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensiti
 	}
 
 	return defaultTags
-}
-
-// processResourceViolations reviews the resources for violations, accounting for skips and default tags
-func processResourceViolations(tfFiles []tfFile, requiredTags shared.TagMap, defaultTags DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, taggable map[string]bool) int {
-	var totalViolations int
-
-	for _, tf := range tfFiles {
-		violations := processFile(tf.path, requiredTags, &defaultTags, tfCtx, caseInsensitive, taggable)
-		totalViolations += len(violations)
-	}
-
-	return totalViolations
 }
 
 // processFile parses files looking for resources
