@@ -50,87 +50,22 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		LiteralTags: make(map[string]shared.TagMap),
 	}
 
-	// first pass, default tags
-	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		for _, skipped := range skip {
-			if strings.HasPrefix(path, skipped) {
-				if info.IsDir() {
-					return filepath.SkipDir
-				}
-				return nil
-			}
-		}
-		if info.IsDir() {
-			dirName := info.Name()
-			for _, skippedDir := range config.SkippedDirs {
-				if dirName == skippedDir {
-					return filepath.SkipDir
-				}
-			}
-		}
-
-		if !info.IsDir() && filepath.Ext(path) == ".tf" {
-			parser := hclparse.NewParser()
-			file, diags := parser.ParseHCLFile(path)
-			if diags.HasErrors() || file == nil {
-				log.Printf("Error parsing %s during default tag scan: %v\n", path, diags)
-				return nil
-			}
-			syntaxBody, ok := file.Body.(*hclsyntax.Body)
-			if !ok {
-				log.Printf("Failed to get syntax body for %s\n", path)
-				return nil // Continue walking
-			}
-			processProviderBlocks(syntaxBody, &defaultTags, tfCtx, caseInsensitive)
-		}
-		return nil
-	})
-
-	//  second pass, evaluate tags on resources
-	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		for _, skipped := range skip {
-			if strings.HasPrefix(path, skipped) {
-				if info.IsDir() {
-					return filepath.SkipDir
-				}
-				return nil
-			}
-		}
-		if info.IsDir() {
-			dirName := info.Name()
-			for _, skippedDir := range config.SkippedDirs {
-				if dirName == skippedDir {
-					return filepath.SkipDir
-				}
-			}
-		}
-
-		if info.IsDir() {
-			dirName := info.Name()
-			for _, skipped := range config.SkippedDirs {
-				if dirName == skipped {
-					return filepath.SkipDir
-				}
-			}
-		}
-		if !info.IsDir() && filepath.Ext(path) == ".tf" {
-			violations := processFile(path, requiredTags, &defaultTags, tfCtx, caseInsensitive, taggable)
-			totalViolations += len(violations)
-		}
-		return nil
-	})
-
+	// testing single directory walk
+	tfFiles, err := collectTerraformFiles(dirPath, skip)
 	if err != nil {
 		log.Printf("Error scanning directory %q: %v\n", dirPath, err)
+		return 0
 	}
+
+	if len(tfFiles) == 0 {
+		return 0
+	}
+
+	// extract default tags from all files
+	defaultTags := extractDefaultTags(tfFiles, tfCtx, caseInsensitive)
+
+	// process resources for tag violations
+	totalViolations := processResourceViolations(tfFiles, requiredTags, defaultTags, tfCtx, caseInsensitive, taggable)
 
 	return totalViolations
 }
@@ -182,6 +117,42 @@ func handleSkip(info os.FileInfo) error {
 		return filepath.SkipDir
 	}
 	return nil
+}
+
+func extractDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensitive bool) DefaultTags {
+	defaultTags := DefaultTags{
+		LiteralTags: make(map[string]shared.TagMap),
+	}
+
+	for _, tf := range tfFiles {
+		parser := hclparse.NewParser()
+		file, diags := parser.ParseHCLFile(tf.path)
+		if diags.HasErrors() || file == nil {
+			log.Printf("Error parsing %s during default tag scan: %v\n", tf.path, diags)
+			continue
+		}
+
+		syntaxBody, ok := file.Body.(*hclsyntax.Body)
+		if !ok {
+			log.Printf("Failed to get syntax body for %s\n", tf.path)
+			continue
+		}
+
+		processProviderBlocks(syntaxBody, &defaultTags, tfCtx, caseInsensitive)
+	}
+
+	return defaultTags
+}
+
+func processResourceViolations(tfFiles []tfFile, requiredTags shared.TagMap, defaultTags DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, taggable map[string]bool) int {
+	var totalViolations int
+
+	for _, tf := range tfFiles {
+		violations := processFile(tf.path, requiredTags, &defaultTags, tfCtx, caseInsensitive, taggable)
+		totalViolations += len(violations)
+	}
+
+	return totalViolations
 }
 
 // processFile parses files looking for resources
