@@ -113,6 +113,7 @@ func skipDir(path string, info os.FileInfo, skip []string) bool {
 	return false
 }
 
+// processDefaultTags identifies the default tags
 func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensitive bool) DefaultTags {
 	defaultTags := DefaultTags{
 		LiteralTags: make(map[string]shared.TagMap),
@@ -138,6 +139,7 @@ func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensiti
 	return defaultTags
 }
 
+// processResourceViolations reviews the resources for violations, accounting for skips and default tags
 func processResourceViolations(tfFiles []tfFile, requiredTags shared.TagMap, defaultTags DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, taggable map[string]bool) int {
 	var totalViolations int
 
