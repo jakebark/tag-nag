@@ -76,7 +76,7 @@ func collectFiles(dirPath string, skip []string) ([]tfFile, error) {
 			return err
 		}
 
-		if skipDir(path, info, skip) {
+		if skipDirectories(path, info, skip) {
 			if info.IsDir() {
 				return filepath.SkipDir
 			}
@@ -93,7 +93,7 @@ func collectFiles(dirPath string, skip []string) ([]tfFile, error) {
 }
 
 // skipDir identifies directories to ignore
-func skipDir(path string, info os.FileInfo, skip []string) bool {
+func skipDirectories(path string, info os.FileInfo, skip []string) bool {
 	// user-defined skip paths
 	for _, skipped := range skip {
 		if strings.HasPrefix(path, skipped) {
