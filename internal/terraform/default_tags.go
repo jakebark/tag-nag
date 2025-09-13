@@ -42,8 +42,8 @@ func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensiti
 func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool) {
 	for _, block := range body.Blocks {
 		if block.Type == "provider" && len(block.Labels) > 0 {
-			providerID := getProviderID(block, caseInsensitive)
-			tags := checkForDefaultTags(block, tfCtx, caseInsensitive)
+			providerID := getProviderID(block, caseInsensitive)   // handle ID
+			tags := getDefaultTags(block, tfCtx, caseInsensitive) // handle tags
 
 			if len(tags) > 0 {
 				var keys []string
@@ -88,8 +88,8 @@ func normalizeProviderID(providerName, alias string, caseInsensitive bool) strin
 	return providerID
 }
 
-// checkForDefaultTags returns the default_tags on a provider block.
-func checkForDefaultTags(block *hclsyntax.Block, tfCtx *TerraformContext, caseInsensitive bool) shared.TagMap { // Add tfCtx param
+// getDefaultTags returns the default_tags on a provider block.
+func getDefaultTags(block *hclsyntax.Block, tfCtx *TerraformContext, caseInsensitive bool) shared.TagMap { // Add tfCtx param
 	for _, subBlock := range block.Body.Blocks {
 		if subBlock.Type == "default_tags" {
 			if tagsAttr, exists := subBlock.Body.Attributes["tags"]; exists {
