@@ -32,14 +32,14 @@ func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensiti
 			continue
 		}
 
-		processProviderBlocks(syntaxBody, &defaultTags, tfCtx, caseInsensitive)
+		processProviders(syntaxBody, &defaultTags, tfCtx, caseInsensitive)
 	}
 
 	return defaultTags
 }
 
-// processProviderBlocks extracts any default_tags from providers
-func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool) {
+// processProviders extracts any default_tags from providers
+func processProviders(body *hclsyntax.Body, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool) {
 	for _, block := range body.Blocks {
 		if block.Type == "provider" && len(block.Labels) > 0 {
 			providerID := getProviderID(block, caseInsensitive)   // handle ID
