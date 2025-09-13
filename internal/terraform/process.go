@@ -1,11 +1,9 @@
 package terraform
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
@@ -16,6 +14,11 @@ import (
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
 )
+
+type tfFile struct {
+	path string
+	info os.FileInfo
+}
 
 // ProcessDirectory walks all terraform files in directory
 func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, skip []string) int {
@@ -41,93 +44,74 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		tfCtx = &TerraformContext{EvalContext: &hcl.EvalContext{Variables: make(map[string]cty.Value), Functions: make(map[string]function.Function)}}
 	}
 
-	defaultTags := DefaultTags{
-		LiteralTags: make(map[string]shared.TagMap),
-	}
-
-	// first pass, default tags
-	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		for _, skipped := range skip {
-			if strings.HasPrefix(path, skipped) {
-				if info.IsDir() {
-					return filepath.SkipDir
-				}
-				return nil
-			}
-		}
-		if info.IsDir() {
-			dirName := info.Name()
-			for _, skippedDir := range config.SkippedDirs {
-				if dirName == skippedDir {
-					return filepath.SkipDir
-				}
-			}
-		}
-
-		if !info.IsDir() && filepath.Ext(path) == ".tf" {
-			parser := hclparse.NewParser()
-			file, diags := parser.ParseHCLFile(path)
-			if diags.HasErrors() || file == nil {
-				log.Printf("Error parsing %s during default tag scan: %v\n", path, diags)
-				return nil
-			}
-			syntaxBody, ok := file.Body.(*hclsyntax.Body)
-			if !ok {
-				log.Printf("Failed to get syntax body for %s\n", path)
-				return nil // Continue walking
-			}
-			processProviderBlocks(syntaxBody, &defaultTags, tfCtx, caseInsensitive)
-		}
-		return nil
-	})
-
-	//  second pass, evaluate tags on resources
-	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		for _, skipped := range skip {
-			if strings.HasPrefix(path, skipped) {
-				if info.IsDir() {
-					return filepath.SkipDir
-				}
-				return nil
-			}
-		}
-		if info.IsDir() {
-			dirName := info.Name()
-			for _, skippedDir := range config.SkippedDirs {
-				if dirName == skippedDir {
-					return filepath.SkipDir
-				}
-			}
-		}
-
-		if info.IsDir() {
-			dirName := info.Name()
-			for _, skipped := range config.SkippedDirs {
-				if dirName == skipped {
-					return filepath.SkipDir
-				}
-			}
-		}
-		if !info.IsDir() && filepath.Ext(path) == ".tf" {
-			violations := processFile(path, requiredTags, &defaultTags, tfCtx, caseInsensitive, taggable)
-			totalViolations += len(violations)
-		}
-		return nil
-	})
-
+	// single directory walk
+	tfFiles, err := collectFiles(dirPath, skip)
 	if err != nil {
 		log.Printf("Error scanning directory %q: %v\n", dirPath, err)
+		return 0
+	}
+
+	if len(tfFiles) == 0 {
+		return 0
+	}
+
+	// extract default tags from all files
+	defaultTags := processDefaultTags(tfFiles, tfCtx, caseInsensitive)
+
+	// process resources for tag violations
+	for _, tf := range tfFiles {
+		violations := processFile(tf.path, requiredTags, &defaultTags, tfCtx, caseInsensitive, taggable)
+		totalViolations += len(violations)
 	}
 
 	return totalViolations
+}
+
+// collectFiles identifies all elligible terraform files
+func collectFiles(dirPath string, skip []string) ([]tfFile, error) {
+	var tfFiles []tfFile
+
+	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if skipDirectories(path, info, skip) {
+			if info.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		if !info.IsDir() && filepath.Ext(path) == ".tf" {
+			tfFiles = append(tfFiles, tfFile{path: path, info: info})
+		}
+		return nil
+	})
+
+	return tfFiles, err
+}
+
+// skipDir identifies directories to ignore
+func skipDirectories(path string, info os.FileInfo, skip []string) bool {
+	// user-defined skip paths
+	for _, skipped := range skip {
+		if strings.HasPrefix(path, skipped) {
+			return true
+		}
+	}
+
+	// default skipped directories eg .git
+	if info.IsDir() {
+		dirName := info.Name()
+		for _, skippedDir := range config.SkippedDirs {
+			if dirName == skippedDir {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // processFile parses files looking for resources
@@ -176,25 +160,4 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 		}
 	}
 	return filteredViolations
-}
-
-// processProviderBlocks extracts any default_tags from providers
-func processProviderBlocks(body *hclsyntax.Body, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool) {
-	for _, block := range body.Blocks {
-		if block.Type == "provider" && len(block.Labels) > 0 {
-			providerID := getProviderID(block, caseInsensitive)
-			tags := checkForDefaultTags(block, tfCtx, caseInsensitive)
-
-			if len(tags) > 0 {
-				var keys []string
-				for key := range tags {
-					keys = append(keys, key) // remove bool element of tag map
-				}
-				sort.Strings(keys)
-				fmt.Printf("Found Terraform default tags for provider %s: [%v]\n", providerID, strings.Join(keys, ", "))
-				defaultTags.LiteralTags[providerID] = tags
-
-			}
-		}
-	}
 }

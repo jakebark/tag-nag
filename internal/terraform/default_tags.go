@@ -1,13 +1,63 @@
 package terraform
 
 import (
+	"fmt"
 	"log"
+	"sort"
 	"strings"
 
+	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/jakebark/tag-nag/internal/shared"
 	"github.com/zclconf/go-cty/cty"
 )
+
+// processDefaultTags identifies the default tags
+func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensitive bool) DefaultTags {
+	defaultTags := DefaultTags{
+		LiteralTags: make(map[string]shared.TagMap),
+	}
+
+	for _, tf := range tfFiles {
+		parser := hclparse.NewParser()
+		file, diags := parser.ParseHCLFile(tf.path)
+		if diags.HasErrors() || file == nil {
+			log.Printf("Error parsing %s during default tag scan: %v\n", tf.path, diags)
+			continue
+		}
+
+		syntaxBody, ok := file.Body.(*hclsyntax.Body)
+		if !ok {
+			log.Printf("Failed to get syntax body for %s\n", tf.path)
+			continue
+		}
+
+		processProviders(syntaxBody, &defaultTags, tfCtx, caseInsensitive)
+	}
+
+	return defaultTags
+}
+
+// processProviders extracts any default_tags from providers
+func processProviders(body *hclsyntax.Body, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool) {
+	for _, block := range body.Blocks {
+		if block.Type == "provider" && len(block.Labels) > 0 {
+			providerID := getProviderID(block, caseInsensitive)   // handle ID
+			tags := getDefaultTags(block, tfCtx, caseInsensitive) // handle tags
+
+			if len(tags) > 0 {
+				var keys []string
+				for key := range tags {
+					keys = append(keys, key) // remove bool element of tag map
+				}
+				sort.Strings(keys)
+				fmt.Printf("Found Terraform default tags for provider %s: [%v]\n", providerID, strings.Join(keys, ", "))
+				defaultTags.LiteralTags[providerID] = tags
+
+			}
+		}
+	}
+}
 
 // getProviderID  returns  the provider identifier (aws or alias)
 func getProviderID(block *hclsyntax.Block, caseInsensitive bool) string {
@@ -38,8 +88,8 @@ func normalizeProviderID(providerName, alias string, caseInsensitive bool) strin
 	return providerID
 }
 
-// checkForDefaultTags returns the default_tags on a provider block.
-func checkForDefaultTags(block *hclsyntax.Block, tfCtx *TerraformContext, caseInsensitive bool) shared.TagMap { // Add tfCtx param
+// getDefaultTags returns the default_tags on a provider block.
+func getDefaultTags(block *hclsyntax.Block, tfCtx *TerraformContext, caseInsensitive bool) shared.TagMap { // Add tfCtx param
 	for _, subBlock := range block.Body.Blocks {
 		if subBlock.Type == "default_tags" {
 			if tagsAttr, exists := subBlock.Body.Attributes["tags"]; exists {
