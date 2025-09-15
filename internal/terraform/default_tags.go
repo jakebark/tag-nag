@@ -18,8 +18,9 @@ func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensiti
 		LiteralTags: make(map[string]shared.TagMap),
 	}
 
+	parser := hclparse.NewParser()
+
 	for _, tf := range tfFiles {
-		parser := hclparse.NewParser()
 		file, diags := parser.ParseHCLFile(tf.path)
 		if diags.HasErrors() || file == nil {
 			log.Printf("Error parsing %s during default tag scan: %v\n", tf.path, diags)
