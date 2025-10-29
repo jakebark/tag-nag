@@ -20,8 +20,8 @@ func TestProcessConfigFile(t *testing.T) {
 		expectedSkips     []string
 	}{
 		{
-			name:          "valid basic config",
-			configFile:    "../../testdata/config/valid-basic.yml",
+			name:          "tag keys",
+			configFile:    "../../testdata/config/tag_keys.yml",
 			expectedError: false,
 			expectedTags:  2,
 			expectedOwner: true,
@@ -33,8 +33,8 @@ func TestProcessConfigFile(t *testing.T) {
 			expectedSkips: []string{},
 		},
 		{
-			name:              "valid with environment values",
-			configFile:        "../../testdata/config/valid-with-values.yml",
+			name:              "tag values",
+			configFile:        "../../testdata/config/tag_values.yml",
 			expectedError:     false,
 			expectedTags:      3,
 			expectedOwner:     true,
@@ -47,7 +47,7 @@ func TestProcessConfigFile(t *testing.T) {
 			expectedSkips: []string{},
 		},
 		{
-			name:          "complete config with all fields",
+			name:          "full config",
 			configFile:    "../../testdata/config/valid-complete.yml",
 			expectedError: false,
 			expectedTags:  3,
@@ -60,8 +60,8 @@ func TestProcessConfigFile(t *testing.T) {
 			expectedSkips: []string{"*.tmp", ".terraform", "test-data/**"},
 		},
 		{
-			name:          "minimal config",
-			configFile:    "../../testdata/config/valid-minimal.yml",
+			name:          "empty settings",
+			configFile:    "../../testdata/config/empty_settings.yml",
 			expectedError: false,
 			expectedTags:  1,
 			expectedOwner: true,
@@ -73,8 +73,8 @@ func TestProcessConfigFile(t *testing.T) {
 			expectedSkips: []string{},
 		},
 		{
-			name:          "empty settings and skip sections",
-			configFile:    "../../testdata/config/valid-empty-settings.yml",
+			name:          "yaml extension",
+			configFile:    "../../testdata/config/yaml_extension.yaml",
 			expectedError: false,
 			expectedTags:  1,
 			expectedOwner: true,
@@ -86,21 +86,8 @@ func TestProcessConfigFile(t *testing.T) {
 			expectedSkips: []string{},
 		},
 		{
-			name:          "yaml extension works",
-			configFile:    "../../testdata/config/valid-alt-extension.yaml",
-			expectedError: false,
-			expectedTags:  1,
-			expectedOwner: true,
-			expectedSettings: Settings{
-				CaseInsensitive: false,
-				DryRun:          false,
-				CfnSpec:         "",
-			},
-			expectedSkips: []string{},
-		},
-		{
-			name:          "empty file",
-			configFile:    "../../testdata/config/invalid-empty.yml",
+			name:          "blank config",
+			configFile:    "../../testdata/config/blank_config.yml",
 			expectedError: false,
 			expectedTags:  0,
 			expectedOwner: false,
@@ -112,13 +99,13 @@ func TestProcessConfigFile(t *testing.T) {
 			expectedSkips: []string{},
 		},
 		{
-			name:          "yaml syntax error",
-			configFile:    "../../testdata/config/invalid-yaml-syntax.yml",
+			name:          "invalid syntax",
+			configFile:    "../../testdata/config/invalid_syntax.yml",
 			expectedError: true,
 		},
 		{
-			name:          "missing tags section",
-			configFile:    "../../testdata/config/invalid-no-tags.yml",
+			name:          "missing tags",
+			configFile:    "../../testdata/config/missing_tags.yml",
 			expectedError: false,
 			expectedTags:  0,
 			expectedOwner: false,
@@ -130,17 +117,17 @@ func TestProcessConfigFile(t *testing.T) {
 			expectedSkips: []string{"*.tmp"},
 		},
 		{
-			name:          "wrong tags structure",
-			configFile:    "../../testdata/config/invalid-wrong-structure.yml",
+			name:          "invalid structure",
+			configFile:    "../../testdata/config/invalid_structure.yml",
 			expectedError: true,
 		},
 		{
-			name:          "bad values type",
-			configFile:    "../../testdata/config/invalid-bad-values.yml",
+			name:          "invalid tag value array",
+			configFile:    "../../testdata/config/tag_array.yml",
 			expectedError: true,
 		},
 		{
-			name:          "nonexistent file",
+			name:          "no file",
 			configFile:    "../../testdata/config/does-not-exist.yml",
 			expectedError: true,
 		},
@@ -437,4 +424,3 @@ func TestConvertToTagMap(t *testing.T) {
 		})
 	}
 }
-
