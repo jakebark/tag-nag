@@ -48,7 +48,7 @@ func TestProcessConfigFile(t *testing.T) {
 		},
 		{
 			name:          "full config",
-			configFile:    "../../testdata/config/valid-complete.yml",
+			configFile:    "../../testdata/config/full_config.yml",
 			expectedError: false,
 			expectedTags:  3,
 			expectedOwner: true,
