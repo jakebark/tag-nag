@@ -1,0 +1,5 @@
+tags:
+  - key: Owner
+  - key: Environment
+    values: [Dev, Test, Prod]
+  - key: Project
