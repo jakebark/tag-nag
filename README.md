@@ -46,6 +46,11 @@ Optional inputs
 --skip "file.tf, path/to/directory" # skip files and directories
 ```
 
+## Config file
+
+The above commands can be issued with a `.tag-nag.yml` file in the same directory where tag-nag is run. 
+
+See the [example .tag-nag.yml file](./examples/.tag-nag.yml).  
 
 ## Skip Checks
 

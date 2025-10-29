@@ -1,0 +1,19 @@
+tags:
+  - key: Owner
+  - key: Environment
+    values: [Dev, Test, Prod]
+  - key: Project
+
+settings:
+  case_insensitive: false
+  dry_run: false
+  cfn_spec: "~/path/to/CloudFormationResourceSpecification.json" # remove if not using 
+
+skip:
+  - file.tf
+  - "test-data/**"    # keep quotes for wildcard/glob pattern
+  - "*.tmp"
+  - .terraform
+  - .git
+
+

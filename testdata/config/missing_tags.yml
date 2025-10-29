@@ -1,0 +1,5 @@
+settings:
+  dry_run: true
+
+skip:
+  - "*.tmp"
