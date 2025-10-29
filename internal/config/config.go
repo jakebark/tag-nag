@@ -6,8 +6,10 @@ import (
 )
 
 const (
-	TagNagIgnore    = "#tag-nag ignore"
-	TagNagIgnoreAll = "#tag-nag ignore-all"
+	TagNagIgnore       = "#tag-nag ignore"
+	TagNagIgnoreAll    = "#tag-nag ignore-all"
+	DefaultConfigFile  = ".tag-nag.yml"
+	AltConfigFile      = ".tag-nag.yaml"
 )
 
 var SkippedDirs = []string{

@@ -36,8 +36,24 @@ func ParseFlags() UserInput {
 	if pflag.NArg() < 1 {
 		log.Fatal("Error: Please specify a directory or file to scan")
 	}
+
+	// try config file if no tags provided
 	if tags == "" {
-		log.Fatal("Error: Please specify required tags using --tags")
+		configFile, err := FindAndLoadConfigFile()
+		if err != nil {
+			log.Fatalf("Error loading config: %v", err)
+		}
+		if configFile != nil {
+			return UserInput{
+				Directory:       pflag.Arg(0),
+				RequiredTags:    configFile.convertToTagMap(),
+				CaseInsensitive: configFile.Settings.CaseInsensitive,
+				DryRun:          configFile.Settings.DryRun,
+				CfnSpecPath:     configFile.Settings.CfnSpec,
+				Skip:            configFile.Skip,
+			}
+		}
+		log.Fatal("Error: Please specify required tags using --tags or create .tag-nag.yml")
 	}
 
 	parsedTags, err := parseTags(tags)

@@ -73,10 +73,10 @@ func TestInputs(t *testing.T) {
 		{
 			name:             "no tags",
 			filePathOrDir:    "testdata/terraform/tags.tf",
-			cliArgs:          []string{},
+			cliArgs:          []string{"--config", "nonexistent.yml"},
 			expectedExitCode: 1,
 			expectedError:    true,
-			expectedOutput:   []string{"Error: Please specify required tags using --tags"},
+			expectedOutput:   []string{"Error loading config"},
 		},
 		{
 			name:             "dry run",
