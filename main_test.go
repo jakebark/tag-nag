@@ -68,7 +68,7 @@ func TestInputs(t *testing.T) {
 			cliArgs:          []string{"--tags", "Owner"},
 			expectedExitCode: 1,
 			expectedError:    true,
-			expectedOutput:   []string{"Error: Please specify a directory or file to scan"},
+			expectedOutput:   []string{"Error: specify a directory or file to scan"},
 		},
 		{
 			name:             "no tags",
@@ -76,7 +76,7 @@ func TestInputs(t *testing.T) {
 			cliArgs:          []string{"nonexistent.yml"},
 			expectedExitCode: 1,
 			expectedError:    true,
-			expectedOutput:   []string{"Please specify required tags using --tags or create .tag-nag.yml"},
+			expectedOutput:   []string{"specify required tags using --tags or create a .tag-nag.yml config file"},
 		},
 
 		{

@@ -34,7 +34,7 @@ func ParseFlags() UserInput {
 	pflag.Parse()
 
 	if pflag.NArg() < 1 {
-		log.Fatal("Error: Please specify a directory or file to scan")
+		log.Fatal("Error: specify a directory or file to scan")
 	}
 
 	// try config file if no tags provided
@@ -53,7 +53,7 @@ func ParseFlags() UserInput {
 				Skip:            configFile.Skip,
 			}
 		}
-		log.Fatal("Error: Please specify required tags using --tags or create .tag-nag.yml")
+		log.Fatal("Error: specify required tags using --tags or create a .tag-nag.yml config file")
 	}
 
 	parsedTags, err := parseTags(tags)
