@@ -115,7 +115,7 @@ func skipDirectories(path string, info os.FileInfo, skip []string) bool {
 }
 
 // processFile parses files looking for resources
-func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, taggable map[string]bool) []Violation {
+func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, taggable map[string]bool) []shared.Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Printf("Error reading %s: %v\n", filePath, err)
@@ -140,22 +140,22 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 		return nil
 	}
 
-	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, tfCtx, caseInsensitive, lines, skipAll, taggable)
+	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, tfCtx, caseInsensitive, lines, skipAll, taggable, filePath)
 
 	if len(violations) > 0 {
 		log.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
-			if v.skip {
-				log.Printf("  %d: %s \"%s\" skipped\n", v.line, v.resourceType, v.resourceName)
+			if v.Skip {
+				log.Printf("  %d: %s \"%s\" skipped\n", v.Line, v.ResourceType, v.ResourceName)
 			} else {
-				log.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
+				log.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.Line, v.ResourceType, v.ResourceName, strings.Join(v.MissingTags, ", "))
 			}
 		}
 	}
 
-	var filteredViolations []Violation
+	var filteredViolations []shared.Violation
 	for _, v := range violations {
-		if !v.skip {
+		if !v.Skip {
 			filteredViolations = append(filteredViolations, v)
 		}
 	}
