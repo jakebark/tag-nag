@@ -72,17 +72,17 @@ func TestCheckResourcesForTags_Taggability(t *testing.T) {
 		mockCtx := &TerraformContext{EvalContext: &hcl.EvalContext{Variables: make(map[string]cty.Value)}}
 		mockDefaults := &DefaultTags{LiteralTags: make(map[string]shared.TagMap)}
 
-		violations := checkResourcesForTags(body, requiredTags, mockDefaults, mockCtx, false, lines, false, taggableMap)
+		violations := checkResourcesForTags(body, requiredTags, mockDefaults, mockCtx, false, lines, false, taggableMap, "test.tf")
 
-		expectedViolations := []Violation{
-			{resourceType: "aws_s3_bucket", resourceName: "taggable_bucket", line: 2, missingTags: []string{"Environment"}},
-			{resourceType: "aws_route53_zone", resourceName: "unknown_in_schema_should_be_checked", line: 19, missingTags: []string{"Environment", "Owner"}}, // Order might vary
+		expectedViolations := []shared.Violation{
+			{ResourceType: "aws_s3_bucket", ResourceName: "taggable_bucket", Line: 2, MissingTags: []string{"Environment"}, FilePath: "test.tf"},
+			{ResourceType: "aws_route53_zone", ResourceName: "unknown_in_schema_should_be_checked", Line: 22, MissingTags: []string{"Environment", "Owner"}, FilePath: "test.tf"}, // Order might vary
 		}
 
 		sortViolations(violations)
 		sortViolations(expectedViolations) // Sort missing tags within each violation for stable comparison
 
-		if diff := cmp.Diff(expectedViolations, violations, cmpopts.IgnoreUnexported(Violation{})); diff != "" {
+		if diff := cmp.Diff(expectedViolations, violations, cmpopts.IgnoreUnexported(shared.Violation{})); diff != "" {
 			t.Errorf("checkResourcesForTags with filter mismatch (-want +got):\n%s", diff)
 		}
 	})
@@ -93,17 +93,17 @@ func TestCheckResourcesForTags_Taggability(t *testing.T) {
 		mockCtx := &TerraformContext{EvalContext: &hcl.EvalContext{Variables: make(map[string]cty.Value)}}
 		mockDefaults := &DefaultTags{LiteralTags: make(map[string]shared.TagMap)}
 
-		violations := checkResourcesForTags(body, requiredTags, mockDefaults, mockCtx, false, lines, false, taggableMap)
+		violations := checkResourcesForTags(body, requiredTags, mockDefaults, mockCtx, false, lines, false, taggableMap, "test.tf")
 
-		expectedViolations := []Violation{
-			{resourceType: "aws_s3_bucket", resourceName: "taggable_bucket", line: 2, missingTags: []string{"Environment"}},
-			{resourceType: "aws_kms_alias", resourceName: "non_taggable_alias", line: 8, missingTags: []string{"Environment", "Owner"}},
-			{resourceType: "aws_route53_zone", resourceName: "unknown_in_schema_should_be_checked", line: 19, missingTags: []string{"Environment", "Owner"}},
+		expectedViolations := []shared.Violation{
+			{ResourceType: "aws_s3_bucket", ResourceName: "taggable_bucket", Line: 2, MissingTags: []string{"Environment"}, FilePath: "test.tf"},
+			{ResourceType: "aws_kms_alias", ResourceName: "non_taggable_alias", Line: 8, MissingTags: []string{"Environment", "Owner"}, FilePath: "test.tf"},
+			{ResourceType: "aws_route53_zone", ResourceName: "unknown_in_schema_should_be_checked", Line: 22, MissingTags: []string{"Environment", "Owner"}, FilePath: "test.tf"},
 		}
 		sortViolations(violations)
 		sortViolations(expectedViolations)
 
-		if diff := cmp.Diff(expectedViolations, violations, cmpopts.IgnoreUnexported(Violation{})); diff != "" {
+		if diff := cmp.Diff(expectedViolations, violations, cmpopts.IgnoreUnexported(shared.Violation{})); diff != "" {
 			t.Errorf("checkResourcesForTags without filter mismatch (-want +got):\n%s", diff)
 		}
 	})
@@ -119,32 +119,32 @@ func TestCheckResourcesForTags_Taggability(t *testing.T) {
 		mockCtx := &TerraformContext{EvalContext: &hcl.EvalContext{Variables: make(map[string]cty.Value)}}
 		mockDefaults := &DefaultTags{LiteralTags: make(map[string]shared.TagMap)}
 
-		violations := checkResourcesForTags(body, requiredTags, mockDefaults, mockCtx, false, lines, false, taggableMap)
+		violations := checkResourcesForTags(body, requiredTags, mockDefaults, mockCtx, false, lines, false, taggableMap, "test.tf")
 
-		expectedViolations := []Violation{
-			{resourceType: "aws_s3_bucket", resourceName: "taggable_bucket", line: 2, missingTags: []string{"Environment"}},
+		expectedViolations := []shared.Violation{
+			{ResourceType: "aws_s3_bucket", ResourceName: "taggable_bucket", Line: 2, MissingTags: []string{"Environment"}, FilePath: "test.tf"},
 			// aws_route53_zone is assumed taggable as it's not in the map with a 'false' entry
-			{resourceType: "aws_route53_zone", resourceName: "unknown_in_schema_should_be_checked", line: 19, missingTags: []string{"Environment", "Owner"}},
+			{ResourceType: "aws_route53_zone", ResourceName: "unknown_in_schema_should_be_checked", Line: 22, MissingTags: []string{"Environment", "Owner"}, FilePath: "test.tf"},
 		}
 
 		sortViolations(violations)
 		sortViolations(expectedViolations)
 
-		if diff := cmp.Diff(expectedViolations, violations, cmpopts.IgnoreUnexported(Violation{})); diff != "" {
+		if diff := cmp.Diff(expectedViolations, violations, cmpopts.IgnoreUnexported(shared.Violation{})); diff != "" {
 			t.Errorf("checkResourcesForTags with incomplete filter mismatch (-want +got):\n%s", diff)
 		}
 	})
 }
 
 // Helper to sort violations for consistent comparison
-func sortViolations(violations []Violation) {
+func sortViolations(violations []shared.Violation) {
 	for i := range violations {
-		sort.Strings(violations[i].missingTags)
+		sort.Strings(violations[i].MissingTags)
 	}
 	sort.Slice(violations, func(i, j int) bool {
-		if violations[i].resourceType != violations[j].resourceType {
-			return violations[i].resourceType < violations[j].resourceType
+		if violations[i].ResourceType != violations[j].ResourceType {
+			return violations[i].ResourceType < violations[j].ResourceType
 		}
-		return violations[i].resourceName < violations[j].resourceName
+		return violations[i].ResourceName < violations[j].ResourceName
 	})
 }

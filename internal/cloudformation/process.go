@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/jakebark/tag-nag/internal/config"
@@ -52,19 +53,8 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		}
 		if info.IsDir() {
 			dirName := info.Name()
-			for _, skippedDir := range config.SkippedDirs {
-				if dirName == skippedDir {
-					return filepath.SkipDir
-				}
-			}
-		}
-
-		if info.IsDir() {
-			dirName := info.Name()
-			for _, skipped := range config.SkippedDirs {
-				if dirName == skipped {
-					return filepath.SkipDir
-				}
+			if slices.Contains(config.SkippedDirs, dirName) {
+				return filepath.SkipDir
 			}
 		}
 
@@ -85,7 +75,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 }
 
 // processFile parses files and maps the cfn nodes
-func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool, taggable map[string]bool) ([]Violation, error) {
+func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bool, taggable map[string]bool) ([]shared.Violation, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Printf("Error reading %s: %v\n", filePath, err)
@@ -105,25 +95,25 @@ func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bo
 	resourcesMapping := mapNodes(findMapNode(root, "Resources"))
 	if resourcesMapping == nil {
 		log.Printf("No 'Resources' section found in %s\n", filePath)
-		return []Violation{}, nil
+		return []shared.Violation{}, nil
 	}
 
-	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll, taggable)
+	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll, taggable, filePath)
 
 	if len(violations) > 0 {
 		fmt.Printf("\nViolation(s) in %s\n", filePath)
 		for _, v := range violations {
-			if v.skip {
-				fmt.Printf("  %d: %s \"%s\" skipped\n", v.line, v.resourceType, v.resourceName)
+			if v.Skip {
+				fmt.Printf("  %d: %s \"%s\" skipped\n", v.Line, v.ResourceType, v.ResourceName)
 			} else {
-				fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.line, v.resourceType, v.resourceName, strings.Join(v.missingTags, ", "))
+				fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.Line, v.ResourceType, v.ResourceName, strings.Join(v.MissingTags, ", "))
 			}
 		}
 	}
 
-	var filteredViolations []Violation
+	var filteredViolations []shared.Violation
 	for _, v := range violations {
-		if !v.skip {
+		if !v.Skip {
 			filteredViolations = append(filteredViolations, v)
 		}
 	}
