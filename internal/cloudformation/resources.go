@@ -29,7 +29,7 @@ func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags 
 			}
 		}
 
-		properties := make(map[string]interface{}) // tags are part of the properties  node
+		properties := make(map[string]any) // tags are part of the properties  node
 		if propsNode, ok := resourceMapping["Properties"]; ok {
 			_ = propsNode.Decode(&properties)
 		}
@@ -60,20 +60,20 @@ func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags 
 }
 
 // extractTagMap extracts a yaml/json map to a go map
-func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (shared.TagMap, error) {
+func extractTagMap(properties map[string]any, caseInsensitive bool) (shared.TagMap, error) {
 	tagsMap := make(shared.TagMap)
 	literalTags, exists := properties["Tags"]
 	if !exists {
 		return tagsMap, nil
 	}
 
-	tagsList, ok := literalTags.([]interface{})
+	tagsList, ok := literalTags.([]any)
 	if !ok {
 		return tagsMap, fmt.Errorf("Tags format is invalid") // tags are not in a list
 	}
 
 	for _, tagInterface := range tagsList {
-		tagEntry, ok := tagInterface.(map[string]interface{})
+		tagEntry, ok := tagInterface.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -84,7 +84,7 @@ func extractTagMap(properties map[string]interface{}, caseInsensitive bool) (sha
 		var tagValue string
 		if valStr, ok := tagEntry["Value"].(string); ok {
 			tagValue = valStr
-		} else if refMap, ok := tagEntry["Value"].(map[string]interface{}); ok {
+		} else if refMap, ok := tagEntry["Value"].(map[string]any); ok {
 			if ref, exists := refMap["Ref"]; exists {
 				if refStr, ok := ref.(string); ok {
 					tagValue = fmt.Sprintf("!Ref %s", refStr)

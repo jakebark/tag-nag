@@ -10,37 +10,37 @@ import (
 func TestExtractTagMap(t *testing.T) {
 	tests := []struct {
 		name            string
-		properties      map[string]interface{}
+		properties      map[string]any
 		caseInsensitive bool
 		expected        shared.TagMap
 		expectedErr     bool
 	}{
 		{
 			name: "no tag key",
-			properties: map[string]interface{}{
+			properties: map[string]any{
 				"OtherKey": "Value"},
 			expected: shared.TagMap{},
 		},
 		{
 			name: "empty list",
-			properties: map[string]interface{}{
-				"Tags": []interface{}{},
+			properties: map[string]any{
+				"Tags": []any{},
 			},
 			expected: shared.TagMap{},
 		},
 		{
 			name: "not a list",
-			properties: map[string]interface{}{
+			properties: map[string]any{
 				"Tags": map[string]string{"Key": "Value"},
 			},
 			expectedErr: true,
 		},
 		{
 			name: "literal tags",
-			properties: map[string]interface{}{
-				"Tags": []interface{}{
-					map[string]interface{}{"Key": "Owner", "Value": "Jake"},
-					map[string]interface{}{"Key": "Env", "Value": "Dev"},
+			properties: map[string]any{
+				"Tags": []any{
+					map[string]any{"Key": "Owner", "Value": "Jake"},
+					map[string]any{"Key": "Env", "Value": "Dev"},
 				},
 			},
 			expected: shared.TagMap{
@@ -50,9 +50,9 @@ func TestExtractTagMap(t *testing.T) {
 		},
 		// {
 		// 	name: "referenced tags",
-		// 	properties: map[string]interface{}{
-		// 		"Tags": []interface{}{
-		// 			map[string]interface{}{"Key": "StackName", "Value": map[string]interface{}{"Ref": "AWS::StackName"}},
+		// 	properties: map[string]any{
+		// 		"Tags": []any{
+		// 			map[string]any{"Key": "StackName", "Value": map[string]any{"Ref": "AWS::StackName"}},
 		// 		},
 		// 	},
 		// 	expected: shared.TagMap{
@@ -61,10 +61,10 @@ func TestExtractTagMap(t *testing.T) {
 		// },
 		// {
 		// 	name: "mixed tags, literal and referenced",
-		// 	properties: map[string]interface{}{
-		// 		"Tags": []interface{}{
-		// 			map[string]interface{}{"Key": "Owner", "Value": "Jake"},
-		// 			map[string]interface{}{"Key": "StackName", "Value": map[string]interface{}{"Ref": "AWS::StackName"}},
+		// 	properties: map[string]any{
+		// 		"Tags": []any{
+		// 			map[string]any{"Key": "Owner", "Value": "Jake"},
+		// 			map[string]any{"Key": "StackName", "Value": map[string]any{"Ref": "AWS::StackName"}},
 		// 		},
 		// 	},
 		// 	expected: shared.TagMap{
@@ -74,10 +74,10 @@ func TestExtractTagMap(t *testing.T) {
 		// },
 		{
 			name: "literal tags, case insensitive",
-			properties: map[string]interface{}{
-				"Tags": []interface{}{
-					map[string]interface{}{"Key": "Owner", "Value": "Jake"},
-					map[string]interface{}{"Key": "env", "Value": "Dev"},
+			properties: map[string]any{
+				"Tags": []any{
+					map[string]any{"Key": "Owner", "Value": "Jake"},
+					map[string]any{"Key": "env", "Value": "Dev"},
 				},
 			},
 			caseInsensitive: true,
@@ -88,18 +88,18 @@ func TestExtractTagMap(t *testing.T) {
 		},
 		{
 			name: "missing key",
-			properties: map[string]interface{}{
-				"Tags": []interface{}{
-					map[string]interface{}{"Value": "Jake"},
+			properties: map[string]any{
+				"Tags": []any{
+					map[string]any{"Value": "Jake"},
 				},
 			},
 			expected: shared.TagMap{},
 		},
 		{
 			name: "missing value",
-			properties: map[string]interface{}{
-				"Tags": []interface{}{
-					map[string]interface{}{"Key": "OptionalTag"},
+			properties: map[string]any{
+				"Tags": []any{
+					map[string]any{"Key": "OptionalTag"},
 				},
 			},
 			expected: shared.TagMap{
@@ -108,9 +108,9 @@ func TestExtractTagMap(t *testing.T) {
 		},
 		{
 			name: "non-string",
-			properties: map[string]interface{}{
-				"Tags": []interface{}{
-					map[string]interface{}{"Key": 123, "Value": "Jake"},
+			properties: map[string]any{
+				"Tags": []any{
+					map[string]any{"Key": 123, "Value": "Jake"},
 				},
 			},
 			expected: shared.TagMap{},
