@@ -23,7 +23,7 @@ tag-nag . --tags "Owner", "Environment" # will take string or list
 
 ```
 
-Search for tag keys *and* values
+Search for tag keys *and* tag values
 
 ```bash
 tag-nag <file/directory> --tags "Key[Value]"
@@ -34,16 +34,13 @@ tag-nag main.tf --tags "Owner[Jake],Environment[Dev,Prod]" # multiple options fo
 
 ```
 
-Optional flags
+Flags
 ```bash
--c # case-insensitive 
--d # dry-run (will always exit successfully)
-```
-
-Optional inputs
-```bash
+-c --case-insensitive  
+-d --dry-run # will always exit successfully
 --cfn-spec ~/path/to/CloudFormationResourceSpecification.json # path to Cfn spec file, filters taggable resources
---skip "file.tf, path/to/directory" # skip files and directories
+-s --skip "file.tf, path/to/directory" # skip files and directories
+-o --output json # output to json (default is text)
 ```
 
 ## Config file

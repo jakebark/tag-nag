@@ -10,3 +10,10 @@ type Violation struct {
 	Skip         bool     `json:"skip"`
 	FilePath     string   `json:"file_path"`
 }
+
+type OutputFormat string
+
+const (
+	OutputFormatText OutputFormat = "text"
+	OutputFormatJSON OutputFormat = "json"
+)

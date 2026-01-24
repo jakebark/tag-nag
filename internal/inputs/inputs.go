@@ -3,6 +3,7 @@ package inputs
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/jakebark/tag-nag/internal/shared"
@@ -16,6 +17,7 @@ type UserInput struct {
 	DryRun          bool
 	CfnSpecPath     string
 	Skip            []string
+	OutputFormat    shared.OutputFormat
 }
 
 // ParseFlags returns pased CLI flags and arguments
@@ -25,12 +27,14 @@ func ParseFlags() UserInput {
 	var tags string
 	var cfnSpecPath string
 	var skip string
+	var outputFormat string
 
 	pflag.BoolVarP(&caseInsensitive, "case-insensitive", "c", false, "Make tag checks non-case-sensitive")
 	pflag.BoolVarP(&dryRun, "dry-run", "d", false, "Dry run tag:nag without triggering exit(1) code")
 	pflag.StringVar(&tags, "tags", "", "Comma-separated list of required tag keys (e.g., 'Owner,Environment[Dev,Prod]')")
 	pflag.StringVar(&cfnSpecPath, "cfn-spec", "", "Optional path to CloudFormationResourceSpecification.json)")
 	pflag.StringVarP(&skip, "skip", "s", "", "Comma-separated list of files or directories to skip")
+	pflag.StringVarP(&outputFormat, "output", "o", "text", "Output format: text or json")
 	pflag.Parse()
 
 	if pflag.NArg() < 1 {
@@ -44,6 +48,12 @@ func ParseFlags() UserInput {
 			log.Fatalf("Error loading config: %v", err)
 		}
 		if configFile != nil {
+			// Use config output format if CLI wasn't specified
+			configOutputFormat := shared.OutputFormat(outputFormat)
+			outputFlag := pflag.Lookup("output")
+			if !outputFlag.Changed && configFile.Settings.Output != "" {
+				configOutputFormat = configFile.Settings.Output
+			}
 			return UserInput{
 				Directory:       pflag.Arg(0),
 				RequiredTags:    configFile.convertToTagMap(),
@@ -51,6 +61,7 @@ func ParseFlags() UserInput {
 				DryRun:          configFile.Settings.DryRun,
 				CfnSpecPath:     configFile.Settings.CfnSpec,
 				Skip:            configFile.Skip,
+				OutputFormat:    configOutputFormat,
 			}
 		}
 		log.Fatal("Error: specify required tags using --tags or create a .tag-nag.yml config file")
@@ -69,6 +80,23 @@ func ParseFlags() UserInput {
 		}
 	}
 
+	// Try to load config file for output format default
+	configFile, err := FindAndLoadConfigFile()
+	if err != nil && !os.IsNotExist(err) {
+		log.Fatalf("Error loading config: %v", err)
+	}
+
+	format := shared.OutputFormat(outputFormat)
+	// Use config output format if CLI wasn't explicitly provided and config exists
+	outputFlag := pflag.Lookup("output")
+	if !outputFlag.Changed && configFile != nil && configFile.Settings.Output != "" {
+		format = configFile.Settings.Output
+	}
+
+	if format != shared.OutputFormatText && format != shared.OutputFormatJSON {
+		log.Fatalf("Invalid output format '%s'. Supported formats: text, json", outputFormat)
+	}
+
 	return UserInput{
 		Directory:       pflag.Arg(0),
 		RequiredTags:    parsedTags,
@@ -76,6 +104,7 @@ func ParseFlags() UserInput {
 		DryRun:          dryRun,
 		CfnSpecPath:     cfnSpecPath,
 		Skip:            skipPaths,
+		OutputFormat:    format,
 	}
 }
 

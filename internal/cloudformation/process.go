@@ -13,17 +13,17 @@ import (
 )
 
 // ProcessDirectory walks all cfn files in a directory, then returns violations
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string, skip []string) int {
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string, skip []string) []shared.Violation {
 	hasFiles, err := scan(dirPath)
 	if err != nil {
-		return 0
+		return nil
 	}
 	if !hasFiles {
-		return 0
+		return nil
 	}
 
 	// log.Println("\nCloudFormation files found")
-	var totalViolations int
+	var allViolations []shared.Violation
 
 	var taggable map[string]bool
 	if specFilePath != "" {
@@ -64,14 +64,14 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 				log.Printf("Error processing file %s: %v\n", path, processErr)
 				return nil // Example: Continue walking
 			}
-			totalViolations += len(violations)
+			allViolations = append(allViolations, violations...)
 		}
 		return nil
 	})
 	if walkErr != nil {
 		log.Printf("Error scanning directory %s: %v\n", dirPath, walkErr)
 	}
-	return totalViolations
+	return allViolations
 }
 
 // processFile parses files and maps the cfn nodes
@@ -99,23 +99,5 @@ func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bo
 	}
 
 	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll, taggable, filePath)
-
-	if len(violations) > 0 {
-		fmt.Printf("\nViolation(s) in %s\n", filePath)
-		for _, v := range violations {
-			if v.Skip {
-				fmt.Printf("  %d: %s \"%s\" skipped\n", v.Line, v.ResourceType, v.ResourceName)
-			} else {
-				fmt.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.Line, v.ResourceType, v.ResourceName, strings.Join(v.MissingTags, ", "))
-			}
-		}
-	}
-
-	var filteredViolations []shared.Violation
-	for _, v := range violations {
-		if !v.Skip {
-			filteredViolations = append(filteredViolations, v)
-		}
-	}
-	return filteredViolations, nil
+	return violations, nil
 }
