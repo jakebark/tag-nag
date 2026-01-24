@@ -140,23 +140,5 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 	}
 
 	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, tfCtx, caseInsensitive, lines, skipAll, taggable, filePath)
-
-	if len(violations) > 0 {
-		log.Printf("\nViolation(s) in %s\n", filePath)
-		for _, v := range violations {
-			if v.Skip {
-				log.Printf("  %d: %s \"%s\" skipped\n", v.Line, v.ResourceType, v.ResourceName)
-			} else {
-				log.Printf("  %d: %s \"%s\" 🏷️  Missing tags: %s\n", v.Line, v.ResourceType, v.ResourceName, strings.Join(v.MissingTags, ", "))
-			}
-		}
-	}
-
-	var filteredViolations []shared.Violation
-	for _, v := range violations {
-		if !v.Skip {
-			filteredViolations = append(filteredViolations, v)
-		}
-	}
-	return filteredViolations
+	return violations
 }
