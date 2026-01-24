@@ -16,6 +16,7 @@ type UserInput struct {
 	DryRun          bool
 	CfnSpecPath     string
 	Skip            []string
+	OutputFormat    shared.OutputFormat
 }
 
 // ParseFlags returns pased CLI flags and arguments
@@ -25,12 +26,14 @@ func ParseFlags() UserInput {
 	var tags string
 	var cfnSpecPath string
 	var skip string
+	var outputFormat string
 
 	pflag.BoolVarP(&caseInsensitive, "case-insensitive", "c", false, "Make tag checks non-case-sensitive")
 	pflag.BoolVarP(&dryRun, "dry-run", "d", false, "Dry run tag:nag without triggering exit(1) code")
 	pflag.StringVar(&tags, "tags", "", "Comma-separated list of required tag keys (e.g., 'Owner,Environment[Dev,Prod]')")
 	pflag.StringVar(&cfnSpecPath, "cfn-spec", "", "Optional path to CloudFormationResourceSpecification.json)")
 	pflag.StringVarP(&skip, "skip", "s", "", "Comma-separated list of files or directories to skip")
+	pflag.StringVar(&outputFormat, "output", "text", "Output format: text or json")
 	pflag.Parse()
 
 	if pflag.NArg() < 1 {
@@ -69,6 +72,11 @@ func ParseFlags() UserInput {
 		}
 	}
 
+	format := shared.OutputFormat(outputFormat)
+	if format != shared.OutputFormatText && format != shared.OutputFormatJSON {
+		log.Fatalf("Invalid output format '%s'. Supported formats: text, json", outputFormat)
+	}
+
 	return UserInput{
 		Directory:       pflag.Arg(0),
 		RequiredTags:    parsedTags,
@@ -76,6 +84,7 @@ func ParseFlags() UserInput {
 		DryRun:          dryRun,
 		CfnSpecPath:     cfnSpecPath,
 		Skip:            skipPaths,
+		OutputFormat:    format,
 	}
 }
 
