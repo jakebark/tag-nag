@@ -23,7 +23,7 @@ tag-nag . --tags "Owner", "Environment" # will take string or list
 
 ```
 
-Search for tag keys *and* values
+Search for tag keys *and* tag values
 
 ```bash
 tag-nag <file/directory> --tags "Key[Value]"
@@ -34,7 +34,7 @@ tag-nag main.tf --tags "Owner[Jake],Environment[Dev,Prod]" # multiple options fo
 
 ```
 
-Optional inputs
+Flags
 ```bash
 -c --case-insensitive  
 -d --dry-run # will always exit successfully
