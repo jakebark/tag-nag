@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
@@ -104,10 +105,8 @@ func skipDirectories(path string, info os.FileInfo, skip []string) bool {
 	// default skipped directories eg .git
 	if info.IsDir() {
 		dirName := info.Name()
-		for _, skippedDir := range config.SkippedDirs {
-			if dirName == skippedDir {
-				return true
-			}
+		if slices.Contains(config.SkippedDirs, dirName) {
+			return true
 		}
 	}
 
