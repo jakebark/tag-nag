@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/jakebark/tag-nag/internal/config"
@@ -52,19 +53,8 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		}
 		if info.IsDir() {
 			dirName := info.Name()
-			for _, skippedDir := range config.SkippedDirs {
-				if dirName == skippedDir {
-					return filepath.SkipDir
-				}
-			}
-		}
-
-		if info.IsDir() {
-			dirName := info.Name()
-			for _, skipped := range config.SkippedDirs {
-				if dirName == skipped {
-					return filepath.SkipDir
-				}
+			if slices.Contains(config.SkippedDirs, dirName) {
+				return filepath.SkipDir
 			}
 		}
 
