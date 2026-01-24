@@ -12,7 +12,7 @@ type JSONFormatter struct{}
 // JSONOutput represents the structured JSON output format
 type JSONOutput struct {
 	Violations []shared.Violation `json:"violations"`
-	Summary    Summary           `json:"summary"`
+	Summary    Summary            `json:"summary"`
 }
 
 // Summary provides aggregate information about violations
@@ -24,17 +24,16 @@ type Summary struct {
 
 // Format formats violations as JSON
 func (f *JSONFormatter) Format(violations []shared.Violation) ([]byte, error) {
-	// Calculate summary
 	var skipped int
 	files := make(map[string]bool)
-	
+
 	for _, v := range violations {
 		if v.Skip {
 			skipped++
 		}
 		files[v.FilePath] = true
 	}
-	
+
 	output := JSONOutput{
 		Violations: violations,
 		Summary: Summary{
@@ -43,6 +42,7 @@ func (f *JSONFormatter) Format(violations []shared.Violation) ([]byte, error) {
 			FilesAffected: len(files),
 		},
 	}
-	
+
 	return json.MarshalIndent(output, "", "  ")
 }
+
