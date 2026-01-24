@@ -21,9 +21,10 @@ type TagDefinition struct {
 }
 
 type Settings struct {
-	CaseInsensitive bool   `yaml:"case_insensitive"`
-	DryRun          bool   `yaml:"dry_run"`
-	CfnSpec         string `yaml:"cfn_spec"`
+	CaseInsensitive bool                `yaml:"case_insensitive"`
+	DryRun          bool                `yaml:"dry_run"`
+	CfnSpec         string              `yaml:"cfn_spec"`
+	Output          shared.OutputFormat `yaml:"output"`
 }
 
 // FindAndLoadConfigFile attempts to find and load configuration file

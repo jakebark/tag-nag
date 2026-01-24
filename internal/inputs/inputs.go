@@ -3,6 +3,7 @@ package inputs
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/jakebark/tag-nag/internal/shared"
@@ -47,6 +48,12 @@ func ParseFlags() UserInput {
 			log.Fatalf("Error loading config: %v", err)
 		}
 		if configFile != nil {
+			// Use config output format if CLI wasn't specified
+			configOutputFormat := shared.OutputFormat(outputFormat)
+			outputFlag := pflag.Lookup("output")
+			if !outputFlag.Changed && configFile.Settings.Output != "" {
+				configOutputFormat = configFile.Settings.Output
+			}
 			return UserInput{
 				Directory:       pflag.Arg(0),
 				RequiredTags:    configFile.convertToTagMap(),
@@ -54,6 +61,7 @@ func ParseFlags() UserInput {
 				DryRun:          configFile.Settings.DryRun,
 				CfnSpecPath:     configFile.Settings.CfnSpec,
 				Skip:            configFile.Skip,
+				OutputFormat:    configOutputFormat,
 			}
 		}
 		log.Fatal("Error: specify required tags using --tags or create a .tag-nag.yml config file")
@@ -72,7 +80,19 @@ func ParseFlags() UserInput {
 		}
 	}
 
+	// Try to load config file for output format default
+	configFile, err := FindAndLoadConfigFile()
+	if err != nil && !os.IsNotExist(err) {
+		log.Fatalf("Error loading config: %v", err)
+	}
+
 	format := shared.OutputFormat(outputFormat)
+	// Use config output format if CLI wasn't explicitly provided and config exists
+	outputFlag := pflag.Lookup("output")
+	if !outputFlag.Changed && configFile != nil && configFile.Settings.Output != "" {
+		format = configFile.Settings.Output
+	}
+
 	if format != shared.OutputFormatText && format != shared.OutputFormatJSON {
 		log.Fatalf("Invalid output format '%s'. Supported formats: text, json", outputFormat)
 	}
