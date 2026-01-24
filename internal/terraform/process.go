@@ -22,17 +22,17 @@ type tfFile struct {
 }
 
 // ProcessDirectory walks all terraform files in directory
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, skip []string) int {
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, skip []string) []shared.Violation {
 	hasFiles, err := scan(dirPath)
 	if err != nil {
-		return 0
+		return nil
 	}
 	if !hasFiles {
-		return 0
+		return nil
 	}
 
 	// log.Println("Terraform files found\n")
-	var totalViolations int
+	var allViolations []shared.Violation
 
 	taggable := loadTaggableResources("registry.terraform.io/hashicorp/aws")
 	if taggable == nil {
@@ -49,11 +49,11 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 	tfFiles, err := collectFiles(dirPath, skip)
 	if err != nil {
 		log.Printf("Error scanning directory %q: %v\n", dirPath, err)
-		return 0
+		return nil
 	}
 
 	if len(tfFiles) == 0 {
-		return 0
+		return nil
 	}
 
 	// extract default tags from all files
@@ -62,10 +62,10 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 	// process resources for tag violations
 	for _, tf := range tfFiles {
 		violations := processFile(tf.path, requiredTags, &defaultTags, tfCtx, caseInsensitive, taggable)
-		totalViolations += len(violations)
+		allViolations = append(allViolations, violations...)
 	}
 
-	return totalViolations
+	return allViolations
 }
 
 // collectFiles identifies all elligible terraform files

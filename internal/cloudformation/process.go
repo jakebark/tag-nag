@@ -13,17 +13,17 @@ import (
 )
 
 // ProcessDirectory walks all cfn files in a directory, then returns violations
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string, skip []string) int {
+func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string, skip []string) []shared.Violation {
 	hasFiles, err := scan(dirPath)
 	if err != nil {
-		return 0
+		return nil
 	}
 	if !hasFiles {
-		return 0
+		return nil
 	}
 
 	// log.Println("\nCloudFormation files found")
-	var totalViolations int
+	var allViolations []shared.Violation
 
 	var taggable map[string]bool
 	if specFilePath != "" {
@@ -64,14 +64,14 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 				log.Printf("Error processing file %s: %v\n", path, processErr)
 				return nil // Example: Continue walking
 			}
-			totalViolations += len(violations)
+			allViolations = append(allViolations, violations...)
 		}
 		return nil
 	})
 	if walkErr != nil {
 		log.Printf("Error scanning directory %s: %v\n", dirPath, walkErr)
 	}
-	return totalViolations
+	return allViolations
 }
 
 // processFile parses files and maps the cfn nodes
