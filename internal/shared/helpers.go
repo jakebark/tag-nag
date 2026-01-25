@@ -38,14 +38,8 @@ func FilterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 // matchTagKey checks required tag key against effective tags
 func matchTagKey(requiredKey string, effectiveTags TagMap, caseInsensitive bool) (values []string, found bool) {
 	for effectiveKey, effectiveValues := range effectiveTags {
-		if caseInsensitive {
-			if strings.EqualFold(effectiveKey, requiredKey) {
-				return effectiveValues, true
-			}
-		} else {
-			if effectiveKey == requiredKey {
-				return effectiveValues, true
-			}
+		if CompareCase(effectiveKey, requiredKey, caseInsensitive) {
+			return effectiveValues, true
 		}
 	}
 	return nil, false
@@ -62,16 +56,26 @@ func matchTagValue(allowedValues []string, effectiveValues []string, caseInsensi
 
 	for _, allowed := range allowedValues {
 		for _, effectiveValue := range effectiveValues {
-			if caseInsensitive {
-				if strings.EqualFold(effectiveValue, allowed) {
-					return true
-				}
-			} else {
-				if effectiveValue == allowed {
-					return true
-				}
+			if CompareCase(effectiveValue, allowed, caseInsensitive) {
+				return true
 			}
 		}
 	}
 	return false
+}
+
+// NormalizeCase lowers the case if caseInsensitive is true
+func NormalizeCase(input string, caseInsensitive bool) string {
+	if caseInsensitive {
+		return strings.ToLower(input)
+	}
+	return input
+}
+
+// CompareCase compares case sensitivity where appropriate
+func CompareCase(first, second string, caseInsensitive bool) bool {
+	if caseInsensitive {
+		return strings.EqualFold(first, second)
+	}
+	return first == second
 }

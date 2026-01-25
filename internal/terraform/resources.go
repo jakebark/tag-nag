@@ -76,10 +76,7 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 		// provider is a literal string ("aws")
 		val, diags := attr.Expr.Value(nil)
 		if !diags.HasErrors() {
-			s := val.AsString()
-			if caseInsensitive {
-				s = strings.ToLower(s)
-			}
+			s := shared.NormalizeCase(val.AsString(), caseInsensitive)
 			return s
 		}
 		// provider is not a literal string ("aws.west")
@@ -90,10 +87,7 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 	}
 
 	// no explicit provider, return default provider
-	defaultProvider := "aws"
-	if caseInsensitive {
-		defaultProvider = strings.ToLower(defaultProvider)
-	}
+	defaultProvider := shared.NormalizeCase("aws", caseInsensitive)
 	return defaultProvider
 }
 
@@ -139,10 +133,7 @@ func findTags(block *hclsyntax.Block, tfContext *TerraformContext, caseInsensiti
 				}
 			}
 
-			effectiveKey := key
-			if caseInsensitive {
-				effectiveKey = strings.ToLower(key)
-			}
+			effectiveKey := shared.NormalizeCase(key, caseInsensitive)
 			evalTags[effectiveKey] = []string{valStr}
 		}
 	}

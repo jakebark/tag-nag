@@ -91,9 +91,7 @@ func extractTagMap(properties map[string]any, caseInsensitive bool) (shared.TagM
 				}
 			}
 		}
-		if caseInsensitive {
-			key = strings.ToLower(key)
-		}
+		key = shared.NormalizeCase(key, caseInsensitive)
 		tagsMap[key] = []string{tagValue}
 	}
 	return tagsMap, nil

@@ -82,9 +82,7 @@ func normalizeProviderID(providerName, alias string, caseInsensitive bool) strin
 		providerID += "." + alias
 	}
 
-	if caseInsensitive {
-		providerID = strings.ToLower(providerID)
-	}
+	providerID = shared.NormalizeCase(providerID, caseInsensitive)
 
 	return providerID
 }
@@ -126,10 +124,7 @@ func getDefaultTags(block *hclsyntax.Block, tfContext *TerraformContext, caseIns
 						}
 					}
 
-					effectiveKey := key
-					if caseInsensitive {
-						effectiveKey = strings.ToLower(key)
-					}
+					effectiveKey := shared.NormalizeCase(key, caseInsensitive)
 					evalTags[effectiveKey] = []string{valStr}
 				}
 				return evalTags

@@ -27,19 +27,13 @@ func traversalToString(expr hcl.Expression, caseInsensitive bool) string {
 				tokens = append(tokens, t.Name)
 			}
 		}
-		result := strings.Join(tokens, ".")
-		if caseInsensitive {
-			result = strings.ToLower(result)
-		}
+		result := shared.NormalizeCase(strings.Join(tokens, "."), caseInsensitive)
 		return result
 	}
 	// fallback - attempt to evaluate the expression as a literal value
 	if v, diags := expr.Value(nil); !diags.HasErrors() {
 		if v.Type().Equals(cty.String) {
-			s := v.AsString()
-			if caseInsensitive {
-				s = strings.ToLower(s)
-			}
+			s := shared.NormalizeCase(v.AsString(), caseInsensitive)
 			return s
 		} else {
 			return fmt.Sprintf("%v", v)
