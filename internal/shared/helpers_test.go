@@ -143,3 +143,167 @@ func TestFilterMissingTags(t *testing.T) {
 		})
 	}
 }
+
+func TestNormalizeCase(t *testing.T) {
+	tests := []struct {
+		name            string
+		input           string
+		caseInsensitive bool
+		expected        string
+	}{
+		{
+			name:            "preserve case when false",
+			input:           "Owner",
+			caseInsensitive: false,
+			expected:        "Owner",
+		},
+		{
+			name:            "lowercase when true",
+			input:           "Owner",
+			caseInsensitive: true,
+			expected:        "owner",
+		},
+		{
+			name:            "already lowercase",
+			input:           "owner",
+			caseInsensitive: true,
+			expected:        "owner",
+		},
+		{
+			name:            "mixed case",
+			input:           "EnViRoNmEnT",
+			caseInsensitive: true,
+			expected:        "environment",
+		},
+		{
+			name:            "all uppercase",
+			input:           "ENVIRONMENT",
+			caseInsensitive: true,
+			expected:        "environment",
+		},
+		{
+			name:            "empty string case sensitive",
+			input:           "",
+			caseInsensitive: false,
+			expected:        "",
+		},
+		{
+			name:            "empty string case insensitive",
+			input:           "",
+			caseInsensitive: true,
+			expected:        "",
+		},
+		{
+			name:            "special characters preserved",
+			input:           "Tag-Name_123",
+			caseInsensitive: true,
+			expected:        "tag-name_123",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := NormalizeCase(tc.input, tc.caseInsensitive)
+			if actual != tc.expected {
+				t.Errorf("NormalizeCase(%q, %v) = %q; want %q", tc.input, tc.caseInsensitive, actual, tc.expected)
+			}
+		})
+	}
+}
+
+func TestCompareCase(t *testing.T) {
+	tests := []struct {
+		name            string
+		first           string
+		second          string
+		caseInsensitive bool
+		expected        bool
+	}{
+		{
+			name:            "exact match case sensitive",
+			first:           "Owner",
+			second:          "Owner",
+			caseInsensitive: false,
+			expected:        true,
+		},
+		{
+			name:            "case mismatch case sensitive",
+			first:           "Owner",
+			second:          "owner",
+			caseInsensitive: false,
+			expected:        false,
+		},
+		{
+			name:            "case mismatch case insensitive",
+			first:           "Owner",
+			second:          "owner",
+			caseInsensitive: true,
+			expected:        true,
+		},
+		{
+			name:            "different strings case sensitive",
+			first:           "Owner",
+			second:          "Environment",
+			caseInsensitive: false,
+			expected:        false,
+		},
+		{
+			name:            "different strings case insensitive",
+			first:           "Owner",
+			second:          "Environment",
+			caseInsensitive: true,
+			expected:        false,
+		},
+		{
+			name:            "mixed case match case insensitive",
+			first:           "EnViRoNmEnT",
+			second:          "environment",
+			caseInsensitive: true,
+			expected:        true,
+		},
+		{
+			name:            "both uppercase case insensitive",
+			first:           "ENVIRONMENT",
+			second:          "ENVIRONMENT",
+			caseInsensitive: true,
+			expected:        true,
+		},
+		{
+			name:            "empty strings",
+			first:           "",
+			second:          "",
+			caseInsensitive: false,
+			expected:        true,
+		},
+		{
+			name:            "empty vs non-empty",
+			first:           "",
+			second:          "Owner",
+			caseInsensitive: true,
+			expected:        false,
+		},
+		{
+			name:            "special characters case insensitive",
+			first:           "Tag-Name_123",
+			second:          "tag-name_123",
+			caseInsensitive: true,
+			expected:        true,
+		},
+		{
+			name:            "unicode case insensitive",
+			first:           "Café",
+			second:          "café",
+			caseInsensitive: true,
+			expected:        true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := CompareCase(tc.first, tc.second, tc.caseInsensitive)
+			if actual != tc.expected {
+				t.Errorf("CompareCase(%q, %q, %v) = %v; want %v", tc.first, tc.second, tc.caseInsensitive, actual, tc.expected)
+			}
+		})
+	}
+}
