@@ -10,7 +10,7 @@ import (
 )
 
 // checkResourcesForTags inspects resource blocks and returns violations
-func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, fileLines []string, skipAll bool, taggable map[string]bool, filePath string) []shared.Violation {
+func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, defaultTags *DefaultTags, tfContext *TerraformContext, caseInsensitive bool, fileLines []string, skipAll bool, taggable map[string]bool, filePath string) []shared.Violation {
 	var violations []shared.Violation
 
 	for _, block := range body.Blocks {
@@ -48,7 +48,7 @@ func checkResourcesForTags(body *hclsyntax.Body, requiredTags shared.TagMap, def
 			providerEvalTags = make(shared.TagMap)
 		}
 
-		resourceEvalTags := findTags(block, tfCtx, caseInsensitive)
+		resourceEvalTags := findTags(block, tfContext, caseInsensitive)
 		effectiveTags := mergeTags(providerEvalTags, resourceEvalTags)
 
 		missingTags := shared.FilterMissingTags(requiredTags, effectiveTags, caseInsensitive)
@@ -98,11 +98,11 @@ func getResourceProvider(block *hclsyntax.Block, caseInsensitive bool) string {
 }
 
 // findTags returns tag map from a resource block (with extractTags), if it has tags
-func findTags(block *hclsyntax.Block, tfCtx *TerraformContext, caseInsensitive bool) shared.TagMap {
+func findTags(block *hclsyntax.Block, tfContext *TerraformContext, caseInsensitive bool) shared.TagMap {
 	evalTags := make(shared.TagMap)
 	if attr, exists := block.Body.Attributes["tags"]; exists {
 
-		childCtx := tfCtx.EvalContext.NewChild()
+		childCtx := tfContext.EvalContext.NewChild()
 		if childCtx.Variables == nil {
 			childCtx.Variables = make(map[string]cty.Value)
 		}

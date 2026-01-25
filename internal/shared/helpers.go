@@ -10,13 +10,13 @@ import (
 func FilterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitive bool) []string {
 	var missingTags []string
 
-	for reqKey, allowedValues := range requiredTags {
-		effectiveValues, keyFound := matchTagKey(reqKey, effectiveTags, caseInsensitive)
+	for requiredKey, allowedValues := range requiredTags {
+		effectiveValues, keyFound := matchTagKey(requiredKey, effectiveTags, caseInsensitive)
 
 		// construct violation message
-		violationMessage := reqKey
+		violationMessage := requiredKey
 		if len(allowedValues) > 0 {
-			violationMessage = fmt.Sprintf("%s[%s]", reqKey, strings.Join(allowedValues, ","))
+			violationMessage = fmt.Sprintf("%s[%s]", requiredKey, strings.Join(allowedValues, ","))
 		}
 		if !keyFound {
 			missingTags = append(missingTags, violationMessage)
@@ -36,15 +36,15 @@ func FilterMissingTags(requiredTags TagMap, effectiveTags TagMap, caseInsensitiv
 }
 
 // matchTagKey checks required tag key against effective tags
-func matchTagKey(reqKey string, effectiveTags TagMap, caseInsensitive bool) (values []string, found bool) {
-	for effKey, effValues := range effectiveTags {
+func matchTagKey(requiredKey string, effectiveTags TagMap, caseInsensitive bool) (values []string, found bool) {
+	for effectiveKey, effectiveValues := range effectiveTags {
 		if caseInsensitive {
-			if strings.EqualFold(effKey, reqKey) {
-				return effValues, true
+			if strings.EqualFold(effectiveKey, requiredKey) {
+				return effectiveValues, true
 			}
 		} else {
-			if effKey == reqKey {
-				return effValues, true
+			if effectiveKey == requiredKey {
+				return effectiveValues, true
 			}
 		}
 	}
@@ -61,13 +61,13 @@ func matchTagValue(allowedValues []string, effectiveValues []string, caseInsensi
 	}
 
 	for _, allowed := range allowedValues {
-		for _, effVal := range effectiveValues {
+		for _, effectiveValue := range effectiveValues {
 			if caseInsensitive {
-				if strings.EqualFold(effVal, allowed) {
+				if strings.EqualFold(effectiveValue, allowed) {
 					return true
 				}
 			} else {
-				if effVal == allowed {
+				if effectiveValue == allowed {
 					return true
 				}
 			}

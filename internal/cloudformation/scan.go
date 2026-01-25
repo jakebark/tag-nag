@@ -7,14 +7,14 @@ import (
 )
 
 // scan looks for cfn files
-func scan(dirPath string) (bool, error) {
+func scan(directoryPath string) (bool, error) {
 	found := false
 	targetExts := map[string]bool{
 		".yaml": true,
 		".yml":  true,
 		".json": true,
 	}
-	walkErr := filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
+	walkErr := filepath.WalkDir(directoryPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return nil
 		}

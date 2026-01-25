@@ -22,8 +22,8 @@ type tfFile struct {
 }
 
 // ProcessDirectory walks all terraform files in directory
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, skip []string) []shared.Violation {
-	hasFiles, err := scan(dirPath)
+func ProcessDirectory(directoryPath string, requiredTags map[string][]string, caseInsensitive bool, skip []string) []shared.Violation {
+	hasFiles, err := scan(directoryPath)
 	if err != nil {
 		return nil
 	}
@@ -40,15 +40,15 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		// log.Printf("Continuing with limited features ... \n ")
 	}
 
-	tfCtx, err := buildTagContext(dirPath)
+	tfContext, err := buildTagContext(directoryPath)
 	if err != nil {
-		tfCtx = &TerraformContext{EvalContext: &hcl.EvalContext{Variables: make(map[string]cty.Value), Functions: make(map[string]function.Function)}}
+		tfContext = &TerraformContext{EvalContext: &hcl.EvalContext{Variables: make(map[string]cty.Value), Functions: make(map[string]function.Function)}}
 	}
 
 	// single directory walk
-	tfFiles, err := collectFiles(dirPath, skip)
+	tfFiles, err := collectFiles(directoryPath, skip)
 	if err != nil {
-		log.Printf("Error scanning directory %q: %v\n", dirPath, err)
+		log.Printf("Error scanning directory %q: %v\n", directoryPath, err)
 		return nil
 	}
 
@@ -57,11 +57,11 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 	}
 
 	// extract default tags from all files
-	defaultTags := processDefaultTags(tfFiles, tfCtx, caseInsensitive)
+	defaultTags := processDefaultTags(tfFiles, tfContext, caseInsensitive)
 
 	// process resources for tag violations
 	for _, tf := range tfFiles {
-		violations := processFile(tf.path, requiredTags, &defaultTags, tfCtx, caseInsensitive, taggable)
+		violations := processFile(tf.path, requiredTags, &defaultTags, tfContext, caseInsensitive, taggable)
 		allViolations = append(allViolations, violations...)
 	}
 
@@ -69,10 +69,10 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 }
 
 // collectFiles identifies all elligible terraform files
-func collectFiles(dirPath string, skip []string) ([]tfFile, error) {
+func collectFiles(directoryPath string, skip []string) ([]tfFile, error) {
 	var tfFiles []tfFile
 
-	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -114,7 +114,7 @@ func skipDirectories(path string, info os.FileInfo, skip []string) bool {
 }
 
 // processFile parses files looking for resources
-func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool, taggable map[string]bool) []shared.Violation {
+func processFile(filePath string, requiredTags shared.TagMap, defaultTags *DefaultTags, tfContext *TerraformContext, caseInsensitive bool, taggable map[string]bool) []shared.Violation {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Printf("Error reading %s: %v\n", filePath, err)
@@ -139,6 +139,6 @@ func processFile(filePath string, requiredTags shared.TagMap, defaultTags *Defau
 		return nil
 	}
 
-	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, tfCtx, caseInsensitive, lines, skipAll, taggable, filePath)
+	violations := checkResourcesForTags(syntaxBody, requiredTags, defaultTags, tfContext, caseInsensitive, lines, skipAll, taggable, filePath)
 	return violations
 }

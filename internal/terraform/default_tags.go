@@ -13,7 +13,7 @@ import (
 )
 
 // processDefaultTags identifies the default tags
-func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensitive bool) DefaultTags {
+func processDefaultTags(tfFiles []tfFile, tfContext *TerraformContext, caseInsensitive bool) DefaultTags {
 	defaultTags := DefaultTags{
 		LiteralTags: make(map[string]shared.TagMap),
 	}
@@ -33,18 +33,18 @@ func processDefaultTags(tfFiles []tfFile, tfCtx *TerraformContext, caseInsensiti
 			continue
 		}
 
-		processProviders(syntaxBody, &defaultTags, tfCtx, caseInsensitive)
+		processProviders(syntaxBody, &defaultTags, tfContext, caseInsensitive)
 	}
 
 	return defaultTags
 }
 
 // processProviders extracts any default_tags from providers
-func processProviders(body *hclsyntax.Body, defaultTags *DefaultTags, tfCtx *TerraformContext, caseInsensitive bool) {
+func processProviders(body *hclsyntax.Body, defaultTags *DefaultTags, tfContext *TerraformContext, caseInsensitive bool) {
 	for _, block := range body.Blocks {
 		if block.Type == "provider" && len(block.Labels) > 0 {
 			providerID := getProviderID(block, caseInsensitive)   // handle ID
-			tags := getDefaultTags(block, tfCtx, caseInsensitive) // handle tags
+			tags := getDefaultTags(block, tfContext, caseInsensitive) // handle tags
 
 			if len(tags) > 0 {
 				var keys []string
@@ -90,11 +90,11 @@ func normalizeProviderID(providerName, alias string, caseInsensitive bool) strin
 }
 
 // getDefaultTags returns the default_tags on a provider block.
-func getDefaultTags(block *hclsyntax.Block, tfCtx *TerraformContext, caseInsensitive bool) shared.TagMap { // Add tfCtx param
+func getDefaultTags(block *hclsyntax.Block, tfContext *TerraformContext, caseInsensitive bool) shared.TagMap { // Add tfContext param
 	for _, subBlock := range block.Body.Blocks {
 		if subBlock.Type == "default_tags" {
 			if tagsAttr, exists := subBlock.Body.Attributes["tags"]; exists {
-				tagsVal, diags := tagsAttr.Expr.Value(tfCtx.EvalContext)
+				tagsVal, diags := tagsAttr.Expr.Value(tfContext.EvalContext)
 				if diags.HasErrors() {
 					log.Printf("Error evaluating default_tags expression for provider %v: %v", block.Labels, diags)
 					return nil
