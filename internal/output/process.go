@@ -8,7 +8,7 @@ import (
 	"github.com/jakebark/tag-nag/internal/shared"
 )
 
-// ProcessOuput handles the output formatting and exit logic
+// ProcessOutput handles the output formatting and exit logic
 func ProcessOutput(violations []shared.Violation, format shared.OutputFormat, dryRun bool) {
 	formatter := GetFormatter(format)
 	formattedOutput, err := formatter.Format(violations)

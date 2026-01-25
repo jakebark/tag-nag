@@ -13,8 +13,8 @@ import (
 )
 
 // ProcessDirectory walks all cfn files in a directory, then returns violations
-func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string, skip []string) []shared.Violation {
-	hasFiles, err := scan(dirPath)
+func ProcessDirectory(directoryPath string, requiredTags map[string][]string, caseInsensitive bool, specFilePath string, skip []string) []shared.Violation {
+	hasFiles, err := scan(directoryPath)
 	if err != nil {
 		return nil
 	}
@@ -37,7 +37,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		}
 	}
 
-	walkErr := filepath.Walk(dirPath, func(path string, info os.FileInfo, walkErr error) error {
+	walkErr := filepath.Walk(directoryPath, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			log.Printf("Error accessing %q: %v\n", path, walkErr)
 			return walkErr
@@ -69,7 +69,7 @@ func ProcessDirectory(dirPath string, requiredTags map[string][]string, caseInse
 		return nil
 	})
 	if walkErr != nil {
-		log.Printf("Error scanning directory %s: %v\n", dirPath, walkErr)
+		log.Printf("Error scanning directory %s: %v\n", directoryPath, walkErr)
 	}
 	return allViolations
 }
@@ -98,6 +98,6 @@ func processFile(filePath string, requiredTags shared.TagMap, caseInsensitive bo
 		return []shared.Violation{}, nil
 	}
 
-	violations := checkResourcesforTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll, taggable, filePath)
+	violations := checkResourcesForTags(resourcesMapping, requiredTags, caseInsensitive, lines, skipAll, taggable, filePath)
 	return violations, nil
 }

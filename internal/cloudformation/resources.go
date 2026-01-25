@@ -10,7 +10,7 @@ import (
 )
 
 // getResourceViolations inspects resource blocks and returns violations
-func checkResourcesforTags(resourcesMapping map[string]*yaml.Node, requiredTags shared.TagMap, caseInsensitive bool, fileLines []string, skipAll bool, taggable map[string]bool, filePath string) []shared.Violation {
+func checkResourcesForTags(resourcesMapping map[string]*yaml.Node, requiredTags shared.TagMap, caseInsensitive bool, fileLines []string, skipAll bool, taggable map[string]bool, filePath string) []shared.Violation {
 	var violations []shared.Violation
 
 	for resourceName, resourceNode := range resourcesMapping { // resourceNode == yaml node for resource
@@ -91,9 +91,7 @@ func extractTagMap(properties map[string]any, caseInsensitive bool) (shared.TagM
 				}
 			}
 		}
-		if caseInsensitive {
-			key = strings.ToLower(key)
-		}
+		key = shared.NormalizeCase(key, caseInsensitive)
 		tagsMap[key] = []string{tagValue}
 	}
 	return tagsMap, nil

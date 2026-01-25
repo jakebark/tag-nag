@@ -14,12 +14,12 @@ import (
 	"github.com/zclconf/go-cty/cty/function"
 )
 
-func buildTagContext(dirPath string) (*TerraformContext, error) {
+func buildTagContext(directoryPath string) (*TerraformContext, error) {
 	parsedFiles := make(map[string]*hcl.File)
 	parser := hclparse.NewParser()
 
 	// first pass, parse files
-	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -43,7 +43,7 @@ func buildTagContext(dirPath string) (*TerraformContext, error) {
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error walking directory %s: %w", dirPath, err)
+		return nil, fmt.Errorf("error walking directory %s: %w", directoryPath, err)
 	}
 
 	if len(parsedFiles) == 0 {
