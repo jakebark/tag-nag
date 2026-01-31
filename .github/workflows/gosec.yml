@@ -1,12 +1,18 @@
 name: Security Scan with Gosec
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
   security:
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
     env:
       GO111MODULE: on
     steps:
@@ -21,9 +27,10 @@ jobs:
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
         with:
-          args: '-fmt sarif -out gosec.sarif -severity medium ./...'
+          args: './...'
           
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
+        if: always()
         with:
-          sarif_file: gosec.sarif
+          sarif_file: results.sarif
