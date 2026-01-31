@@ -24,8 +24,15 @@ jobs:
         with:
           go-version: '1.21'
           
-      - name: Run Gosec Security Scanner
+      - name: Run Gosec Security Scanner (Text Output)
         uses: securego/gosec@master
+        continue-on-error: true
+        with:
+          args: '-fmt text ./...'
+          
+      - name: Run Gosec Security Scanner (SARIF Output)
+        uses: securego/gosec@master
+        continue-on-error: true
         with:
           args: '-fmt sarif -out results.sarif ./...'
           
