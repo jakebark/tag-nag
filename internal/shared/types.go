@@ -14,6 +14,7 @@ type Violation struct {
 type OutputFormat string
 
 const (
-	OutputFormatText OutputFormat = "text"
-	OutputFormatJSON OutputFormat = "json"
+	OutputFormatText     OutputFormat = "text"
+	OutputFormatJSON     OutputFormat = "json"
+	OutputFormatJUnitXML OutputFormat = "junit-xml"
 )
