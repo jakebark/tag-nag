@@ -7,7 +7,6 @@ import (
 	"github.com/jakebark/tag-nag/internal/shared"
 )
 
-// TextFormatter implements the current text output format
 type TextFormatter struct{}
 
 // Format formats violations as human-readable text
@@ -35,4 +34,3 @@ func (f *TextFormatter) Format(violations []shared.Violation) ([]byte, error) {
 
 	return []byte(output.String()), nil
 }
-

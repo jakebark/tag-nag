@@ -8,10 +8,8 @@ import (
 	"github.com/jakebark/tag-nag/internal/shared"
 )
 
-// JUnitXMLFormatter implements JUnit XML output format
 type JUnitXMLFormatter struct{}
 
-// TestSuite represents a test suite in JUnit XML
 type TestSuite struct {
 	XMLName   xml.Name   `xml:"testsuite"`
 	Name      string     `xml:"name,attr"`
@@ -20,7 +18,6 @@ type TestSuite struct {
 	TestCases []TestCase `xml:"testcase"`
 }
 
-// TestCase represents a test case in JUnit XML
 type TestCase struct {
 	XMLName   xml.Name `xml:"testcase"`
 	Name      string   `xml:"name,attr"`
@@ -28,7 +25,6 @@ type TestCase struct {
 	Failure   *Failure `xml:"failure,omitempty"`
 }
 
-// Failure represents a test failure in JUnit XML
 type Failure struct {
 	XMLName xml.Name `xml:"failure"`
 	Message string   `xml:"message,attr"`
@@ -69,3 +65,4 @@ func (f *JUnitXMLFormatter) Format(violations []shared.Violation) ([]byte, error
 
 	return []byte(xml.Header + string(output)), nil
 }
+
