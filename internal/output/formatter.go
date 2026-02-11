@@ -12,6 +12,8 @@ func GetFormatter(format shared.OutputFormat) Formatter {
 	switch format {
 	case shared.OutputFormatJSON:
 		return &JSONFormatter{}
+	case shared.OutputFormatJUnitXML:
+		return &JUnitXMLFormatter{}
 	case shared.OutputFormatText:
 		fallthrough
 	default:
