@@ -2,7 +2,6 @@ package output
 
 import "github.com/jakebark/tag-nag/internal/shared"
 
-// Formatter defines the interface for all output formatters
 type Formatter interface {
 	Format(violations []shared.Violation) ([]byte, error)
 }
@@ -12,9 +11,12 @@ func GetFormatter(format shared.OutputFormat) Formatter {
 	switch format {
 	case shared.OutputFormatJSON:
 		return &JSONFormatter{}
+	case shared.OutputFormatJUnitXML:
+		return &JUnitXMLFormatter{}
 	case shared.OutputFormatText:
 		fallthrough
 	default:
 		return &TextFormatter{}
 	}
 }
+
