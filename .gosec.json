@@ -1,0 +1,8 @@
+{
+  "exclude": [
+    "G304"
+  ],
+  "exclude-dir": [
+    "testdata"
+  ]
+}
