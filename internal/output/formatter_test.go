@@ -24,6 +24,11 @@ func TestGetFormatter(t *testing.T) {
 			expectedType: "*output.JUnitXMLFormatter",
 		},
 		{
+			name:         "sarif format",
+			format:       shared.OutputFormatSARIF,
+			expectedType: "*output.SARIFFormatter",
+		},
+		{
 			name:         "text format",
 			format:       shared.OutputFormatText,
 			expectedType: "*output.TextFormatter",
