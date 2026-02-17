@@ -13,6 +13,8 @@ func GetFormatter(format shared.OutputFormat) Formatter {
 		return &JSONFormatter{}
 	case shared.OutputFormatJUnitXML:
 		return &JUnitXMLFormatter{}
+	case shared.OutputFormatSARIF:
+		return &SARIFFormatter{}
 	case shared.OutputFormatText:
 		fallthrough
 	default:
