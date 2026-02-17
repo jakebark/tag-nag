@@ -34,7 +34,7 @@ func ParseFlags() UserInput {
 	pflag.StringVar(&tags, "tags", "", "Comma-separated list of required tag keys (e.g., 'Owner,Environment[Dev,Prod]')")
 	pflag.StringVar(&cfnSpecPath, "cfn-spec", "", "Optional path to CloudFormationResourceSpecification.json)")
 	pflag.StringVarP(&skip, "skip", "s", "", "Comma-separated list of files or directories to skip")
-	pflag.StringVarP(&outputFormat, "output", "o", "text", "Output format: text, json, or junit-xml")
+	pflag.StringVarP(&outputFormat, "output", "o", "text", "Output format: text, json, junit-xml, or sarif")
 	pflag.Parse()
 
 	if pflag.NArg() < 1 {
@@ -93,8 +93,8 @@ func ParseFlags() UserInput {
 		format = configFile.Settings.Output
 	}
 
-	if format != shared.OutputFormatText && format != shared.OutputFormatJSON && format != shared.OutputFormatJUnitXML {
-		log.Fatalf("Invalid output format '%s'. Supported formats: text, json, junit-xml", outputFormat)
+	if format != shared.OutputFormatText && format != shared.OutputFormatJSON && format != shared.OutputFormatJUnitXML && format != shared.OutputFormatSARIF {
+		log.Fatalf("Invalid output format '%s'. Supported formats: text, json, junit-xml, sarif", outputFormat)
 	}
 
 	return UserInput{

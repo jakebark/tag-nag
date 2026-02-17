@@ -17,4 +17,5 @@ const (
 	OutputFormatText     OutputFormat = "text"
 	OutputFormatJSON     OutputFormat = "json"
 	OutputFormatJUnitXML OutputFormat = "junit-xml"
+	OutputFormatSARIF    OutputFormat = "sarif"
 )
