@@ -5,15 +5,21 @@ updates:
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 10
-    reviewers:
-      - "jakebark"
-    assignees:
-      - "jakebark"
     commit-message:
       prefix: "deps"
-      include: "scope"
+      include: scope
     labels:
       - "dependencies"
     groups:
       golang-x:
         patterns: ["golang.org/x/*"]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+      include: scope
+    labels:
+      - "dependencies"
