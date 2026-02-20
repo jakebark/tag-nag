@@ -18,6 +18,7 @@ type UserInput struct {
 	CfnSpecPath     string
 	Skip            []string
 	OutputFormat    shared.OutputFormat
+	OutputFile      string
 }
 
 // ParseFlags returns pased CLI flags and arguments
