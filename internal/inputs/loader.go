@@ -25,6 +25,7 @@ type Settings struct {
 	DryRun          bool                `yaml:"dry_run"`
 	CfnSpec         string              `yaml:"cfn_spec"`
 	Output          shared.OutputFormat `yaml:"output"`
+	OutputFile      string              `yaml:"output_file"`
 }
 
 // FindAndLoadConfigFile attempts to find and load configuration file
