@@ -41,6 +41,7 @@ Flags
 --cfn-spec ~/path/to/CloudFormationResourceSpecification.json # path to Cfn spec file, filters taggable resources
 -s --skip "file.tf, path/to/directory" # skip files and directories
 -o --output json # output to json (default is text)
+--output-file results.json # write output to a file instead of stdout
 ```
 
 ## Config file

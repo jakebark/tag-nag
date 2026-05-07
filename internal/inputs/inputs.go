@@ -18,6 +18,7 @@ type UserInput struct {
 	CfnSpecPath     string
 	Skip            []string
 	OutputFormat    shared.OutputFormat
+	OutputFile      string
 }
 
 // ParseFlags returns pased CLI flags and arguments
@@ -28,6 +29,7 @@ func ParseFlags() UserInput {
 	var cfnSpecPath string
 	var skip string
 	var outputFormat string
+	var outputFile string
 
 	pflag.BoolVarP(&caseInsensitive, "case-insensitive", "c", false, "Make tag checks non-case-sensitive")
 	pflag.BoolVarP(&dryRun, "dry-run", "d", false, "Dry run tag:nag without triggering exit(1) code")
@@ -35,6 +37,7 @@ func ParseFlags() UserInput {
 	pflag.StringVar(&cfnSpecPath, "cfn-spec", "", "Optional path to CloudFormationResourceSpecification.json)")
 	pflag.StringVarP(&skip, "skip", "s", "", "Comma-separated list of files or directories to skip")
 	pflag.StringVarP(&outputFormat, "output", "o", "text", "Output format: text, json, junit-xml, or sarif")
+	pflag.StringVar(&outputFile, "output-file", "", "Write output to a file instead of stdout")
 	pflag.Parse()
 
 	if pflag.NArg() < 1 {
@@ -54,6 +57,12 @@ func ParseFlags() UserInput {
 			if !outputFlag.Changed && configFile.Settings.Output != "" {
 				configOutputFormat = configFile.Settings.Output
 			}
+			// Use config output file if CLI wasn't specified
+			configOutputFile := outputFile
+			outputFileFlag := pflag.Lookup("output-file")
+			if !outputFileFlag.Changed && configFile.Settings.OutputFile != "" {
+				configOutputFile = configFile.Settings.OutputFile
+			}
 			return UserInput{
 				Directory:       pflag.Arg(0),
 				RequiredTags:    configFile.convertToTagMap(),
@@ -62,6 +71,7 @@ func ParseFlags() UserInput {
 				CfnSpecPath:     configFile.Settings.CfnSpec,
 				Skip:            configFile.Skip,
 				OutputFormat:    configOutputFormat,
+				OutputFile:      configOutputFile,
 			}
 		}
 		log.Fatal("Error: specify required tags using --tags or create a .tag-nag.yml config file")
@@ -97,6 +107,13 @@ func ParseFlags() UserInput {
 		log.Fatalf("Invalid output format '%s'. Supported formats: text, json, junit-xml, sarif", outputFormat)
 	}
 
+	// Use config output file if CLI wasn't explicitly provided and config exists
+	resolvedOutputFile := outputFile
+	outputFileFlag := pflag.Lookup("output-file")
+	if !outputFileFlag.Changed && configFile != nil && configFile.Settings.OutputFile != "" {
+		resolvedOutputFile = configFile.Settings.OutputFile
+	}
+
 	return UserInput{
 		Directory:       pflag.Arg(0),
 		RequiredTags:    parsedTags,
@@ -105,6 +122,7 @@ func ParseFlags() UserInput {
 		CfnSpecPath:     cfnSpecPath,
 		Skip:            skipPaths,
 		OutputFormat:    format,
+		OutputFile:      resolvedOutputFile,
 	}
 }
 
