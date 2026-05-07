@@ -9,7 +9,7 @@ import (
 )
 
 // ProcessOutput handles the output formatting and exit logic
-func ProcessOutput(violations []shared.Violation, format shared.OutputFormat, dryRun bool) {
+func ProcessOutput(violations []shared.Violation, format shared.OutputFormat, dryRun bool, outputFile string) {
 	formatter := GetFormatter(format)
 	formattedOutput, err := formatter.Format(violations)
 	if err != nil {
@@ -17,7 +17,14 @@ func ProcessOutput(violations []shared.Violation, format shared.OutputFormat, dr
 	}
 
 	if len(formattedOutput) > 0 {
-		fmt.Print(string(formattedOutput))
+		if outputFile != "" {
+			if err := os.WriteFile(outputFile, formattedOutput, 0644); err != nil {
+				log.Fatalf("Error writing output file: %v", err)
+			}
+			log.Printf("Output written to %s", outputFile)
+		} else {
+			fmt.Print(string(formattedOutput))
+		}
 	}
 
 	nonSkippedCount := 0

@@ -7,7 +7,8 @@ tags:
 settings:
   case_insensitive: false
   dry_run: false
-  cfn_spec: "~/path/to/CloudFormationResourceSpecification.json" # remove if not using 
+  cfn_spec: "~/path/to/CloudFormationResourceSpecification.json" # remove if not using
+  output_file: "results.json" # write output to a file instead of stdout
 
 skip:
   - file.tf
