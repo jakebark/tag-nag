@@ -42,6 +42,7 @@ Flags
 -s --skip "file.tf, path/to/directory" # skip files and directories
 -o --output json # output to json (default is text)
 --output-file results.json # write output to a file instead of stdout
+-w --warning # exit code 2 instead of 1 for CI warning support
 ```
 
 ## Config file

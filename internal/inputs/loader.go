@@ -26,6 +26,7 @@ type Settings struct {
 	CfnSpec         string              `yaml:"cfn_spec"`
 	Output          shared.OutputFormat `yaml:"output"`
 	OutputFile      string              `yaml:"output_file"`
+	Warning         bool                `yaml:"warning"`
 }
 
 // FindAndLoadConfigFile attempts to find and load configuration file
