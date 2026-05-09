@@ -19,6 +19,7 @@ type UserInput struct {
 	Skip            []string
 	OutputFormat    shared.OutputFormat
 	OutputFile      string
+	Warning         bool
 }
 
 // ParseFlags returns pased CLI flags and arguments
@@ -30,6 +31,7 @@ func ParseFlags() UserInput {
 	var skip string
 	var outputFormat string
 	var outputFile string
+	var warning bool
 
 	pflag.BoolVarP(&caseInsensitive, "case-insensitive", "c", false, "Make tag checks non-case-sensitive")
 	pflag.BoolVarP(&dryRun, "dry-run", "d", false, "Dry run tag:nag without triggering exit(1) code")
@@ -38,6 +40,7 @@ func ParseFlags() UserInput {
 	pflag.StringVarP(&skip, "skip", "s", "", "Comma-separated list of files or directories to skip")
 	pflag.StringVarP(&outputFormat, "output", "o", "text", "Output format: text, json, junit-xml, or sarif")
 	pflag.StringVar(&outputFile, "output-file", "", "Write output to a file instead of stdout")
+	pflag.BoolVarP(&warning, "warning", "w", false, "Exit with code 2 instead of 1 when violations are found")
 	pflag.Parse()
 
 	if pflag.NArg() < 1 {
@@ -72,6 +75,7 @@ func ParseFlags() UserInput {
 				Skip:            configFile.Skip,
 				OutputFormat:    configOutputFormat,
 				OutputFile:      configOutputFile,
+				Warning:         warning || configFile.Settings.Warning,
 			}
 		}
 		log.Fatal("Error: specify required tags using --tags or create a .tag-nag.yml config file")
@@ -114,6 +118,12 @@ func ParseFlags() UserInput {
 		resolvedOutputFile = configFile.Settings.OutputFile
 	}
 
+	// Use config warning if CLI wasn't explicitly provided and config exists
+	resolvedWarning := warning
+	if !resolvedWarning && configFile != nil {
+		resolvedWarning = configFile.Settings.Warning
+	}
+
 	return UserInput{
 		Directory:       pflag.Arg(0),
 		RequiredTags:    parsedTags,
@@ -123,6 +133,7 @@ func ParseFlags() UserInput {
 		Skip:            skipPaths,
 		OutputFormat:    format,
 		OutputFile:      resolvedOutputFile,
+		Warning:         resolvedWarning,
 	}
 }
 

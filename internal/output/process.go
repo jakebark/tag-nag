@@ -9,7 +9,7 @@ import (
 )
 
 // ProcessOutput handles the output formatting and exit logic
-func ProcessOutput(violations []shared.Violation, format shared.OutputFormat, dryRun bool, outputFile string) {
+func ProcessOutput(violations []shared.Violation, format shared.OutputFormat, dryRun bool, outputFile string, warning bool) {
 	formatter := GetFormatter(format)
 	formattedOutput, err := formatter.Format(violations)
 	if err != nil {
@@ -37,6 +37,9 @@ func ProcessOutput(violations []shared.Violation, format shared.OutputFormat, dr
 	if nonSkippedCount > 0 && dryRun {
 		log.Printf("\033[32mFound %d tag violation(s)\033[0m\n", nonSkippedCount)
 		os.Exit(0)
+	} else if nonSkippedCount > 0 && warning {
+		log.Printf("\033[33mFound %d tag violation(s)\033[0m\n", nonSkippedCount)
+		os.Exit(2)
 	} else if nonSkippedCount > 0 {
 		log.Printf("\033[31mFound %d tag violation(s)\033[0m\n", nonSkippedCount)
 		os.Exit(1)

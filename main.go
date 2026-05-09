@@ -28,5 +28,5 @@ func main() {
 	allViolations = append(allViolations, tfViolations...)
 	allViolations = append(allViolations, cfnViolations...)
 
-	output.ProcessOutput(allViolations, userInput.OutputFormat, userInput.DryRun, userInput.OutputFile)
+	output.ProcessOutput(allViolations, userInput.OutputFormat, userInput.DryRun, userInput.OutputFile, userInput.Warning)
 }
