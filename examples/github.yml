@@ -5,9 +5,10 @@ on:
     branches: [main]
 
 jobs:
+  # default — image no longer bundles terraform
   tag-nag:
     runs-on: ubuntu-latest
-    
+
     container:
       image: jakebark/tag-nag:latest
 
@@ -15,8 +16,31 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v4
 
-      - name: run terraform init # remove for CloudFormation
+      - name: run tag-nag
+        run: tag-nag . --tags "tags"
+
+  # with terraform — install for taggable-resource filtering
+  tag-nag-with-terraform:
+    runs-on: ubuntu-latest
+
+    container:
+      image: jakebark/tag-nag:latest
+
+    env:
+      TF_VERSION: "1.9.5"
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: install terraform
+        run: |
+          curl -sLo /tmp/tf.zip "https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip"
+          unzip -o /tmp/tf.zip -d /tmp
+          echo "/tmp" >> "$GITHUB_PATH"
+
+      - name: run terraform init
         run: terraform init -backend=false
-         
+
       - name: run tag-nag
         run: tag-nag . --tags "tags"

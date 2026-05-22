@@ -78,7 +78,7 @@ EC2Instance:  #tag-nag ignore
 
 Some AWS resources cannot be tagged. 
 
-To filter out these resources with Terraform, run tag-nag against an initialised directory (`terraform init`).
+To filter out these resources with Terraform, run tag-nag against an initialised directory (`terraform init`). If using docker, add terraform to the tag-nag image. 
 
 To filter out these resources with CloudFormation, specify a path to the [CloudFormation JSON spec file](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-resource-specification.html) with the `--cfn-spec` input. 
 

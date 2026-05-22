@@ -1,9 +1,23 @@
 stages:
   - validate
 
+# default — image no longer bundles terraform
 tag-nag:
   stage: validate
   image: jakebark/tag-nag:latest
   script:
-    - terraform init -backend=false # remove for CloudFormation
+    - tag-nag . --tags "tags"
+
+# with terraform — install for taggable-resource filtering
+tag-nag-with-terraform:
+  stage: validate
+  image: jakebark/tag-nag:latest
+  variables:
+    TF_VERSION: "1.9.5"
+  before_script:
+    - curl -sLo /tmp/tf.zip "https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip"
+    - unzip -o /tmp/tf.zip -d /tmp
+    - export PATH="/tmp:$PATH"
+    - terraform init -backend=false
+  script:
     - tag-nag . --tags "tags"
