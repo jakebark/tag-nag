@@ -21,7 +21,7 @@ type UserInput struct {
 	OutputFile      string
 }
 
-// ParseFlags returns pased CLI flags and arguments
+// ParseFlags returns passed CLI flags and arguments
 func ParseFlags() UserInput {
 	var caseInsensitive bool
 	var dryRun bool

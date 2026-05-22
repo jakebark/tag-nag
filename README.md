@@ -2,9 +2,6 @@
 
 ## <img alt="tag:nag" height="150" src="./img/tag.png" />
 
-
-
-
 [![Go Version](https://img.shields.io/github/go-mod/go-version/jakebark/tag-nag)](./go.mod)
 [![Go Report Card](https://goreportcard.com/badge/github.com/jakebark/tag-nag)](https://goreportcard.com/report/github.com/jakebark/tag-nag)
 [![Go Reference](https://pkg.go.dev/badge/github.com/jakebark/tag-nag.svg)](https://pkg.go.dev/github.com/jakebark/tag-nag)
