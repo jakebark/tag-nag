@@ -1,8 +1,20 @@
-# tag-nag
+<div align="center">
+
+## <img alt="tag:nag" height="150" src="./img/tag.png" />
+
+
+
+
+[![Go Version](https://img.shields.io/github/go-mod/go-version/jakebark/tag-nag)](./go.mod)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jakebark/tag-nag)](https://goreportcard.com/report/github.com/jakebark/tag-nag)
+[![Go Reference](https://pkg.go.dev/badge/github.com/jakebark/tag-nag.svg)](https://pkg.go.dev/github.com/jakebark/tag-nag)
+[![Docker Pulls](https://img.shields.io/docker/pulls/jakebark/tag-nag)](https://hub.docker.com/r/jakebark/tag-nag)
+
+Validate AWS tags in Terraform and CloudFormation.  
 
 <img src="./img/demo.gif" width="650">
 
-Validate AWS tags in Terraform and CloudFormation.  
+</div>
 
 ## Installation
 ```bash
@@ -99,16 +111,6 @@ docker run -it --rm \
   -w /workspace \
   --entrypoint /bin/sh jakebark/tag-nag:latest
 ```
-
-The image contains terraform, allowing `terraform init` to be run, if required.  
-```bash
-docker pull jakebark/tag-nag:latest
-docker run --rm -v $(pwd):/workspace -w /workspace \
-  --entrypoint /bin/sh jakebark/tag-nag:latest \
-  -c "terraform init -input=false -no-color && tag-nag\
-     . --tags 'Owner,Environment'"
-```
-
 ## CI/CD
 
 Example CI files:
@@ -119,7 +121,3 @@ Example CI files:
 ## Related Resources
 
 - [pkg.go.dev/github.com/jakebark/tag-nag](https://pkg.go.dev/github.com/jakebark/tag-nag)
-
-<div align="center">
-<img alt="tag:nag" height="150" src="./img/tag.png" />
-</div>
