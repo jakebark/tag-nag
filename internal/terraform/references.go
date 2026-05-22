@@ -75,7 +75,7 @@ func buildTagContext(directoryPath string) (*TerraformContext, error) {
 					}
 					tfVars[varName] = val
 				} else {
-					tfVars[varName] = cty.NullVal(cty.DynamicPseudoType)
+					tfVars[varName] = cty.StringVal("")
 				}
 			}
 		}
