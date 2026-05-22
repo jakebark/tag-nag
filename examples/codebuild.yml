@@ -1,9 +1,29 @@
-## codebuild image 'jakebar/tag-nag:$latest'
+## codebuild image 'jakebark/tag-nag:latest'
+
+# default — image no longer bundles terraform
 version: 0.2
 
 phases:
   build:
     commands:
       - cd "$CODEBUILD_SRC_DIR"
-      - terraform init -backend=false # remove for CloudFormation
       - tag-nag . --tags "tags"
+
+# with terraform — install for taggable-resource filtering
+# version: 0.2
+#
+# env:
+#   variables:
+#     TF_VERSION: "1.9.5"
+#
+# phases:
+#   install:
+#     commands:
+#       - curl -sLo /tmp/tf.zip "https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip"
+#       - unzip -o /tmp/tf.zip -d /tmp
+#       - export PATH="/tmp:$PATH"
+#   build:
+#     commands:
+#       - cd "$CODEBUILD_SRC_DIR"
+#       - terraform init -backend=false
+#       - tag-nag . --tags "tags"
