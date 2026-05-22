@@ -15,7 +15,7 @@ import (
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 )
 
-// traversalToString converts a hcl hierachical/traversal string to a literal string
+// traversalToString converts a hcl hierarchical/traversal string to a literal string
 func traversalToString(expr hcl.Expression, caseInsensitive bool) string {
 	if ste, ok := expr.(*hclsyntax.ScopeTraversalExpr); ok {
 		tokens := []string{}
