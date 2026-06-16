@@ -9,6 +9,7 @@ settings:
   dry_run: false
   cfn_spec: "~/path/to/CloudFormationResourceSpecification.json" # remove if not using
   output_file: "results.json" # write output to a file instead of stdout
+  warning: false # exit code 2 instead of 1 for CI warning support
 
 skip:
   - file.tf
